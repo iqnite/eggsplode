@@ -14,20 +14,25 @@ games = {}
 
 
 CARDS = {
-    'attegg': {
-        'title': 'Attegg',
-        'description': 'End your turn without drawing, and force the next player to draw twice.',
-        'emoji': '⚡',
+    'eggsplode': {
+        'title': 'Eggsplode',
+        'description': 'You lose the game.',
+        'emoji': '💥',
     },
     'unfuse': {
         'title': 'Unfuse',
         'description': 'Put an Eggsplode card back into the deck.',
         'emoji': '🔧',
     },
-    'eggsplode': {
-        'title': 'Eggsplode',
-        'description': 'You lose the game.',
-        'emoji': '💥',
+    'attegg': {
+        'title': 'Attegg',
+        'description': 'End your turn without drawing, and force the next player to draw twice.',
+        'emoji': '⚡',
+    },
+    'predict': {
+        'title': 'Predict',
+        'description': 'Guess the next card. If you are correct, you can give it to another player.',
+        'emoji': '🔮',
     },
 }
 
@@ -41,7 +46,7 @@ class Game:
         self.hands = {}
         self.deck = []
 
-    def start(self):
+    async def start(self):
         for card in CARD_DISTRIBUTION:
             for player in self.players:
                 self.deck.append(card)
@@ -70,7 +75,7 @@ class StartGameView(discord.ui.View):
             await interaction.response.send_message("❌ You are already in the game!", ephemeral=True)
             return
         games[self.game_id].players.append(interaction.user.id)
-        await interaction.response.send_message(f"👋 <@{interaction.user.id}> joined the game!\n-# Game {self.game_id}")
+        await interaction.response.send_message(f"👋 <@{interaction.user.id}> joined the game!\n-# Game ID: {self.game_id}")
 
     @discord.ui.button(label="Start Game", style=discord.ButtonStyle.green, emoji="🎉")
     async def start_game(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -80,10 +85,10 @@ class StartGameView(discord.ui.View):
         if len(games[self.game_id].players) < 2:
             await interaction.response.send_message("❌ Not enough players to start the game!", ephemeral=True)
             return
-        games[self.game_id].start()
+        await games[self.game_id].start()
         self.disable_all_items()
         await interaction.response.edit_message(view=self)
-        await interaction.followup.send(f"🎉 Game Started! Players:{"".join({f"\n- <@{i}>" for i in games[self.game_id].players})}\n-# Game {self.game_id}")
+        await interaction.followup.send(f"🎉 Game Started! Players:{"".join({f"\n- <@{i}>" for i in games[self.game_id].players})}\n-# Game ID: {self.game_id}")
 
 
 @app.slash_command(
@@ -94,7 +99,7 @@ async def start(ctx: discord.ApplicationContext):
     game_id = str(ctx.interaction.id)
     view = StartGameView(game_id)
     games[game_id] = Game(ctx.interaction.user.id)
-    await ctx.response.send_message(f"<@{ctx.interaction.user.id}> wants to start a new Eggsplode game! Click on Join to participate!\n-# Game {game_id}", view=view)
+    await ctx.response.send_message(f"<@{ctx.interaction.user.id}> wants to start a new Eggsplode game! Click on Join to participate!\n-# Game ID: {game_id}", view=view)
 
 
 @app.slash_command(
@@ -112,7 +117,7 @@ async def hand(
         await ctx.respond("❌ You are not in this game!", ephemeral=True)
         return
     try:
-        await ctx.respond(f"Your hand: {", ".join(games[game_id].hands[ctx.interaction.user.id])}", ephemeral=True)
+        await ctx.respond(f"Your hand:{"".join(f"\n- **{CARDS[i]['emoji']} {CARDS[i]['title']}**" for i in games[game_id].hands[ctx.interaction.user.id])}", ephemeral=True)
     except KeyError:
         await ctx.respond("❌ Game not started!", ephemeral=True)
 
