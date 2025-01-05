@@ -1,4 +1,5 @@
 import os
+import random
 from dotenv import load_dotenv
 import discord
 from discord.ext import commands
@@ -10,6 +11,44 @@ assert DISCORD_TOKEN is not None, "DISCORD_TOKEN is not set in .env file"
 app = commands.Bot()
 
 games = {}
+
+CARDS = {
+    'attegg': {
+        'title': 'Attegg',
+        'description': 'End your turn without drawing, and force the next player to draw twice.',
+        'emoji': '⚡',
+    },
+    'unfuse': {
+        'title': 'Unfuse',
+        'description': 'Put an Eggsplode card back into the deck.',
+        'emoji': '🔧',
+    },
+    'eggsplode': {
+        'title': 'Eggsplode',
+        'description': 'You lose the game.',
+        'emoji': '💥',
+    },
+}
+
+CARD_DISTRIBUTION = ['attegg'] * 4 + ['predict'] * 5
+
+
+def new_game(game_id):
+    for card in CARD_DISTRIBUTION:
+        for player in games[game_id]['players']:
+            games[game_id]['deck'].append(card)
+            games[game_id]['hands'][player] = []
+    random.shuffle(games[game_id]['deck'])
+    games[game_id]['alive'] = games[game_id]['players'].copy()
+    for _ in range(7):
+        for player in games[game_id]['players']:
+            games[game_id]['hands'][player].append(
+                games[game_id]['deck'].pop()
+            )
+    for player in games[game_id]['players']:
+        games[game_id]['hands'][player].append('unfuse')
+        games[game_id]['deck'].append('eggsplode')
+    random.shuffle(games[game_id]['deck'])
 
 
 class StartGameView(discord.ui.View):
@@ -33,6 +72,7 @@ class StartGameView(discord.ui.View):
         if len(games[self.game_id]['players']) < 2:
             await interaction.response.send_message("❌ Not enough players to start the game!", ephemeral=True)
             return
+        new_game(self.game_id)
         self.disable_all_items()
         await interaction.response.edit_message(view=self)
         await interaction.followup.send(f"🎉 Game Started! Players:{"".join({f"\n- <@{i}>" for i in games[self.game_id]['players']})}\n-# Game {self.game_id}")
@@ -55,11 +95,31 @@ async def start(ctx: discord.ApplicationContext):
 
 
 @app.slash_command(
+    name="hand",
+    description="View your hand.",
+)
+async def hand(
+    ctx: discord.ApplicationContext,
+    game_id: discord.Option(str, "The game ID", choices=list(games.keys())),
+):
+    if game_id not in games:
+        await ctx.respond("❌ Game not found!", ephemeral=True)
+        return
+    if ctx.interaction.user.id not in games[game_id]['players']:
+        await ctx.respond("❌ You are not in this game!", ephemeral=True)
+        return
+    try:
+        await ctx.respond(f"Your hand: {", ".join(games[game_id]['hands'][ctx.interaction.user.id])}", ephemeral=True)
+    except KeyError:
+        await ctx.respond("❌ Game not started!", ephemeral=True)
+
+
+@app.slash_command(
     name="ping",
     description="Pong!",
 )
 async def ping(ctx: discord.ApplicationContext):
-    await ctx.respond("Pong!")
+    await ctx.respond(f"Pong! ({app.latency*1000:.0f}ms)")
 
 
 print("Hello, World!")
