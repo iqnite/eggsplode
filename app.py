@@ -122,7 +122,7 @@ class PlayView(discord.ui.View):
 
     @staticmethod
     def turn_method(func):
-        async def wrapped(self: PlayView, button: discord.ui.Button, interaction: discord.Interaction):
+        async def wrapped(self, button: discord.ui.Button, interaction: discord.Interaction):
             game = games[self.game_id]
             if not await self.verify_turn(interaction, game):
                 return
