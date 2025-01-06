@@ -136,9 +136,12 @@ class StartGameView(discord.ui.View):
             await interaction.response.send_message("❌ You are already in the game!", ephemeral=True)
             return
         game.players.append(interaction.user.id)
-        await interaction.response.send_message(f"👋 <@{interaction.user.id}> joined the game!\n-# Game ID: {self.game_id}")
+        if interaction.message and interaction.message.content:
+            await interaction.response.edit_message(content=interaction.message.content + f"\n- <@{interaction.user.id}>")
+        else:
+            await interaction.response.send_message("❌ An error occurred! Please try again.", ephemeral=True)
 
-    @discord.ui.button(label="Start Game", style=discord.ButtonStyle.green, emoji="🎉")
+    @discord.ui.button(label="Start Game", style=discord.ButtonStyle.green, emoji="🚀")
     async def start_game(self, button: discord.ui.Button, interaction: discord.Interaction):
         game = games[self.game_id]
         if not interaction.user:
@@ -153,7 +156,7 @@ class StartGameView(discord.ui.View):
         await game.start()
         self.disable_all_items()
         await interaction.response.edit_message(view=self)
-        await interaction.followup.send(f"🎉 Game Started! Players:{"".join({f"\n- <@{i}>" for i in game.players})}\n-# Game ID: {self.game_id}")
+        await interaction.followup.send(f"🚀 Game Started!")
         view = TurnView(self.game_id)
         await interaction.followup.send(f"⌛ <@{await game.current_player_id}>'s turn!", view=view)
 
@@ -173,7 +176,7 @@ async def start(ctx: discord.ApplicationContext):
     game_id = str(ctx.interaction.id)
     view = StartGameView(game_id)
     games[game_id] = Game(ctx.interaction.user.id)
-    await ctx.response.send_message(f"<@{ctx.interaction.user.id}> wants to start a new Eggsplode game! Click on **Join** to participate!\n-# Game ID: {game_id}", view=view)
+    await ctx.response.send_message(f"# New game\n-# Game ID: {game_id}\n<@{ctx.interaction.user.id}> wants to start a new Eggsplode game! Click on **Join** to participate!\n**Players:**\n- <@{ctx.interaction.user.id}>", view=view)
 
 
 async def game_id_autocomplete(ctx: discord.AutocompleteContext):
