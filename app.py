@@ -84,16 +84,32 @@ class TurnView(discord.ui.View):
         if interaction.user.id != game.players[game.current_player]:
             await interaction.response.send_message("❌ It's not your turn!", ephemeral=True)
             return
-        view = PlayView(self, self.game_id, game.turn_id)
+        if not interaction.message:
+            await interaction.response.send_message("❌ Could not determine message ID!", ephemeral=True)
+            return
+        view = PlayView(self, interaction.message.id, self.game_id, game.turn_id)
         await interaction.response.send_message("Select an action", view=view, ephemeral=True)
 
 
 class PlayView(discord.ui.View):
-    def __init__(self, parent_view: TurnView, game_id, turn_id):
+    def __init__(self, parent_view: TurnView, parent_id, game_id, turn_id):
         super().__init__()
+        self.parent_view = parent_view
+        self.parent_id = parent_id
         self.game_id = game_id
         self.turn_id = turn_id
-        self.parent_view = parent_view
+
+    async def verify_turn(self, interaction: discord.Interaction, game: Game):
+        if not interaction.user:
+            await interaction.response.send_message("❌ Could not determine user!", ephemeral=True)
+            return False
+        if interaction.user.id != game.players[game.current_player]:
+            await interaction.response.send_message("❌ It's not your turn!", ephemeral=True)
+            return False
+        if self.turn_id != game.turn_id:
+            await interaction.response.send_message("❌ The turn has ended!", ephemeral=True)
+            return False
+        return True
 
     async def turn_end(self, interaction: discord.Interaction):
         game = games[self.game_id]
@@ -101,24 +117,27 @@ class PlayView(discord.ui.View):
         game.turn_id += 1
         view = TurnView(self.game_id)
         await interaction.followup.send(f"⌛ <@{await game.current_player_id}>'s turn!", view=view)
+        self.parent_view.disable_all_items()
+        await interaction.followup.edit_message(self.parent_id, view=self.parent_view)
+
+    @staticmethod
+    def turn_method(func):
+        async def wrapped(self: PlayView, button: discord.ui.Button, interaction: discord.Interaction):
+            game = games[self.game_id]
+            if not await self.verify_turn(interaction, game):
+                return
+            self.disable_all_items()
+            await interaction.response.edit_message(view=self)
+            await func(self, button, interaction)
+            await self.turn_end(interaction)
+        return wrapped
 
     @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
+    @turn_method
     async def draw_card(self, button: discord.ui.Button, interaction: discord.Interaction):
-        game = games[self.game_id]
-        if not interaction.user:
-            await interaction.response.send_message("❌ Could not determine user!", ephemeral=True)
-            return
-        if interaction.user.id != game.players[game.current_player]:
-            await interaction.response.send_message("❌ It's not your turn!", ephemeral=True)
-            return
-        if self.turn_id != game.turn_id:
-            await interaction.response.send_message("❌ The turn has ended!", ephemeral=True)
-            return
-        self.parent_view.disable_all_items()
-        await interaction.response.edit_message(view=self.parent_view)
+        assert interaction.user
         ...  # TODO: Draw card
         await interaction.followup.send(f"🃏 <@{interaction.user.id}> drew a card!")
-        await self.turn_end(interaction)
 
 
 class StartGameView(discord.ui.View):
