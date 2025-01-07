@@ -16,35 +16,59 @@ CARDS = {
         'title': "Eggsplode",
         'description': "If you draw this card and don't have an Unfuse, you lose the game.",
         'emoji': "💥",
+        'count': 0,
+        'usable': False,
     },
     'unfuse': {
         'title': "Unfuse",
         'description': "Put an Eggsplode card back into the deck. Used automatically when you draw an Eggsplode card.",
         'emoji': "🔧",
+        'count': 0,
+        'usable': False,
     },
     'nope': {
         'title': "Nope",
         'description': "Stop the action of another card. Can be used at any time.",
         'emoji': "🛑",
+        'count': 5,
+        'usable': True,
     },
     'attegg': {
         'title': "Attegg",
-        'description': "End your turn without drawing, and force the next player to draw twice.",
+        'description': "End your turn without drawing and force the next player to draw twice.",
         'emoji': "⚡",
+        'count': 4,
+        'usable': True,
+    },
+    'skip': {
+        'title': "Skip",
+        'description': "End your turn without drawing.",
+        'emoji': "🏃‍➡️",
+        'count': 4,
+        'usable': True,
+    },
+    'favor': {
+        'title': "Begg",
+        'description': "Force another player to give you a card of their choice.",
+        'emoji': "🥺",
+        'count': 4,
+        'usable': True,
     },
     'shuffle': {
         'title': "Shuffle",
         'description': "Shuffle the deck.",
         'emoji': "🌀",
+        'count': 4,
+        'usable': True,
     },
     'predict': {
         'title': "Predict",
         'description': "Look at the first 3 cards on the deck.",
         'emoji': "🔮",
+        'count': 5,
+        'usable': True,
     },
 }
-CARD_DISTRIBUTION = ['nope'] * 5 + ['attegg'] * 4 + ['shuffle'] * 4 + ['predict'] * 5
-USABLE_CARDS = {'attegg', 'shuffle', 'predict'}
 
 
 class Game:
@@ -56,7 +80,9 @@ class Game:
         self.turn_id: int = 0
 
     def start(self):
-        self.deck = CARD_DISTRIBUTION * (1 + len(self.players) // 5)
+        for card in CARDS:
+            self.deck.extend([card] * CARDS[card]['count'])
+        self.deck = self.deck * (1 + len(self.players) // 5)
         random.shuffle(self.deck)
         for _ in range(7):
             for player in self.players:
@@ -84,7 +110,7 @@ class Game:
         result_cards = []
         result_counts = []
         for card in hand:
-            if usable_only and card not in USABLE_CARDS:
+            if usable_only and not CARDS[card]['usable']:
                 continue
             if card in result_cards:
                 continue
