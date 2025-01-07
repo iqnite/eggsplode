@@ -10,8 +10,6 @@ assert DISCORD_TOKEN is not None, "DISCORD_TOKEN is not set in .env file"
 
 app = commands.Bot()
 
-games = {}
-
 
 CARDS = {
     'eggsplode': {
@@ -73,6 +71,9 @@ class Game:
         return [player for player in self.players if player]
 
 
+games: dict[str, Game] = {}
+
+
 class TurnView(discord.ui.View):
     def __init__(self, game_id):
         super().__init__()
@@ -116,7 +117,7 @@ class PlayView(discord.ui.View):
         return True
 
     async def turn_end(self, interaction: discord.Interaction):
-        game: Game = games[self.game_id]
+        game = games[self.game_id]
         game.turn_id += 1
         while True:
             game.current_player = 0 if game.current_player == len(game.players) - 1 else game.current_player + 1
@@ -130,7 +131,7 @@ class PlayView(discord.ui.View):
     @staticmethod
     def final_turn_method(func):
         async def wrapped(self, button: discord.ui.Button, interaction: discord.Interaction):
-            game: Game = games[self.game_id]
+            game = games[self.game_id]
             if not await self.verify_turn(interaction, game):
                 return
             self.disable_all_items()
@@ -153,7 +154,7 @@ class PlayView(discord.ui.View):
     @final_turn_method
     async def draw_card(self, button: discord.ui.Button, interaction: discord.Interaction):
         assert interaction.user
-        game: Game = games[self.game_id]
+        game = games[self.game_id]
         card = game.deck.pop()
         if card == 'eggsplode':
             if 'unfuse' in game.hands[interaction.user.id]:
@@ -233,8 +234,17 @@ async def start(ctx: discord.ApplicationContext):
     await ctx.response.send_message(f"# New game\n-# Game ID: {game_id}\n<@{ctx.interaction.user.id}> wants to start a new Eggsplode game! Click on **Join** to participate!\n**Players:**\n- <@{ctx.interaction.user.id}>", view=view)
 
 
+def games_with_user(user_id):
+    return [
+        i for i in games.keys()
+        if user_id in games[i].players
+    ]
+
+
 async def game_id_autocomplete(ctx: discord.AutocompleteContext):
-    return list(games.keys())
+    if not ctx.interaction.user:
+        return []
+    return games_with_user(ctx.interaction.user.id)
 
 
 @app.slash_command(
@@ -245,13 +255,27 @@ async def game_id_autocomplete(ctx: discord.AutocompleteContext):
         discord.IntegrationType.user_install,
     },
 )
+@discord.option(
+    "game_id",
+    type=str,
+    description="The game ID",
+    required=False,
+    default="",
+    autocomplete=game_id_autocomplete
+)
 async def hand(
     ctx: discord.ApplicationContext,
-    game_id: discord.Option(str, "The game ID", autocomplete=game_id_autocomplete),
+    game_id: str
 ):
     if not ctx.interaction.user:
         await ctx.respond("❌ Could not determine user!", ephemeral=True)
         return
+    if not game_id:
+        games_with_id = games_with_user(ctx.interaction.user.id)
+        if not games_with_id:
+            await ctx.respond("❌ You are not in any games!", ephemeral=True)
+            return
+        game_id = games_with_id[0]
     if game_id not in games:
         await ctx.respond("❌ Game not found!", ephemeral=True)
         return
@@ -261,7 +285,7 @@ async def hand(
     try:
         await ctx.respond(f"Your hand:{"".join(f"\n- **{CARDS[i]['emoji']} {CARDS[i]['title']}**" for i in games[game_id].hands[ctx.interaction.user.id])}", ephemeral=True)
     except KeyError:
-        await ctx.respond("❌ Game not started!", ephemeral=True)
+        await ctx.respond("❌ Game has not started yet!", ephemeral=True)
 
 
 @app.slash_command(
