@@ -1,5 +1,6 @@
 import os
 import random
+import json
 from dotenv import load_dotenv
 import discord
 from discord.ext import commands
@@ -7,68 +8,10 @@ from discord.ext import commands
 load_dotenv()
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 assert DISCORD_TOKEN is not None, "DISCORD_TOKEN is not set in .env file"
+with open('cardtypes.json', encoding='utf-8') as f:
+    CARDS = json.load(f)
 
 app = commands.Bot()
-
-
-CARDS = {
-    'eggsplode': {
-        'title': "Eggsplode",
-        'description': "If you draw this card and don't have an Unfuse, you lose the game.",
-        'emoji': "💥",
-        'count': 0,
-        'usable': False,
-    },
-    'unfuse': {
-        'title': "Unfuse",
-        'description': "Put an Eggsplode card back into the deck. Used automatically when you draw an Eggsplode card.",
-        'emoji': "🔧",
-        'count': 0,
-        'usable': False,
-    },
-    'nope': {
-        'title': "Nope",
-        'description': "Stop the action of another card. Can be used at any time.",
-        'emoji': "🛑",
-        'count': 5,
-        'usable': True,
-    },
-    'attegg': {
-        'title': "Attegg",
-        'description': "End your turn without drawing and force the next player to draw twice.",
-        'emoji': "⚡",
-        'count': 4,
-        'usable': True,
-    },
-    'skip': {
-        'title': "Skip",
-        'description': "End your turn without drawing.",
-        'emoji': "🏃‍➡️",
-        'count': 4,
-        'usable': True,
-    },
-    'favor': {
-        'title': "Begg",
-        'description': "Force another player to give you a card of their choice.",
-        'emoji': "🥺",
-        'count': 4,
-        'usable': True,
-    },
-    'shuffle': {
-        'title': "Shuffle",
-        'description': "Shuffle the deck.",
-        'emoji': "🌀",
-        'count': 4,
-        'usable': True,
-    },
-    'predict': {
-        'title': "Predict",
-        'description': "Look at the first 3 cards on the deck.",
-        'emoji': "🔮",
-        'count': 5,
-        'usable': True,
-    },
-}
 
 
 class Game:

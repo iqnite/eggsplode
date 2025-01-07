@@ -1,0 +1,58 @@
+{
+  "eggsplode": {
+    "title": "Eggsplode",
+    "description": "If you draw this card and don't have an Unfuse, you lose the game.",
+    "emoji": "💥",
+    "count": 0,
+    "usable": false
+  },
+  "unfuse": {
+    "title": "Unfuse",
+    "description": "Put an Eggsplode card back into the deck. Used automatically when you draw an Eggsplode card.",
+    "emoji": "🔧",
+    "count": 0,
+    "usable": false
+  },
+  "nope": {
+    "title": "Nope",
+    "description": "Stop the action of another card. Can be used at any time.",
+    "emoji": "🛑",
+    "count": 5,
+    "usable": true
+  },
+  "attegg": {
+    "title": "Attegg",
+    "description": "End your turn without drawing and force the next player to draw twice.",
+    "emoji": "⚡",
+    "count": 4,
+    "usable": true
+  },
+  "skip": {
+    "title": "Skip",
+    "description": "End your turn without drawing.",
+    "emoji": "🏃‍➡️",
+    "count": 4,
+    "usable": true
+  },
+  "favor": {
+    "title": "Begg",
+    "description": "Force another player to give you a card of their choice.",
+    "emoji": "🥺",
+    "count": 4,
+    "usable": true
+  },
+  "shuffle": {
+    "title": "Shuffle",
+    "description": "Shuffle the deck.",
+    "emoji": "🌀",
+    "count": 4,
+    "usable": true
+  },
+  "predict": {
+    "title": "Predict",
+    "description": "Look at the first 3 cards on the deck.",
+    "emoji": "🔮",
+    "count": 5,
+    "usable": true
+  }
+}
