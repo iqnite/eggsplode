@@ -33,8 +33,8 @@ CARDS = {
         'emoji': '🔮',
     },
 }
-
 CARD_DISTRIBUTION = ['attegg'] * 4 + ['predict'] * 5
+USABLE_CARDS = ['attegg', 'predict']
 
 
 class Game:
@@ -69,6 +69,17 @@ class Game:
     @property
     def alive_players(self):
         return [player for player in self.players if player]
+    
+    def group_hand(self, user_id, usable_only=False):
+        hand = self.hands[user_id].copy()
+        result = []
+        for card in hand:
+            if usable_only and card not in USABLE_CARDS:
+                continue
+            if card in result:
+                continue
+            result.append((card, hand.count(card)))            
+        return result
 
 
 games: dict[str, Game] = {}
