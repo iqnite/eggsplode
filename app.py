@@ -164,6 +164,7 @@ class PlayView(discord.ui.View):
                             del games[self.game_id]
                             return True
         else:
+            game.hands[interaction.user.id].append(card)
             await interaction.followup.send(f"🃏 <@{interaction.user.id}> drew a card!")
             await interaction.followup.send(f"You drew a **{CARDS[card]['emoji']} {CARDS[card]['title']}**!", ephemeral=True)
 
