@@ -32,14 +32,19 @@ CARDS = {
         'description': "End your turn without drawing, and force the next player to draw twice.",
         'emoji': "⚡",
     },
+    'shuffle': {
+        'title': "Shuffle",
+        'description': "Shuffle the deck.",
+        'emoji': "🌀",
+    },
     'predict': {
         'title': "Predict",
         'description': "Look at the first 3 cards on the deck.",
         'emoji': "🔮",
     },
 }
-CARD_DISTRIBUTION = ['nope'] * 5 + ['attegg'] * 4 + ['predict'] * 5
-USABLE_CARDS = {'attegg', 'predict'}
+CARD_DISTRIBUTION = ['nope'] * 5 + ['attegg'] * 4 + ['shuffle'] * 4 + ['predict'] * 5
+USABLE_CARDS = {'attegg', 'shuffle', 'predict'}
 
 
 class Game:
@@ -202,24 +207,18 @@ class StartGameView(discord.ui.View):
     @discord.ui.button(label="Join", style=discord.ButtonStyle.blurple, emoji="👋")
     async def join_game(self, button: discord.ui.Button, interaction: discord.Interaction):
         game = games[self.game_id]
-        if not interaction.user:
-            await interaction.response.send_message("❌ Could not determine user!", ephemeral=True)
-            return
+        assert interaction.user
         if interaction.user.id in game.players:
             await interaction.response.send_message("❌ You are already in the game!", ephemeral=True)
             return
         game.players.append(interaction.user.id)
-        if interaction.message and interaction.message.content:
-            await interaction.response.edit_message(content=interaction.message.content + f"\n- <@{interaction.user.id}>")
-        else:
-            await interaction.response.send_message("❌ An error occurred! Please try again.", ephemeral=True)
+        assert interaction.message and interaction.message.content
+        await interaction.response.edit_message(content=interaction.message.content + f"\n- <@{interaction.user.id}>")
 
     @discord.ui.button(label="Start Game", style=discord.ButtonStyle.green, emoji="🚀")
     async def start_game(self, button: discord.ui.Button, interaction: discord.Interaction):
         game: Game = games[self.game_id]
-        if not interaction.user:
-            await interaction.response.send_message("❌ Could not determine user!", ephemeral=True)
-            return
+        assert interaction.user
         if interaction.user.id != game.players[0]:
             await interaction.response.send_message("❌ Only the game creator can start the game!", ephemeral=True)
             return
@@ -243,9 +242,7 @@ class StartGameView(discord.ui.View):
     },
 )
 async def start(ctx: discord.ApplicationContext):
-    if not ctx.interaction.user:
-        await ctx.response.send_message("❌ Could not determine user!", ephemeral=True)
-        return
+    assert ctx.interaction.user
     game_id = str(ctx.interaction.id)
     view = StartGameView(game_id)
     games[game_id] = Game(ctx.interaction.user.id)
@@ -285,9 +282,7 @@ async def hand(
     ctx: discord.ApplicationContext,
     game_id: str
 ):
-    if not ctx.interaction.user:
-        await ctx.respond("❌ Could not determine user!", ephemeral=True)
-        return
+    assert ctx.interaction.user
     if not game_id:
         games_with_id = games_with_user(ctx.interaction.user.id)
         if not games_with_id:
