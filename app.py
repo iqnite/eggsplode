@@ -13,51 +13,52 @@ app = commands.Bot()
 
 CARDS = {
     'eggsplode': {
-        'title': 'Eggsplode',
-        'description': 'You lose the game.',
-        'emoji': '💥',
+        'title': "Eggsplode",
+        'description': "If you draw this card and don't have an Unfuse, you lose the game.",
+        'emoji': "💥",
     },
     'unfuse': {
-        'title': 'Unfuse',
-        'description': 'Put an Eggsplode card back into the deck.',
-        'emoji': '🔧',
+        'title': "Unfuse",
+        'description': "Put an Eggsplode card back into the deck. Used automatically when you draw an Eggsplode card.",
+        'emoji': "🔧",
+    },
+    'nope': {
+        'title': "Nope",
+        'description': "Stop the action of another card. Can be used at any time.",
+        'emoji': "🛑",
     },
     'attegg': {
-        'title': 'Attegg',
-        'description': 'End your turn without drawing, and force the next player to draw twice.',
-        'emoji': '⚡',
+        'title': "Attegg",
+        'description': "End your turn without drawing, and force the next player to draw twice.",
+        'emoji': "⚡",
     },
     'predict': {
-        'title': 'Predict',
-        'description': 'Guess the next card. If you are correct, you can give it to another player.',
-        'emoji': '🔮',
+        'title': "Predict",
+        'description': "Look at the first 3 cards on the deck.",
+        'emoji': "🔮",
     },
 }
-CARD_DISTRIBUTION = ['attegg'] * 4 + ['predict'] * 5
-USABLE_CARDS = ['attegg', 'predict']
+CARD_DISTRIBUTION = ['nope'] * 5 + ['attegg'] * 4 + ['predict'] * 5
+USABLE_CARDS = {'attegg', 'predict'}
 
 
 class Game:
     def __init__(self, *players):
-        self.players: list[int|None] = list(players)
+        self.players: list[int | None] = list(players)
         self.hands: dict[int, list[str]] = {}
         self.deck: list[str] = []
         self.current_player: int = 0
         self.turn_id: int = 0
 
     def start(self):
-        for card in CARD_DISTRIBUTION * (1 + len(self.players) // 5):
-            for player in self.players:
-                assert isinstance(player, int), "Player must be an integer"
-                self.deck.append(card)
-                self.hands[player] = []
+        self.deck = CARD_DISTRIBUTION * (1 + len(self.players) // 5)
         random.shuffle(self.deck)
         for _ in range(7):
             for player in self.players:
                 assert isinstance(player, int), "Player must be an integer"
-                self.hands[player].append(
-                    self.deck.pop()
-                )
+                if player not in self.hands.keys():
+                    self.hands[player] = []
+                self.hands[player].append(self.deck.pop())
         for player in self.players:
             assert isinstance(player, int), "Player must be an integer"
             self.hands[player].append('unfuse')
@@ -68,21 +69,23 @@ class Game:
     @property
     def current_player_id(self):
         return self.players[self.current_player]
-    
+
     @property
     def alive_players(self):
         return [player for player in self.players if player]
-    
+
     def group_hand(self, user_id, usable_only=False):
-        hand = self.hands[user_id].copy()
-        result = []
+        hand = self.hands[user_id]
+        result_cards = []
+        result_counts = []
         for card in hand:
             if usable_only and card not in USABLE_CARDS:
                 continue
-            if card in result:
+            if card in result_cards:
                 continue
-            result.append((card, hand.count(card)))            
-        return result
+            result_cards.append(card)
+            result_counts.append(hand.count(card))
+        return zip(result_cards, result_counts)
 
 
 games: dict[str, Game] = {}
@@ -126,7 +129,7 @@ class PlayView(discord.ui.View):
             await interaction.response.send_message("❌ It's not your turn!", ephemeral=True)
             return False
         if self.turn_id != game.turn_id:
-            await interaction.response.send_message("❌ The turn has ended!", ephemeral=True)
+            await interaction.response.send_message("❌ This turn has ended! Make sure to click **Play!** on the latest message.", ephemeral=True)
             return False
         return True
 
@@ -134,7 +137,8 @@ class PlayView(discord.ui.View):
         game = games[self.game_id]
         game.turn_id += 1
         while True:
-            game.current_player = 0 if game.current_player == len(game.players) - 1 else game.current_player + 1
+            game.current_player = 0 if game.current_player == len(
+                game.players) - 1 else game.current_player + 1
             if game.current_player_id:
                 break
         view = TurnView(self.game_id)
@@ -212,7 +216,7 @@ class StartGameView(discord.ui.View):
 
     @discord.ui.button(label="Start Game", style=discord.ButtonStyle.green, emoji="🚀")
     async def start_game(self, button: discord.ui.Button, interaction: discord.Interaction):
-        game:Game = games[self.game_id]
+        game: Game = games[self.game_id]
         if not interaction.user:
             await interaction.response.send_message("❌ Could not determine user!", ephemeral=True)
             return
@@ -297,7 +301,8 @@ async def hand(
         await ctx.respond("❌ You are not in this game!", ephemeral=True)
         return
     try:
-        await ctx.respond(f"Your hand:{"".join(f"\n- **{CARDS[i]['emoji']} {CARDS[i]['title']}**" for i in games[game_id].hands[ctx.interaction.user.id])}", ephemeral=True)
+        player_hand = games[game_id].group_hand(ctx.interaction.user.id)
+        await ctx.respond(f"# Your hand:{"".join(f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']}** ({count}x): {CARDS[card]['description']}" for card, count in player_hand)}", ephemeral=True)
     except KeyError:
         await ctx.respond("❌ Game has not started yet!", ephemeral=True)
 
