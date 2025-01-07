@@ -39,24 +39,27 @@ USABLE_CARDS = ['attegg', 'predict']
 
 class Game:
     def __init__(self, *players):
-        self.players = list(players)
-        self.hands = {}
-        self.deck = []
-        self.current_player = 0
-        self.turn_id = 0
+        self.players: list[int|None] = list(players)
+        self.hands: dict[int, list[str]] = {}
+        self.deck: list[str] = []
+        self.current_player: int = 0
+        self.turn_id: int = 0
 
     def start(self):
         for card in CARD_DISTRIBUTION * (1 + len(self.players) // 5):
             for player in self.players:
+                assert isinstance(player, int), "Player must be an integer"
                 self.deck.append(card)
                 self.hands[player] = []
         random.shuffle(self.deck)
         for _ in range(7):
             for player in self.players:
+                assert isinstance(player, int), "Player must be an integer"
                 self.hands[player].append(
                     self.deck.pop()
                 )
         for player in self.players:
+            assert isinstance(player, int), "Player must be an integer"
             self.hands[player].append('unfuse')
         for _ in range(len(self.players) - 1):
             self.deck.append('eggsplode')
