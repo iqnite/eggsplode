@@ -55,7 +55,7 @@ class Game:
                 continue
             result_cards.append(card)
             result_counts.append(hand.count(card))
-        return zip(result_cards, result_counts)
+        return list(zip(result_cards, result_counts))
 
 
 games: dict[int, Game] = {}
@@ -75,6 +75,7 @@ class TurnView(discord.ui.View):
             return
         assert interaction.message
         view = PlayView(self, interaction, self.game_id, self.game.action_id)
+        await view.create_view()
         await interaction.response.send_message("**Play** as many cards as you want, then **draw** a card to end your turn!", view=view, ephemeral=True)
 
 
@@ -86,15 +87,21 @@ class PlayView(discord.ui.View):
         self.game = games[game_id]
         self.game_id = game_id
         self.action_id = action_id
-        self.update_card_selection(parent_interaction)
+    
+    async def create_view(self):
+        await self.create_card_selection(self.parent_interaction)
 
     async def verify_turn(self, interaction: discord.Interaction):
         assert interaction.user
         if interaction.user.id != self.game.current_player_id:
-            await interaction.response.send_message("❌ It's not your turn!", ephemeral=True)
+            self.disable_all_items()
+            await interaction.response.edit_message(view=self)
+            await interaction.followup.send("❌ It's not your turn!", ephemeral=True)
             return False
         if self.action_id != self.game.action_id:
-            await interaction.response.send_message("❌ This turn has ended or the action is not valid anymore! Make sure to click **Play** on the latest message.", ephemeral=True)
+            self.disable_all_items()
+            await interaction.response.edit_message(view=self)
+            await interaction.followup.send("❌ This turn has ended or the action is not valid anymore! Make sure to click **Play** on the latest message.", ephemeral=True)
             return False
         self.game.action_id += 1
         self.action_id += 1
@@ -109,8 +116,11 @@ class PlayView(discord.ui.View):
         assert self.parent_interaction.message
         await interaction.followup.edit_message(self.parent_interaction.message.id, view=self.parent_view)
 
-    def update_card_selection(self, interaction: discord.Interaction):
+    async def create_card_selection(self, interaction: discord.Interaction):
         assert interaction.user
+        user_cards = self.game.group_hand(interaction.user.id, usable_only=True)
+        if len(user_cards) == 0:
+            return
         self.play_card_select = discord.ui.Select(
             placeholder="Select a card to play",
             min_values=1,
@@ -121,11 +131,11 @@ class PlayView(discord.ui.View):
                     label=f"{CARDS[card]['title']} ({count}x)",
                     description=CARDS[card]['description'],
                     emoji=CARDS[card]['emoji'],
-                ) for card, count in self.game.group_hand(interaction.user.id, usable_only=True)
+                ) for card, count in user_cards
             ],
         )
-        self.add_item(self.play_card_select)
         self.play_card_select.callback = self.play_card
+        self.add_item(self.play_card_select)
 
     @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
     async def draw_card(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -138,8 +148,7 @@ class PlayView(discord.ui.View):
         if card == 'eggsplode':
             if 'unfuse' in self.game.hands[interaction.user.id]:
                 self.game.hands[interaction.user.id].remove('unfuse')
-                self.game.deck.append('eggsplode')
-                random.shuffle(self.game.deck)
+                self.game.deck.insert(random.randint(0, len(self.game.deck)), 'eggsplode')
                 await interaction.followup.send(f"## 🔧 <@{interaction.user.id}> drew an Eggsplode card! Luckily, they had an Unfuse and put it back into the deck!")
             else:
                 del self.game.players[self.game.players.index(
@@ -165,7 +174,7 @@ class PlayView(discord.ui.View):
         assert interaction.user
         self.game.hands[interaction.user.id].remove(selected)
         self.remove_item(self.play_card_select)
-        self.update_card_selection(interaction)
+        await self.create_card_selection(interaction)
         await interaction.response.edit_message(view=self)
         match selected:
             case 'shuffle':
@@ -175,9 +184,10 @@ class PlayView(discord.ui.View):
                 await interaction.followup.send(f"⏩ <@{interaction.user.id}> skipped their turn and did not draw a card!")
                 await self.end_turn(interaction)
             case 'predict':
-                await interaction.followup.send(f"🔮 <@{interaction.user.id}> looked the next 3 cards on the deck!")
+                await interaction.followup.send(f"🔮 <@{interaction.user.id}> looked at the next 3 cards on the deck!")
                 await interaction.followup.send(f"### Next 3 cards on the deck:{"".join(f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']}**" for card in self.game.deck[-1:-4:-1])}", ephemeral=True)
-
+            case _:
+                await interaction.followup.send(f"🙁 Sorry, not implemented yet.", ephemeral=True)
 
 class StartGameView(discord.ui.View):
     def __init__(self, game_id):
