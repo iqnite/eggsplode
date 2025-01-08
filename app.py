@@ -69,15 +69,11 @@ class TurnView(discord.ui.View):
     @discord.ui.button(label="Play!", style=discord.ButtonStyle.blurple, emoji="🤚")
     async def play(self, button: discord.ui.Button, interaction: discord.Interaction):
         game = games[self.game_id]
-        if not interaction.user:
-            await interaction.response.send_message("❌ Could not determine user!", ephemeral=True)
-            return
+        assert interaction.user
         if interaction.user.id != game.current_player_id:
             await interaction.response.send_message("❌ It's not your turn!", ephemeral=True)
             return
-        if not interaction.message:
-            await interaction.response.send_message("❌ Could not determine message ID!", ephemeral=True)
-            return
+        assert interaction.message
         view = PlayView(self, interaction.message.id,
                         self.game_id, game.turn_id)
         await interaction.response.send_message("Select an action", view=view, ephemeral=True)
@@ -92,9 +88,7 @@ class PlayView(discord.ui.View):
         self.turn_id = turn_id
 
     async def verify_turn(self, interaction: discord.Interaction, game: Game):
-        if not interaction.user:
-            await interaction.response.send_message("❌ Could not determine user!", ephemeral=True)
-            return False
+        assert interaction.user
         if interaction.user.id != game.current_player_id:
             await interaction.response.send_message("❌ It's not your turn!", ephemeral=True)
             return False
@@ -109,7 +103,7 @@ class PlayView(discord.ui.View):
         game.current_player = 0 if game.current_player == len(
             game.players) - 1 else game.current_player + 1
         view = TurnView(self.game_id)
-        await interaction.followup.send(f"⌛ <@{game.current_player_id}>'s turn!", view=view)
+        await interaction.followup.send(f"### ⌛ <@{game.current_player_id}>'s turn!", view=view)
         self.parent_view.disable_all_items()
         await interaction.followup.edit_message(self.parent_id, view=self.parent_view)
 
@@ -146,12 +140,12 @@ class PlayView(discord.ui.View):
                 game.hands[interaction.user.id].remove('unfuse')
                 game.deck.append('eggsplode')
                 random.shuffle(game.deck)
-                await interaction.followup.send(f"🔧 <@{interaction.user.id}> drew an Eggsplode card. Luckily, they had an unfuse and put it back into the deck!")
+                await interaction.followup.send(f"## 🔧 <@{interaction.user.id}> drew an Eggsplode card! Luckily, they had an Unfuse and put it back into the deck!")
             else:
                 del game.players[game.players.index(interaction.user.id)]
                 del game.hands[interaction.user.id]
                 game.current_player -= 1
-                await interaction.followup.send(f"💥 <@{interaction.user.id}> drew an Eggsplode card and died!")
+                await interaction.followup.send(f"## 💥 <@{interaction.user.id}> drew an Eggsplode card and died!")
                 if len(game.players) == 1:
                     await interaction.followup.send(f"# 🎉 <@{game.players[0]}> wins!")
                     del games[self.game_id]
@@ -193,7 +187,7 @@ class StartGameView(discord.ui.View):
         await interaction.response.edit_message(view=self)
         await interaction.followup.send(f"🚀 Game Started!")
         view = TurnView(self.game_id)
-        await interaction.followup.send(f"⌛ <@{game.current_player_id}>'s turn!", view=view)
+        await interaction.followup.send(f"### ⌛ <@{game.current_player_id}>'s turn!", view=view)
 
 
 @app.slash_command(
