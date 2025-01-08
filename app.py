@@ -58,11 +58,11 @@ class Game:
         return zip(result_cards, result_counts)
 
 
-games: dict[str, Game] = {}
+games: dict[int, Game] = {}
 
 
 class TurnView(discord.ui.View):
-    def __init__(self, game_id: str):
+    def __init__(self, game_id: int):
         super().__init__()
         self.game_id = game_id
         self.game: Game = games[game_id]
@@ -79,7 +79,7 @@ class TurnView(discord.ui.View):
 
 
 class PlayView(discord.ui.View):
-    def __init__(self, parent_view: TurnView, parent_interaction: discord.Interaction, game_id: str, action_id: int):
+    def __init__(self, parent_view: TurnView, parent_interaction: discord.Interaction, game_id: int, action_id: int):
         super().__init__()
         self.parent_view = parent_view
         self.parent_interaction = parent_interaction
@@ -100,7 +100,7 @@ class PlayView(discord.ui.View):
         self.action_id += 1
         return True
 
-    async def turn_end(self, interaction: discord.Interaction):
+    async def end_turn(self, interaction: discord.Interaction):
         self.game.current_player = 0 if self.game.current_player == len(
             self.game.players) - 1 else self.game.current_player + 1
         view = TurnView(self.game_id)
@@ -150,20 +150,25 @@ class PlayView(discord.ui.View):
                 if len(self.game.players) == 1:
                     await interaction.followup.send(f"# 🎉 <@{self.game.players[0]}> wins!")
                     del games[self.game_id]
+                    return
         else:
             self.game.hands[interaction.user.id].append(card)
             await interaction.followup.send(f"🃏 <@{interaction.user.id}> drew a card!")
             await interaction.followup.send(f"You drew a **{CARDS[card]['emoji']} {CARDS[card]['title']}**!", ephemeral=True)
             self.game.action_id += 1
             self.action_id += 1
-        await self.turn_end(interaction)
+        await self.end_turn(interaction)
 
     async def play_card(self, interaction: discord.Interaction):
         if not await self.verify_turn(interaction):
             return
         selected = self.play_card_select.values[0]
+        assert isinstance(selected, str)
+        assert interaction.user
         self.game.action_id += 1
         self.action_id += 1
+        self.game.hands[interaction.user.id].remove(selected)
+
 
 
 class StartGameView(discord.ui.View):
@@ -210,7 +215,7 @@ class StartGameView(discord.ui.View):
 )
 async def start(ctx: discord.ApplicationContext):
     assert ctx.interaction.user
-    game_id = str(ctx.interaction.id)
+    game_id = ctx.interaction.id
     view = StartGameView(game_id)
     games[game_id] = Game(ctx.interaction.user.id)
     await ctx.response.send_message(f"# New game\n-# Game ID: {game_id}\n<@{ctx.interaction.user.id}> wants to start a new Eggsplode game! Click on **Join** to participate!\n**Players:**\n- <@{ctx.interaction.user.id}>", view=view)
@@ -226,7 +231,7 @@ def games_with_user(user_id):
 async def game_id_autocomplete(ctx: discord.AutocompleteContext):
     if not ctx.interaction.user:
         return []
-    return games_with_user(ctx.interaction.user.id)
+    return map(str, games_with_user(ctx.interaction.user.id))
 
 
 @app.slash_command(
@@ -243,11 +248,11 @@ async def game_id_autocomplete(ctx: discord.AutocompleteContext):
     description="The game ID",
     required=False,
     default="",
-    autocomplete=game_id_autocomplete
+    autocomplete=game_id_autocomplete,
 )
 async def hand(
     ctx: discord.ApplicationContext,
-    game_id: str
+    game_id: str,
 ):
     assert ctx.interaction.user
     if not game_id:
@@ -255,15 +260,17 @@ async def hand(
         if not games_with_id:
             await ctx.respond("❌ You are not in any games!", ephemeral=True)
             return
-        game_id = games_with_id[0]
-    if game_id not in games:
+        new_game_id = games_with_id[0]
+    else:
+        new_game_id = int(game_id)
+    if new_game_id not in games:
         await ctx.respond("❌ Game not found!", ephemeral=True)
         return
-    if ctx.interaction.user.id not in games[game_id].players:
+    if ctx.interaction.user.id not in games[new_game_id].players:
         await ctx.respond("❌ You are not in this game!", ephemeral=True)
         return
     try:
-        player_hand = games[game_id].group_hand(ctx.interaction.user.id)
+        player_hand = games[new_game_id].group_hand(ctx.interaction.user.id)
         await ctx.respond(f"# Your hand:{"".join(f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']}** ({count}x): {CARDS[card]['description']}" for card, count in player_hand)}", ephemeral=True)
     except KeyError:
         await ctx.respond("❌ Game has not started yet!", ephemeral=True)
