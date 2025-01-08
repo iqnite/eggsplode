@@ -155,8 +155,6 @@ class PlayView(discord.ui.View):
             self.game.hands[interaction.user.id].append(card)
             await interaction.followup.send(f"🃏 <@{interaction.user.id}> drew a card!")
             await interaction.followup.send(f"You drew a **{CARDS[card]['emoji']} {CARDS[card]['title']}**!", ephemeral=True)
-            self.game.action_id += 1
-            self.action_id += 1
         await self.end_turn(interaction)
 
     async def play_card(self, interaction: discord.Interaction):
@@ -165,10 +163,20 @@ class PlayView(discord.ui.View):
         selected = self.play_card_select.values[0]
         assert isinstance(selected, str)
         assert interaction.user
-        self.game.action_id += 1
-        self.action_id += 1
         self.game.hands[interaction.user.id].remove(selected)
-
+        self.remove_item(self.play_card_select)
+        self.update_card_selection(interaction)
+        await interaction.response.edit_message(view=self)
+        match selected:
+            case 'shuffle':
+                random.shuffle(self.game.deck)
+                await interaction.followup.send(f"🔄 <@{interaction.user.id}> shuffled the deck!")
+            case 'skip':
+                await interaction.followup.send(f"⏩ <@{interaction.user.id}> skipped their turn and did not draw a card!")
+                await self.end_turn(interaction)
+            case 'predict':
+                await interaction.followup.send(f"🔮 <@{interaction.user.id}> looked the next 3 cards on the deck!")
+                await interaction.followup.send(f"### Next 3 cards on the deck:{"".join(f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']}**" for card in self.game.deck[-1:-4:-1])}", ephemeral=True)
 
 
 class StartGameView(discord.ui.View):
