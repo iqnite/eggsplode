@@ -16,7 +16,7 @@ app = commands.Bot()
 
 class Game:
     def __init__(self, *players):
-        self.players: list[int | None] = list(players)
+        self.players: list[int] = list(players)
         self.hands: dict[int, list[str]] = {}
         self.deck: list[str] = []
         self.current_player: int = 0
@@ -43,10 +43,6 @@ class Game:
     @property
     def current_player_id(self):
         return self.players[self.current_player]
-
-    @property
-    def alive_players(self):
-        return [player for player in self.players if player]
 
     def group_hand(self, user_id, usable_only=False):
         hand = self.hands[user_id]
@@ -110,11 +106,8 @@ class PlayView(discord.ui.View):
     async def turn_end(self, interaction: discord.Interaction):
         game = games[self.game_id]
         game.turn_id += 1
-        while True:
-            game.current_player = 0 if game.current_player == len(
-                game.players) - 1 else game.current_player + 1
-            if game.current_player_id:
-                break
+        game.current_player = 0 if game.current_player == len(
+            game.players) - 1 else game.current_player + 1
         view = TurnView(self.game_id)
         await interaction.followup.send(f"⌛ <@{game.current_player_id}>'s turn!", view=view)
         self.parent_view.disable_all_items()
@@ -155,14 +148,14 @@ class PlayView(discord.ui.View):
                 random.shuffle(game.deck)
                 await interaction.followup.send(f"🔧 <@{interaction.user.id}> drew an Eggsplode card. Luckily, they had an unfuse and put it back into the deck!")
             else:
-                game.players[game.players.index(interaction.user.id)] = None
+                del game.players[game.players.index(interaction.user.id)]
+                del game.hands[interaction.user.id]
+                game.current_player -= 1
                 await interaction.followup.send(f"💥 <@{interaction.user.id}> drew an Eggsplode card and died!")
-                if len(game.alive_players) == 1:
-                    for player in game.players:
-                        if player:
-                            await interaction.followup.send(f"# 🎉 <@{player}> wins!")
-                            del games[self.game_id]
-                            return True
+                if len(game.players) == 1:
+                    await interaction.followup.send(f"# 🎉 <@{game.players[0]}> wins!")
+                    del games[self.game_id]
+                    return True
         else:
             game.hands[interaction.user.id].append(card)
             await interaction.followup.send(f"🃏 <@{interaction.user.id}> drew a card!")
