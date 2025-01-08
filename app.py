@@ -74,18 +74,25 @@ class TurnView(discord.ui.View):
             await interaction.response.send_message("❌ It's not your turn!", ephemeral=True)
             return
         assert interaction.message
-        view = PlayView(self, interaction.message.id,
-                        self.game_id, game.turn_id)
-        await interaction.response.send_message("Select an action", view=view, ephemeral=True)
+        view = PlayView(self, interaction, self.game_id, game.turn_id)
+        await interaction.response.send_message("**Play** as many cards as you want, then **draw** a card to end your turn!", view=view, ephemeral=True)
 
 
 class PlayView(discord.ui.View):
-    def __init__(self, parent_view: TurnView, parent_id, game_id, turn_id):
+    def __init__(self, parent_view: TurnView, parent_interaction: discord.Interaction, game_id, turn_id):
         super().__init__()
         self.parent_view = parent_view
-        self.parent_id = parent_id
+        self.parent_interaction = parent_interaction
         self.game_id = game_id
         self.turn_id = turn_id
+        self.play_card_select = discord.ui.Select(
+            placeholder="Select a card to play",
+            min_values=1,
+            max_values=1,
+            options=self.select_options(parent_interaction),
+        )
+        self.add_item(self.play_card_select)
+        self.play_card_select.callback = self.play_card
 
     async def verify_turn(self, interaction: discord.Interaction, game: Game):
         assert interaction.user
@@ -93,19 +100,21 @@ class PlayView(discord.ui.View):
             await interaction.response.send_message("❌ It's not your turn!", ephemeral=True)
             return False
         if self.turn_id != game.turn_id:
-            await interaction.response.send_message("❌ This turn has ended! Make sure to click **Play!** on the latest message.", ephemeral=True)
+            await interaction.response.send_message("❌ This turn has ended or is not valid anymore! Make sure to click **Play!** on the latest message.", ephemeral=True)
             return False
+        game.turn_id += 1
+        self.turn_id += 1
         return True
 
     async def turn_end(self, interaction: discord.Interaction):
         game = games[self.game_id]
-        game.turn_id += 1
         game.current_player = 0 if game.current_player == len(
             game.players) - 1 else game.current_player + 1
         view = TurnView(self.game_id)
         await interaction.followup.send(f"### ⌛ <@{game.current_player_id}>'s turn!", view=view)
         self.parent_view.disable_all_items()
-        await interaction.followup.edit_message(self.parent_id, view=self.parent_view)
+        assert self.parent_interaction.message
+        await interaction.followup.edit_message(self.parent_interaction.message.id, view=self.parent_view)
 
     @staticmethod
     def final_turn_method(func):
@@ -120,14 +129,16 @@ class PlayView(discord.ui.View):
             await self.turn_end(interaction)
         return wrapped
 
-    @staticmethod
-    def turn_method(func):
-        async def wrapped(self, button: discord.ui.Button, interaction: discord.Interaction):
-            game = games[self.game_id]
-            if not await self.verify_turn(interaction, game):
-                return
-            await func(self, button, interaction)
-        return wrapped
+    def select_options(self, interaction: discord.Interaction):
+        assert interaction.user
+        return [
+            discord.SelectOption(
+                value=card,
+                label=f"{CARDS[card]['title']} ({count}x)",
+                description=CARDS[card]['description'],
+                emoji=CARDS[card]['emoji'],
+            ) for card, count in games[self.game_id].group_hand(interaction.user.id, usable_only=True)
+        ]
 
     @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
     @final_turn_method
@@ -154,7 +165,16 @@ class PlayView(discord.ui.View):
             game.hands[interaction.user.id].append(card)
             await interaction.followup.send(f"🃏 <@{interaction.user.id}> drew a card!")
             await interaction.followup.send(f"You drew a **{CARDS[card]['emoji']} {CARDS[card]['title']}**!", ephemeral=True)
+            game.turn_id += 1
+            self.turn_id += 1
 
+    async def play_card(self, interaction: discord.Interaction):
+        game = games[self.game_id]
+        if not await self.verify_turn(interaction, game):
+            return
+        await interaction.response.send_message("".join(self.play_card_select._selected_values), ephemeral=True)
+        game.turn_id += 1
+        self.turn_id += 1
 
 class StartGameView(discord.ui.View):
     def __init__(self, game_id):

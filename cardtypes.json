@@ -18,7 +18,7 @@
     "description": "Stop the action of another card. Can be used at any time.",
     "emoji": "🛑",
     "count": 5,
-    "usable": true
+    "usable": false
   },
   "attegg": {
     "title": "Attegg",
@@ -34,7 +34,7 @@
     "count": 4,
     "usable": true
   },
-  "favor": {
+  "begg": {
     "title": "Begg",
     "description": "Force another player to give you a card of their choice.",
     "emoji": "🥺",
