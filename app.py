@@ -261,12 +261,6 @@ class StartGameView(discord.ui.View):
     def __init__(self, game_id):
         super().__init__(timeout=600)
         self.game_id = game_id
-        self.started = False
-
-    async def on_timeout(self):
-        if not self.started:
-            del games[self.game_id]
-            await super().on_timeout()
 
     @discord.ui.button(label="Join", style=discord.ButtonStyle.blurple, emoji="👋")
     async def join_game(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -289,7 +283,6 @@ class StartGameView(discord.ui.View):
         if len(game.players) < 2:
             await interaction.response.send_message("❌ Not enough players to start the game!", ephemeral=True)
             return
-        self.started = True
         game.start()
         self.disable_all_items()
         await interaction.response.edit_message(view=self)
