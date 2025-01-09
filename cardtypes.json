@@ -1,13 +1,13 @@
 {
   "eggsplode": {
     "title": "Eggsplode",
-    "description": "If you draw this card and don't have an Unfuse, you lose the game.",
+    "description": "If you draw this card and don't have an Defuse, you lose the game.",
     "emoji": "💥",
     "count": 0,
     "usable": false
   },
-  "unfuse": {
-    "title": "Unfuse",
+  "defuse": {
+    "title": "Defuse",
     "description": "Put an Eggsplode card back into the deck. Used automatically when you draw an Eggsplode card.",
     "emoji": "🔧",
     "count": 0,
