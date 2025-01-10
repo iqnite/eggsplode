@@ -367,8 +367,7 @@ async def hand(
     try:
         player_hand = games[new_game_id].group_hand(ctx.interaction.user.id)
         hand_details = "".join(
-            f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']
-                                            }** ({count}x): {CARDS[card]['description']}"
+            f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']}** ({count}x): {CARDS[card]['description']}"
             for card, count in player_hand
         )
         await ctx.respond(f"# Your hand:{hand_details}", ephemeral=True)
