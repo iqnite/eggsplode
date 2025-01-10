@@ -251,8 +251,11 @@ class PlayView(discord.ui.View):
                 self.game.next_turn()
                 await self.end_turn(interaction)
             case 'predict':
+                next_cards = "".join(
+                    f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']}**" for card in self.game.deck[-1:-4:-1]
+                )
                 await interaction.followup.send(f"🔮 <@{interaction.user.id}> looked at the next 3 cards on the deck!")
-                await interaction.followup.send(f"### Next 3 cards on the deck:{"".join(f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']}**" for card in self.game.deck[-1:-4:-1])}", ephemeral=True)
+                await interaction.followup.send(f"### Next 3 cards on the deck:{next_cards}", ephemeral=True)
             case _:
                 await interaction.followup.send(f"🙁 Sorry, not implemented yet.", ephemeral=True)
 
@@ -357,7 +360,11 @@ async def hand(
         return
     try:
         player_hand = games[new_game_id].group_hand(ctx.interaction.user.id)
-        await ctx.respond(f"# Your hand:{"".join(f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']}** ({count}x): {CARDS[card]['description']}" for card, count in player_hand)}", ephemeral=True)
+        hand_details = "".join(
+            f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']}** ({count}x): {CARDS[card]['description']}"
+            for card, count in player_hand
+        )
+        await ctx.respond(f"# Your hand:{hand_details}", ephemeral=True)
     except KeyError:
         await ctx.respond("❌ Game has not started yet!", ephemeral=True)
 
