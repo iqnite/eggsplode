@@ -42,7 +42,7 @@
     "usable": true
   },
   "shuffle": {
-    "title": "Shuffle",
+    "title": "Mixer",
     "description": "Shuffle the deck.",
     "emoji": "🌀",
     "count": 4,

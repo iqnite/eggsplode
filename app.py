@@ -6,12 +6,15 @@ import discord
 from discord.ext import commands
 
 load_dotenv()
+ADMIN_MAINTENANCE_CODE = os.getenv('ADMIN_MAINTENANCE_CODE')
+ADMIN_LISTGAMES_CODE = os.getenv('ADMIN_LISTGAMES_CODE')
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 assert DISCORD_TOKEN is not None, "DISCORD_TOKEN is not set in .env file"
 with open('cardtypes.json', encoding='utf-8') as f:
     CARDS = json.load(f)
 
 app = commands.Bot()
+admin_maintenance = False
 
 
 class Game:
@@ -245,7 +248,7 @@ class PlayView(discord.ui.View):
         match selected:
             case 'shuffle':
                 random.shuffle(self.game.deck)
-                await interaction.followup.send(f"🔄 <@{interaction.user.id}> shuffled the deck!")
+                await interaction.followup.send(f"🌀 <@{interaction.user.id}> shuffled the deck!")
             case 'skip':
                 await interaction.followup.send(f"⏩ <@{interaction.user.id}> skipped their turn and did not draw a card!")
                 self.game.next_turn()
@@ -303,11 +306,14 @@ class StartGameView(discord.ui.View):
     },
 )
 async def start(ctx: discord.ApplicationContext):
+    if admin_maintenance:
+        await ctx.respond("⚠️ The bot is currently under maintenance. Please try again later. You can find more info in our support server.", ephemeral=True)
+        return
     assert ctx.interaction.user
     game_id = ctx.interaction.id
     view = StartGameView(game_id)
     games[game_id] = Game(ctx.interaction.user.id)
-    await ctx.response.send_message(f"# New game\n-# Game ID: {game_id}\n<@{ctx.interaction.user.id}> wants to start a new Eggsplode game! Click on **Join** to participate!\n**Players:**\n- <@{ctx.interaction.user.id}>", view=view)
+    await ctx.respond(f"# New game\n-# Game ID: {game_id}\n<@{ctx.interaction.user.id}> wants to start a new Eggsplode game! Click on **Join** to participate!\n**Players:**\n- <@{ctx.interaction.user.id}>", view=view)
 
 
 def games_with_user(user_id):
@@ -361,7 +367,8 @@ async def hand(
     try:
         player_hand = games[new_game_id].group_hand(ctx.interaction.user.id)
         hand_details = "".join(
-            f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']}** ({count}x): {CARDS[card]['description']}"
+            f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']
+                                            }** ({count}x): {CARDS[card]['description']}"
             for card, count in player_hand
         )
         await ctx.respond(f"# Your hand:{hand_details}", ephemeral=True)
@@ -371,7 +378,7 @@ async def hand(
 
 @app.slash_command(
     name="ping",
-    description="Pong!",
+    description="Check if the app is online.",
     integration_types={
         discord.IntegrationType.guild_install,
         discord.IntegrationType.user_install,
@@ -379,6 +386,34 @@ async def hand(
 )
 async def ping(ctx: discord.ApplicationContext):
     await ctx.respond(f"Pong! ({app.latency*1000:.0f}ms)")
+
+
+@app.slash_command(
+    name="admincmd",
+    description="Staff only.",
+    integration_types={
+        discord.IntegrationType.guild_install,
+        discord.IntegrationType.user_install,
+    },
+)
+@discord.option(
+    "command",
+    type=str,
+    description="If you don't know any command, you're not an admin.",
+    required=True,
+)
+async def admincmd(
+    ctx: discord.ApplicationContext,
+    command: str,
+):
+    if command == ADMIN_MAINTENANCE_CODE:
+        global admin_maintenance
+        admin_maintenance = not admin_maintenance
+        await ctx.respond(f"🔧 Admin maintenance mode {'enabled' if admin_maintenance else 'disabled'}.{' ✅ No games running.' if not games else ''}", ephemeral=True)
+    elif command == ADMIN_LISTGAMES_CODE:
+        await ctx.respond(f"📋 **Games:**\n- {', '.join(str(i) for i in games.keys())}", ephemeral=True)
+    else:
+        await ctx.respond("❌ Invalid command.", ephemeral=True)
 
 
 print("Hello, World!")
