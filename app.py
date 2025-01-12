@@ -268,6 +268,10 @@ class StartGameView(discord.ui.View):
         super().__init__(timeout=600)
         self.game_id = game_id
 
+    async def on_timeout(self):
+        del games[self.game_id]
+        await super().on_timeout()
+
     @discord.ui.button(label="Join", style=discord.ButtonStyle.blurple, emoji="👋")
     async def join_game(self, button: discord.ui.Button, interaction: discord.Interaction):
         game = games[self.game_id]
