@@ -376,8 +376,29 @@ async def hand(
 
 
 @app.slash_command(
+    name="help",
+    description="Learn how to play Eggsplode!",
+    integration_types={
+        discord.IntegrationType.guild_install,
+        discord.IntegrationType.user_install,
+    },
+)
+async def help(ctx: discord.ApplicationContext):
+    await ctx.respond("\n".join((
+        "# How to start a game",
+        "Use the </start:1325457141628141661> command to create a new game. Once everyone has joined, select **Start game** to begin!",
+        "# How to play",
+        "1. Once it's your turn, click on **Play!**",
+        "2. Play as many cards form the dropdown menu as you want. You can also not play any cards.",
+        "3. Click on **Draw** to draw a card from the deck and end your turn. It may not be required after playing some types cards.",
+        "# Eggsploding and Defusing",
+        "If you draw an **Eggsplode** card and don't have **Defuse** card, you're out of the game. If you have a **Defuse** card, you can put the **Eggsplode** card back into the deck.",
+    )))
+
+
+@app.slash_command(
     name="ping",
-    description="Check if the app is online.",
+    description="Check if Eggsplode is online.",
     integration_types={
         discord.IntegrationType.guild_install,
         discord.IntegrationType.user_install,
