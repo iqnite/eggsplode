@@ -104,6 +104,7 @@ class Game:
         del self.players[self.players.index(user_id)]
         del self.hands[user_id]
         self.current_player -= 1
+        self.atteggs = 0
         self.next_turn()
 
     def kick_ends_game(self, user_id):
@@ -211,7 +212,7 @@ class PlayView(discord.ui.View):
             self.disable_all_items()
             await interaction.response.edit_message(view=self)
             await interaction.followup.send(
-                "❌ This turn has ended or the action is not valid anymore! Make sure to click **Play** on the latest message.",
+                "❌ This turn has ended or the action is not valid anymore! Use **/play** to update it.",
                 ephemeral=True,
             )
             return False
@@ -260,10 +261,10 @@ class PlayView(discord.ui.View):
         await self.draw_card(interaction)
 
     async def draw_card(self, interaction: discord.Interaction):
-        self.disable_all_items()
-        await interaction.response.edit_message(view=self)
         if not await self.verify_turn(interaction):
             return
+        self.disable_all_items()
+        await interaction.response.edit_message(view=self)
         assert interaction.user
         card = self.game.draw_card(interaction.user.id)
         match card:
@@ -308,22 +309,22 @@ class PlayView(discord.ui.View):
                 await interaction.followup.send(
                     f"⚡ <@{interaction.user.id}> wants to skip and force <@{self.game.next_player_id}> to draw twice. Accept?",
                     view=NopeView(
-                        interaction,
-                        self.game_id,
-                        self.action_id,
-                        self.game.next_player_id,
-                        lambda: self.finalize_attegg(interaction),
+                        parent_interaction=interaction,
+                        game_id=self.game_id,
+                        action_id=self.action_id,
+                        target_player=self.game.next_player_id,
+                        staged_action=lambda: self.finalize_attegg(interaction),
                     ),
                 )
             case "skip":
                 await interaction.followup.send(
-                    f"⏩ <@{interaction.user.id}> skipped their turn and did not draw a card! Next up: <@{self.game.next_player_id}>. Accept?",
+                    f"⏩ <@{interaction.user.id}> skipped their turn and did not draw a card! Next up: <@{self.game.next_player_id if self.game.atteggs < 2 else interaction.user.id}>. Accept?",
                     view=NopeView(
-                        interaction,
-                        self.game_id,
-                        self.action_id,
-                        self.game.next_player_id,
-                        lambda: self.finalize_skip(interaction),
+                        parent_interaction=interaction,
+                        game_id=self.game_id,
+                        action_id=self.action_id,
+                        target_player=self.game.next_player_id if self.game.atteggs < 2 else interaction.user.id,
+                        staged_action=lambda: self.finalize_skip(interaction),
                     ),
                 )
             case "shuffle":
@@ -351,11 +352,17 @@ class PlayView(discord.ui.View):
                     f"🙁 Sorry, not implemented yet.", ephemeral=True
                 )
 
-    async def finalize_skip(self, interaction):
+    async def finalize_skip(self, interaction: discord.Interaction):
+        assert interaction.message
+        self.disable_all_items()
+        await interaction.followup.edit_message(interaction.message.id, view=self)
         self.game.next_turn()
         await self.end_turn(interaction)
 
     async def finalize_attegg(self, interaction: discord.Interaction):
+        assert interaction.message
+        self.disable_all_items()
+        await interaction.followup.edit_message(interaction.message.id, view=self)
         prev_atteggs = self.game.atteggs
         self.game.atteggs = 0
         self.game.next_turn()
@@ -392,7 +399,7 @@ class NopeView(discord.ui.View):
                 await self.parent_interaction.followup.send(
                     content=f"*💀 <@{self.target_player}> was kicked for inactivity.*",
                 )
-                self.staged_action()
+                await self.staged_action()
             await super().on_timeout()
 
     @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
@@ -444,7 +451,7 @@ class NopeView(discord.ui.View):
 
 
 class StartGameView(discord.ui.View):
-    def __init__(self, game_id):
+    def __init__(self, game_id: int):
         super().__init__(timeout=600)
         self.game_id = game_id
 
