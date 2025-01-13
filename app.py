@@ -13,7 +13,9 @@ assert DISCORD_TOKEN is not None, "DISCORD_TOKEN is not set in .env file"
 with open("cardtypes.json", encoding="utf-8") as f:
     CARDS = json.load(f)
 
-app = commands.Bot(activity=discord.Activity(type=discord.ActivityType.watching, name="you"))
+app = commands.Bot(
+    activity=discord.Activity(type=discord.ActivityType.watching, name="you")
+)
 admin_maintenance = False
 
 
@@ -48,6 +50,24 @@ class Game:
     def current_player_id(self):
         return self.players[self.current_player]
 
+    @property
+    def next_player(self):
+        return (
+            0
+            if self.current_player == len(self.players) - 1
+            else self.current_player + 1
+        )
+
+    @property
+    def next_player_id(self):
+        return self.players[self.next_player]
+
+    def next_turn(self):
+        if self.atteggs > 0:
+            self.atteggs -= 1
+            return
+        self.current_player = self.next_player
+
     def group_hand(self, user_id, usable_only=False):
         hand = self.hands[user_id]
         result_cards = []
@@ -79,23 +99,6 @@ class Game:
             self.hands[user_id].append(card)
             self.next_turn()
             return card
-
-    def next_turn(self):
-        if self.atteggs > 0:
-            self.atteggs -= 1
-            return
-        self.current_player = (
-            0
-            if self.current_player == len(self.players) - 1
-            else self.current_player + 1
-        )
-
-    def prev_turn(self):
-        self.current_player = (
-            len(self.players) - 1
-            if self.current_player == 0
-            else self.current_player - 1
-        )
 
     def remove_player(self, user_id):
         del self.players[self.players.index(user_id)]
@@ -303,21 +306,33 @@ class PlayView(discord.ui.View):
         match selected:
             case "attegg":
                 await interaction.followup.send(
-                    f"⚡ <@{interaction.user.id}> played an Attegg!"
+                    f"⚡ <@{interaction.user.id}> wants to skip and force <@{self.game.next_player_id}> to draw twice. Accept?",
+                    view=NopeView(
+                        interaction,
+                        self.game_id,
+                        self.action_id,
+                        self.game.next_player_id,
+                        lambda: self.finalize_attegg(interaction),
+                    ),
                 )
-                self.game.atteggs += 2
-                self.game.next_turn()
-                await self.end_turn(interaction)
             case "skip":
                 await interaction.followup.send(
-                    f"⏩ <@{interaction.user.id}> skipped their turn and did not draw a card!"
+                    f"⏩ <@{interaction.user.id}> skipped their turn and did not draw a card! Next up: <@{self.game.next_player_id}>. Accept?",
+                    view=NopeView(
+                        interaction,
+                        self.game_id,
+                        self.action_id,
+                        self.game.next_player_id,
+                        lambda: self.finalize_skip(interaction),
+                    ),
                 )
-                self.game.next_turn()
-                await self.end_turn(interaction)
             case "shuffle":
                 random.shuffle(self.game.deck)
                 await interaction.followup.send(
-                    f"🌀 <@{interaction.user.id}> shuffled the deck!"
+                    f"🌀 <@{interaction.user.id}> shuffled the deck!",
+                )
+                await interaction.followup.send(
+                    "Don't forget to draw a card!", ephemeral=True
                 )
             case "predict":
                 next_cards = "".join(
@@ -328,12 +343,104 @@ class PlayView(discord.ui.View):
                     f"🔮 <@{interaction.user.id}> looked at the next 3 cards on the deck!"
                 )
                 await interaction.followup.send(
-                    f"### Next 3 cards on the deck:{next_cards}", ephemeral=True
+                    f"### Next 3 cards on the deck:{next_cards}\n-# Don't forget to draw a card!",
+                    ephemeral=True,
                 )
             case _:
                 await interaction.followup.send(
                     f"🙁 Sorry, not implemented yet.", ephemeral=True
                 )
+
+    async def finalize_skip(self, interaction):
+        self.game.next_turn()
+        await self.end_turn(interaction)
+
+    async def finalize_attegg(self, interaction: discord.Interaction):
+        prev_atteggs = self.game.atteggs
+        self.game.atteggs = 0
+        self.game.next_turn()
+        self.game.atteggs = prev_atteggs + 1
+        await self.end_turn(interaction)
+
+
+class NopeView(discord.ui.View):
+    def __init__(
+        self,
+        parent_interaction: discord.Interaction,
+        game_id: int,
+        action_id: int,
+        target_player: int,
+        staged_action,
+    ):
+        super().__init__(timeout=30)
+        self.parent_interaction = parent_interaction
+        self.game = games[game_id]
+        self.game_id = game_id
+        self.action_id = action_id
+        self.target_player = target_player
+        self.staged_action = staged_action
+        self.interacted = False
+
+    async def on_timeout(self):
+        if not self.interacted and self.action_id == self.game.action_id:
+            if self.game.kick_ends_game(self.target_player):
+                await self.parent_interaction.followup.send(
+                    content=f"*💀 <@{self.target_player}> was kicked for inactivity.*\n# 🎉 <@{self.game.players[0]}> wins!"
+                )
+                del games[self.game_id]
+            else:
+                await self.parent_interaction.followup.send(
+                    content=f"*💀 <@{self.target_player}> was kicked for inactivity.*",
+                )
+                self.staged_action()
+            await super().on_timeout()
+
+    @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
+    async def ok_callback(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
+        assert interaction.user
+        assert self.parent_interaction.user
+        if interaction.user.id != self.target_player:
+            await interaction.response.send_message(
+                "❌ It's not your turn!", ephemeral=True
+            )
+            return
+        self.interacted = True
+        self.disable_all_items()
+        await interaction.response.edit_message(view=self)
+        await self.staged_action()
+
+    @discord.ui.button(label="Nope!", style=discord.ButtonStyle.red, emoji="🛑")
+    async def nope_callback(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
+        assert interaction.user
+        assert self.parent_interaction.user
+        if self.parent_interaction.user.id == interaction.user.id:
+            await interaction.response.send_message(
+                "❌ You can't Nope yourself!", ephemeral=True
+            )
+            return
+        if interaction.user.id not in self.game.players:
+            await interaction.response.send_message(
+                "❌ You are not in this game!", ephemeral=True
+            )
+            return
+        try:
+            self.game.hands[interaction.user.id].remove("nope")
+        except ValueError:
+            await interaction.response.send_message(
+                "❌ You have no **Nope** cards to play!", ephemeral=True
+            )
+            return
+        assert interaction.message
+        self.interacted = True
+        self.disable_all_items()
+        await interaction.response.edit_message(
+            content=f"~~{interaction.message.content}~~\n🛑 <@{interaction.user.id}>: **Nope!**\n-# Don't forget to draw a card!",
+            view=self,
+        )
 
 
 class StartGameView(discord.ui.View):
