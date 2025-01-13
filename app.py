@@ -447,6 +447,65 @@ class NopeView(discord.ui.View):
         )
 
 
+class BeggView(NopeView):
+    def __init__(
+        self,
+        parent_interaction: discord.Interaction,
+        game_id: int,
+        action_id: int,
+        target_player: int,
+        staged_action,
+    ):
+        super().__init__(
+            parent_interaction, game_id, action_id, target_player, staged_action
+        )
+
+    async def on_timeout(self):
+        return await super().on_timeout()
+
+    @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
+    async def ok_callback(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
+        assert interaction.user
+        assert self.parent_interaction.user
+        if interaction.user.id != self.target_player:
+            await interaction.response.send_message(
+                "❌ It's not your turn!", ephemeral=True
+            )
+            return
+        self.interacted = True
+        self.disable_all_items()
+        await interaction.response.edit_message(view=self)
+        await interaction.followup.send(
+            f"Select a card you want to give to <@{self.parent_interaction.user.id}>!",
+            view=GiveView(
+                parent_interaction=self.parent_interaction,
+                game_id=self.game_id,
+                action_id=self.action_id,
+                target_player=self.target_player,
+            ),
+            ephemeral=True,
+        )
+
+
+class GiveView(discord.ui.View):
+    def __init__(
+        self,
+        parent_interaction: discord.Interaction,
+        game_id: int,
+        action_id: int,
+        target_player: int,
+    ):
+        self.parent_interaction = parent_interaction
+        self.game = games[game_id]
+        self.game_id = game_id
+        self.action_id = action_id
+        self.target_player = target_player
+        self.interacted = False
+        ...
+
+
 class StartGameView(discord.ui.View):
     def __init__(self, game_id: int):
         super().__init__(timeout=600)
@@ -641,7 +700,7 @@ async def help(ctx: discord.ApplicationContext):
                 "# How to play",
                 "1. Once it's your turn, click on **Play!**",
                 "2. Play as many cards form the dropdown menu as you want. You can also not play any cards.",
-                "3. Click on **Draw** to draw a card from the deck and end your turn. It may not be required after playing some types cards.",
+                "3. Click on **Draw** to draw a card from the deck and end your turn. It may not be required after playing some card types.",
                 "# Eggsploding and Defusing",
                 "If you draw an **Eggsplode** card and don't have **Defuse** card, you're out of the game. If you have a **Defuse** card, you can put the **Eggsplode** card back into the deck.",
             )
