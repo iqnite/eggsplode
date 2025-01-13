@@ -24,6 +24,7 @@ class Game:
         self.deck: list[str] = []
         self.current_player: int = 0
         self.action_id: int = 0
+        self.atteggs: int = 0
 
     def start(self):
         for card in CARDS:
@@ -80,10 +81,20 @@ class Game:
             return card
 
     def next_turn(self):
+        if self.atteggs > 0:
+            self.atteggs -= 1
+            return
         self.current_player = (
             0
             if self.current_player == len(self.players) - 1
             else self.current_player + 1
+        )
+
+    def prev_turn(self):
+        self.current_player = (
+            len(self.players) - 1
+            if self.current_player == 0
+            else self.current_player - 1
         )
 
     def remove_player(self, user_id):
@@ -269,7 +280,7 @@ class PlayView(discord.ui.View):
                 del games[self.game_id]
                 self.on_timeout = super().on_timeout
                 return
-            case other:
+            case _:
                 await interaction.followup.send(
                     f"🃏 <@{interaction.user.id}> drew a card!"
                 )
@@ -290,17 +301,24 @@ class PlayView(discord.ui.View):
         await self.create_card_selection(interaction)
         await interaction.response.edit_message(view=self)
         match selected:
-            case "shuffle":
-                random.shuffle(self.game.deck)
+            case "attegg":
                 await interaction.followup.send(
-                    f"🌀 <@{interaction.user.id}> shuffled the deck!"
+                    f"⚡ <@{interaction.user.id}> played an Attegg!"
                 )
+                self.game.atteggs += 2
+                self.game.next_turn()
+                await self.end_turn(interaction)
             case "skip":
                 await interaction.followup.send(
                     f"⏩ <@{interaction.user.id}> skipped their turn and did not draw a card!"
                 )
                 self.game.next_turn()
                 await self.end_turn(interaction)
+            case "shuffle":
+                random.shuffle(self.game.deck)
+                await interaction.followup.send(
+                    f"🌀 <@{interaction.user.id}> shuffled the deck!"
+                )
             case "predict":
                 next_cards = "".join(
                     f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']}**"
