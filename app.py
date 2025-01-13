@@ -13,7 +13,7 @@ assert DISCORD_TOKEN is not None, "DISCORD_TOKEN is not set in .env file"
 with open("cardtypes.json", encoding="utf-8") as f:
     CARDS = json.load(f)
 
-app = commands.Bot()
+app = commands.Bot(activity=discord.Activity(type=discord.ActivityType.watching, name="you"))
 admin_maintenance = False
 
 
