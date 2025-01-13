@@ -15,7 +15,7 @@
   },
   "nope": {
     "title": "Nope",
-    "description": "Stop the action of another card. Can be used at any time.",
+    "description": "Stop the action of another card. Can be used at any time by clicking on the **Nope** button.",
     "emoji": "🛑",
     "count": 5,
     "usable": false

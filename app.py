@@ -323,7 +323,11 @@ class PlayView(discord.ui.View):
                         parent_interaction=interaction,
                         game_id=self.game_id,
                         action_id=self.action_id,
-                        target_player=self.game.next_player_id if self.game.atteggs < 2 else interaction.user.id,
+                        target_player=(
+                            self.game.next_player_id
+                            if self.game.atteggs < 2
+                            else interaction.user.id
+                        ),
                         staged_action=lambda: self.finalize_skip(interaction),
                     ),
                 )
@@ -352,13 +356,6 @@ class PlayView(discord.ui.View):
                     f"🙁 Sorry, not implemented yet.", ephemeral=True
                 )
 
-    async def finalize_skip(self, interaction: discord.Interaction):
-        assert interaction.message
-        self.disable_all_items()
-        await interaction.followup.edit_message(interaction.message.id, view=self)
-        self.game.next_turn()
-        await self.end_turn(interaction)
-
     async def finalize_attegg(self, interaction: discord.Interaction):
         assert interaction.message
         self.disable_all_items()
@@ -369,6 +366,13 @@ class PlayView(discord.ui.View):
         self.game.atteggs = prev_atteggs + 1
         await self.end_turn(interaction)
 
+    async def finalize_skip(self, interaction: discord.Interaction):
+        assert interaction.message
+        self.disable_all_items()
+        await interaction.followup.edit_message(interaction.message.id, view=self)
+        self.game.next_turn()
+        await self.end_turn(interaction)
+
 
 class NopeView(discord.ui.View):
     def __init__(
@@ -377,7 +381,7 @@ class NopeView(discord.ui.View):
         game_id: int,
         action_id: int,
         target_player: int,
-        staged_action,
+        staged_action=None,
     ):
         super().__init__(timeout=30)
         self.parent_interaction = parent_interaction
@@ -390,17 +394,9 @@ class NopeView(discord.ui.View):
 
     async def on_timeout(self):
         if not self.interacted and self.action_id == self.game.action_id:
-            if self.game.kick_ends_game(self.target_player):
-                await self.parent_interaction.followup.send(
-                    content=f"*💀 <@{self.target_player}> was kicked for inactivity.*\n# 🎉 <@{self.game.players[0]}> wins!"
-                )
-                del games[self.game_id]
-            else:
-                await self.parent_interaction.followup.send(
-                    content=f"*💀 <@{self.target_player}> was kicked for inactivity.*",
-                )
+            if self.staged_action:
                 await self.staged_action()
-            await super().on_timeout()
+            return await super().on_timeout()
 
     @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
     async def ok_callback(
@@ -416,7 +412,8 @@ class NopeView(discord.ui.View):
         self.interacted = True
         self.disable_all_items()
         await interaction.response.edit_message(view=self)
-        await self.staged_action()
+        if self.staged_action:
+            await self.staged_action()
 
     @discord.ui.button(label="Nope!", style=discord.ButtonStyle.red, emoji="🛑")
     async def nope_callback(
