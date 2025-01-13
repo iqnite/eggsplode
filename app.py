@@ -531,6 +531,50 @@ async def game_id_autocomplete(ctx: discord.AutocompleteContext):
 
 
 @app.slash_command(
+    name="play",
+    description="Play your turn.",
+    integration_types={
+        discord.IntegrationType.guild_install,
+        discord.IntegrationType.user_install,
+    },
+)
+@discord.option(
+    "game_id",
+    type=str,
+    description="The game ID",
+    required=False,
+    default="",
+    autocomplete=game_id_autocomplete,
+)
+async def play(
+    ctx: discord.ApplicationContext,
+    game_id: str,
+):
+    assert ctx.interaction.user
+    if not game_id:
+        games_with_id = games_with_user(ctx.interaction.user.id)
+        if not games_with_id:
+            await ctx.respond("❌ You are not in any games!", ephemeral=True)
+            return
+        new_game_id = games_with_id[0]
+    else:
+        new_game_id = int(game_id)
+    if new_game_id not in games:
+        await ctx.respond("❌ Game not found!", ephemeral=True)
+        return
+    if ctx.interaction.user.id not in games[new_game_id].players:
+        await ctx.respond("❌ You are not in this game!", ephemeral=True)
+        return
+    try:
+        view = TurnView(new_game_id)
+        await ctx.respond(
+            f"Click on **Play!** to make your turn.", view=view, ephemeral=True
+        )
+    except KeyError:
+        await ctx.respond("❌ Game has not started yet!", ephemeral=True)
+
+
+@app.slash_command(
     name="hand",
     description="View your hand.",
     integration_types={
