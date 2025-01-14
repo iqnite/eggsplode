@@ -1,6 +1,32 @@
+"""
+Eggsplode Discord Bot
+
+This module contains the implementation of the Eggsplode Discord bot, including
+the game logic, bot commands, and interaction views.
+
+Classes:
+    Game: Represents a game of Eggsplode.
+    Eggsplode: Represents the Eggsplode bot.
+    TurnView: Represents the view for a player's turn.
+    PlayView: Represents the view for playing cards.
+    NopeView: Represents the view for the Nope action.
+    StartGameView: Represents the view for starting a game.
+
+Functions:
+    games_with_user(user_id): Returns a list of games that the user is in.
+    game_id_autocomplete(ctx): Autocompletes the game ID for the user.
+    start(ctx): Starts a new Eggsplode game.
+    play(ctx, game_id): Plays the user's turn.
+    hand(ctx, game_id): Views the user's hand.
+    show_help(ctx): Shows the help message.
+    ping(ctx): Checks if the Eggsplode bot is online.
+    admincmd(ctx, command): Executes an admin command.
+"""
+
 import os
 import random
 import json
+import discord.ext.commands
 from dotenv import load_dotenv
 import discord
 from discord.ext import commands
@@ -15,7 +41,25 @@ with open("cardtypes.json", encoding="utf-8") as f:
 
 
 class Game:
+    """
+    Represents a game of Eggsplode.
+
+    Attributes:
+        players (list[int]): List of player IDs.
+        hands (dict[int, list[str]]): Dictionary mapping player IDs to their hands.
+        deck (list[str]): List of cards in the deck.
+        current_player (int): Index of the current player.
+        action_id (int): ID of the current action.
+        atteggs (int): Number of atteggs.
+    """
+
     def __init__(self, *players):
+        """
+        Initializes a new game with the given players.
+
+        Args:
+            players (int): Player IDs.
+        """
         self.players: list[int] = list(players)
         self.hands: dict[int, list[str]] = {}
         self.deck: list[str] = []
@@ -24,6 +68,9 @@ class Game:
         self.atteggs: int = 0
 
     def start(self):
+        """
+        Starts the game by shuffling the deck and dealing cards to players.
+        """
         for card in CARDS:
             self.deck.extend([card] * CARDS[card]["count"])
         self.deck = self.deck * (1 + len(self.players) // 5)
@@ -31,7 +78,7 @@ class Game:
         for _ in range(7):
             for player in self.players:
                 assert isinstance(player, int), "Player must be an integer"
-                if player not in self.hands.keys():
+                if player not in self.hands:
                     self.hands[player] = []
                 self.hands[player].append(self.deck.pop())
         for player in self.players:
@@ -43,10 +90,22 @@ class Game:
 
     @property
     def current_player_id(self):
+        """
+        Returns the ID of the current player.
+
+        Returns:
+            int: Current player ID.
+        """
         return self.players[self.current_player]
 
     @property
     def next_player(self):
+        """
+        Returns the index of the next player.
+
+        Returns:
+            int: Index of the next player.
+        """
         return (
             0
             if self.current_player == len(self.players) - 1
@@ -55,15 +114,34 @@ class Game:
 
     @property
     def next_player_id(self):
+        """
+        Returns the ID of the next player.
+
+        Returns:
+            int: Next player ID.
+        """
         return self.players[self.next_player]
 
     def next_turn(self):
+        """
+        Advances the game to the next turn.
+        """
         if self.atteggs > 0:
             self.atteggs -= 1
             return
         self.current_player = self.next_player
 
     def group_hand(self, user_id, usable_only=False):
+        """
+        Groups the cards in a player's hand.
+
+        Args:
+            user_id (int): Player ID.
+            usable_only (bool): Whether to include only usable cards.
+
+        Returns:
+            list[tuple[str, int]]: List of tuples containing card names and counts.
+        """
         player_cards = self.hands[user_id]
         result_cards = []
         result_counts = []
@@ -77,6 +155,15 @@ class Game:
         return list(zip(result_cards, result_counts))
 
     def draw_card(self, user_id):
+        """
+        Draws a card for the given player.
+
+        Args:
+            user_id (int): Player ID.
+
+        Returns:
+            str: The drawn card.
+        """
         card = self.deck.pop()
         if card == "eggsplode":
             if "defuse" in self.hands[user_id]:
@@ -87,13 +174,18 @@ class Game:
             self.remove_player(user_id)
             if len(self.players) == 1:
                 return "gameover"
-            else:
-                return "eggsplode"
+            return "eggsplode"
         self.hands[user_id].append(card)
         self.next_turn()
         return card
 
     def remove_player(self, user_id):
+        """
+        Removes a player from the game.
+
+        Args:
+            user_id (int): Player ID.
+        """
         del self.players[self.players.index(user_id)]
         del self.hands[user_id]
         self.current_player -= 1
@@ -101,6 +193,15 @@ class Game:
         self.next_turn()
 
     def kick_ends_game(self, user_id):
+        """
+        Kicks a player for inactivity and checks if the game ends.
+
+        Args:
+            user_id (int): Player ID.
+
+        Returns:
+            bool: True if the game ends, False otherwise.
+        """
         self.remove_player(user_id)
         if len(self.players) == 1:
             return True
@@ -112,14 +213,46 @@ class Game:
 
 
 class Eggsplode(commands.Bot):
+    """
+    Represents the Eggsplode bot.
+
+    Attributes:
+        admin_maintenance (bool): Whether the bot is in maintenance mode.
+        games (dict[int, Game]): Dictionary of active games.
+    """
+
     def __init__(self, **kwargs):
+        """
+        Initializes the Eggsplode bot.
+
+        Args:
+            kwargs: Additional keyword arguments.
+        """
         super().__init__(**kwargs)
         self.admin_maintenance: bool = False
         self.games: dict[int, Game] = {}
 
 
 class TurnView(discord.ui.View):
+    """
+    Represents the view for a player's turn.
+
+    Attributes:
+        app (Eggsplode): The Eggsplode bot instance.
+        game_id (int): The game ID.
+        game (Game): The game instance.
+        action_id (int): The action ID.
+        interacted (bool): Whether the view has been interacted with.
+    """
+
     def __init__(self, app: Eggsplode, game_id: int):
+        """
+        Initializes the TurnView.
+
+        Args:
+            app (Eggsplode): The Eggsplode bot instance.
+            game_id (int): The game ID.
+        """
         super().__init__(timeout=30)
         self.app = app
         self.game_id = game_id
@@ -128,6 +261,9 @@ class TurnView(discord.ui.View):
         self.interacted = False
 
     async def on_timeout(self):
+        """
+        Handles the timeout event.
+        """
         if not self.interacted and self.action_id == self.game.action_id:
             assert self.message
             view = TurnView(self.app, self.game_id)
@@ -146,6 +282,13 @@ class TurnView(discord.ui.View):
 
     @discord.ui.button(label="Play!", style=discord.ButtonStyle.blurple, emoji="🤚")
     async def play(self, _: discord.ui.Button, interaction: discord.Interaction):
+        """
+        Handles the Play button click event.
+
+        Args:
+            _ (discord.ui.Button): The button instance.
+            interaction (discord.Interaction): The interaction instance.
+        """
         assert interaction.user
         if interaction.user.id != self.game.current_player_id:
             await interaction.response.send_message(
@@ -164,6 +307,19 @@ class TurnView(discord.ui.View):
 
 
 class PlayView(discord.ui.View):
+    """
+    Represents the view for playing cards.
+
+    Attributes:
+        parent_view (TurnView): The parent TurnView instance.
+        parent_interaction (discord.Interaction): The parent interaction instance.
+        game (Game): The game instance.
+        game_id (int): The game ID.
+        action_id (int): The action ID.
+        interacted (bool): Whether the view has been interacted with.
+        play_card_select (discord.ui.Select): The card selection dropdown.
+    """
+
     def __init__(
         self,
         parent_view: TurnView,
@@ -171,6 +327,15 @@ class PlayView(discord.ui.View):
         game_id: int,
         action_id: int,
     ):
+        """
+        Initializes the PlayView.
+
+        Args:
+            parent_view (TurnView): The parent TurnView instance.
+            parent_interaction (discord.Interaction): The parent interaction instance.
+            game_id (int): The game ID.
+            action_id (int): The action ID.
+        """
         super().__init__(timeout=120)
         self.parent_view = parent_view
         self.parent_interaction = parent_interaction
@@ -181,9 +346,15 @@ class PlayView(discord.ui.View):
         self.play_card_select = None
 
     async def create_view(self):
+        """
+        Creates the card selection view.
+        """
         await self.create_card_selection(self.parent_interaction)
 
     async def on_timeout(self):
+        """
+        Handles the timeout event.
+        """
         if not self.interacted and self.action_id == self.game.action_id:
             view = TurnView(self.parent_view.app, self.game_id)
             prev_user = self.game.current_player_id
@@ -200,6 +371,15 @@ class PlayView(discord.ui.View):
             await super().on_timeout()
 
     async def verify_turn(self, interaction: discord.Interaction):
+        """
+        Verifies if it's the player's turn.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+
+        Returns:
+            bool: True if it's the player's turn, False otherwise.
+        """
         assert interaction.user
         if interaction.user.id != self.game.current_player_id:
             self.disable_all_items()
@@ -219,6 +399,12 @@ class PlayView(discord.ui.View):
         return True
 
     async def end_turn(self, interaction: discord.Interaction):
+        """
+        Ends the player's turn.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
         self.interacted = True
         view = TurnView(self.parent_view.app, self.game_id)
         await interaction.followup.send(
@@ -231,6 +417,12 @@ class PlayView(discord.ui.View):
         )
 
     async def create_card_selection(self, interaction: discord.Interaction):
+        """
+        Creates the card selection dropdown.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
         assert interaction.user
         user_cards = self.game.group_hand(interaction.user.id, usable_only=True)
         if len(user_cards) == 0:
@@ -256,9 +448,22 @@ class PlayView(discord.ui.View):
     async def draw_callback(
         self, _: discord.ui.Button, interaction: discord.Interaction
     ):
+        """
+        Handles the Draw button click event.
+
+        Args:
+            _ (discord.ui.Button): The button instance.
+            interaction (discord.Interaction): The interaction instance.
+        """
         await self.draw_card(interaction)
 
     async def draw_card(self, interaction: discord.Interaction):
+        """
+        Draws a card for the player.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
         if not await self.verify_turn(interaction):
             return
         self.disable_all_items()
@@ -293,6 +498,12 @@ class PlayView(discord.ui.View):
         await self.end_turn(interaction)
 
     async def play_card(self, interaction: discord.Interaction):
+        """
+        Plays a selected card.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
         if not await self.verify_turn(interaction):
             return
         assert self.play_card_select
@@ -358,6 +569,12 @@ class PlayView(discord.ui.View):
                 )
 
     async def finalize_attegg(self, interaction: discord.Interaction):
+        """
+        Finalizes the attegg action.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
         assert interaction.message
         self.disable_all_items()
         await interaction.followup.edit_message(interaction.message.id, view=self)
@@ -368,6 +585,12 @@ class PlayView(discord.ui.View):
         await self.end_turn(interaction)
 
     async def finalize_skip(self, interaction: discord.Interaction):
+        """
+        Finalizes the skip action.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
         assert interaction.message
         self.disable_all_items()
         await interaction.followup.edit_message(interaction.message.id, view=self)
@@ -376,6 +599,19 @@ class PlayView(discord.ui.View):
 
 
 class NopeView(discord.ui.View):
+    """
+    Represents the view for the Nope action.
+
+    Attributes:
+        parent_interaction (discord.Interaction): The parent interaction instance.
+        game (Game): The game instance.
+        game_id (int): The game ID.
+        action_id (int): The action ID.
+        target_player (int): The target player ID.
+        staged_action (callable): The staged action to perform.
+        interacted (bool): Whether the view has been interacted with.
+    """
+
     def __init__(
         self,
         parent_interaction: discord.Interaction,
@@ -385,6 +621,17 @@ class NopeView(discord.ui.View):
         target_player: int,
         staged_action=None,
     ):
+        """
+        Initializes the NopeView.
+
+        Args:
+            parent_interaction (discord.Interaction): The parent interaction instance.
+            app (Eggsplode): The Eggsplode bot instance.
+            game_id (int): The game ID.
+            action_id (int): The action ID.
+            target_player (int): The target player ID.
+            staged_action (callable): The staged action to perform.
+        """
         super().__init__(timeout=30)
         self.parent_interaction = parent_interaction
         self.game = app.games[game_id]
@@ -395,15 +642,23 @@ class NopeView(discord.ui.View):
         self.interacted = False
 
     async def on_timeout(self):
+        """
+        Handles the timeout event.
+        """
         if not self.interacted and self.action_id == self.game.action_id:
             if self.staged_action:
                 await self.staged_action()
             return await super().on_timeout()
 
     @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
-    async def ok_callback(
-        self, _: discord.ui.Button, interaction: discord.Interaction
-    ):
+    async def ok_callback(self, _: discord.ui.Button, interaction: discord.Interaction):
+        """
+        Handles the OK button click event.
+
+        Args:
+            _ (discord.ui.Button): The button instance.
+            interaction (discord.Interaction): The interaction instance.
+        """
         assert interaction.user
         assert self.parent_interaction.user
         if interaction.user.id != self.target_player:
@@ -421,6 +676,13 @@ class NopeView(discord.ui.View):
     async def nope_callback(
         self, _: discord.ui.Button, interaction: discord.Interaction
     ):
+        """
+        Handles the Nope button click event.
+
+        Args:
+            _ (discord.ui.Button): The button instance.
+            interaction (discord.Interaction): The interaction instance.
+        """
         assert interaction.user
         assert self.parent_interaction.user
         if self.parent_interaction.user.id == interaction.user.id:
@@ -450,19 +712,42 @@ class NopeView(discord.ui.View):
 
 
 class StartGameView(discord.ui.View):
+    """
+    Represents the view for starting a game.
+
+    Attributes:
+        app (Eggsplode): The Eggsplode bot instance.
+        game_id (int): The game ID.
+    """
+
     def __init__(self, app: Eggsplode, game_id: int):
+        """
+        Initializes the StartGameView.
+
+        Args:
+            app (Eggsplode): The Eggsplode bot instance.
+            game_id (int): The game ID.
+        """
         super().__init__(timeout=600)
         self.app = app
         self.game_id = game_id
 
     async def on_timeout(self):
+        """
+        Handles the timeout event.
+        """
         del self.app.games[self.game_id]
         await super().on_timeout()
 
     @discord.ui.button(label="Join", style=discord.ButtonStyle.blurple, emoji="👋")
-    async def join_game(
-        self, _: discord.ui.Button, interaction: discord.Interaction
-    ):
+    async def join_game(self, _: discord.ui.Button, interaction: discord.Interaction):
+        """
+        Handles the Join button click event.
+
+        Args:
+            _ (discord.ui.Button): The button instance.
+            interaction (discord.Interaction): The interaction instance.
+        """
         game = self.app.games[self.game_id]
         assert interaction.user
         if interaction.user.id in game.players:
@@ -477,9 +762,14 @@ class StartGameView(discord.ui.View):
         )
 
     @discord.ui.button(label="Start Game", style=discord.ButtonStyle.green, emoji="🚀")
-    async def start_game(
-        self, _: discord.ui.Button, interaction: discord.Interaction
-    ):
+    async def start_game(self, _: discord.ui.Button, interaction: discord.Interaction):
+        """
+        Handles the Start Game button click event.
+
+        Args:
+            _ (discord.ui.Button): The button instance.
+            interaction (discord.Interaction): The interaction instance.
+        """
         game = self.app.games[self.game_id]
         assert interaction.user
         if interaction.user.id != game.players[0]:
@@ -502,12 +792,12 @@ class StartGameView(discord.ui.View):
         )
 
 
-app = Eggsplode(
+eggsplode_app = Eggsplode(
     activity=discord.Activity(type=discord.ActivityType.watching, name="you")
 )
 
 
-@app.slash_command(
+@eggsplode_app.slash_command(
     name="start",
     description="Start a new Eggsplode game!",
     integration_types={
@@ -516,7 +806,13 @@ app = Eggsplode(
     },
 )
 async def start(ctx: discord.ApplicationContext):
-    if app.admin_maintenance:
+    """
+    Starts a new Eggsplode game.
+
+    Args:
+        ctx (discord.ApplicationContext): The application context.
+    """
+    if eggsplode_app.admin_maintenance:
         await ctx.respond(
             "⚠️ The bot is currently under maintenance. Please try again later. You can find more info in our support server.",
             ephemeral=True,
@@ -524,8 +820,8 @@ async def start(ctx: discord.ApplicationContext):
         return
     assert ctx.interaction.user
     game_id = ctx.interaction.id
-    view = StartGameView(app, game_id)
-    app.games[game_id] = Game(ctx.interaction.user.id)
+    view = StartGameView(eggsplode_app, game_id)
+    eggsplode_app.games[game_id] = Game(ctx.interaction.user.id)
     await ctx.respond(
         f"# New game\n-# Game ID: {game_id}\n<@{ctx.interaction.user.id}> wants to start a new Eggsplode game! Click on **Join** to participate!\n**Players:**\n- <@{ctx.interaction.user.id}>",
         view=view,
@@ -533,16 +829,34 @@ async def start(ctx: discord.ApplicationContext):
 
 
 def games_with_user(user_id):
-    return [i for i in app.games if user_id in app.games[i].players]
+    """
+    Returns a list of games that the user is in.
+
+    Args:
+        user_id (int): The user ID.
+
+    Returns:
+        list[Game]: List of games.
+    """
+    return [i for i, game in eggsplode_app.games.items() if user_id in game.players]
 
 
 async def game_id_autocomplete(ctx: discord.AutocompleteContext):
+    """
+    Autocompletes the game ID for the user.
+
+    Args:
+        ctx (discord.AutocompleteContext): The autocomplete context.
+
+    Returns:
+        list[str]: List of game IDs.
+    """
     if not ctx.interaction.user:
         return []
     return map(str, games_with_user(ctx.interaction.user.id))
 
 
-@app.slash_command(
+@eggsplode_app.slash_command(
     name="play",
     description="Play your turn.",
     integration_types={
@@ -562,6 +876,13 @@ async def play(
     ctx: discord.ApplicationContext,
     game_id: str,
 ):
+    """
+    Plays the user's turn.
+
+    Args:
+        ctx (discord.ApplicationContext): The application context.
+        game_id (str): The game ID.
+    """
     assert ctx.interaction.user
     if not game_id:
         games_with_id = games_with_user(ctx.interaction.user.id)
@@ -571,22 +892,22 @@ async def play(
         new_game_id = games_with_id[0]
     else:
         new_game_id = int(game_id)
-    if new_game_id not in app.games:
+    if new_game_id not in eggsplode_app.games:
         await ctx.respond("❌ Game not found!", ephemeral=True)
         return
-    if ctx.interaction.user.id not in app.games[new_game_id].players:
+    if ctx.interaction.user.id not in eggsplode_app.games[new_game_id].players:
         await ctx.respond("❌ You are not in this game!", ephemeral=True)
         return
-    try:
-        view = TurnView(app, new_game_id)
-        await ctx.respond(
-            "Click on **Play!** to make your turn.", view=view, ephemeral=True
-        )
-    except KeyError:
+    if not eggsplode_app.games[new_game_id].hands:
         await ctx.respond("❌ Game has not started yet!", ephemeral=True)
+        return
+    view = TurnView(eggsplode_app, new_game_id)
+    await ctx.respond(
+        "Click on **Play!** to make your turn.", view=view, ephemeral=True
+    )
 
 
-@app.slash_command(
+@eggsplode_app.slash_command(
     name="hand",
     description="View your hand.",
     integration_types={
@@ -606,6 +927,13 @@ async def hand(
     ctx: discord.ApplicationContext,
     game_id: str,
 ):
+    """
+    Views the user's hand.
+
+    Args:
+        ctx (discord.ApplicationContext): The application context.
+        game_id (str): The game ID.
+    """
     assert ctx.interaction.user
     if not game_id:
         games_with_id = games_with_user(ctx.interaction.user.id)
@@ -615,14 +943,16 @@ async def hand(
         new_game_id = games_with_id[0]
     else:
         new_game_id = int(game_id)
-    if new_game_id not in app.games:
+    if new_game_id not in eggsplode_app.games:
         await ctx.respond("❌ Game not found!", ephemeral=True)
         return
-    if ctx.interaction.user.id not in app.games[new_game_id].players:
+    if ctx.interaction.user.id not in eggsplode_app.games[new_game_id].players:
         await ctx.respond("❌ You are not in this game!", ephemeral=True)
         return
     try:
-        player_hand = app.games[new_game_id].group_hand(ctx.interaction.user.id)
+        player_hand = eggsplode_app.games[new_game_id].group_hand(
+            ctx.interaction.user.id
+        )
         hand_details = "".join(
             f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']}** ({count}x): {CARDS[card]['description']}"
             for card, count in player_hand
@@ -632,7 +962,7 @@ async def hand(
         await ctx.respond("❌ Game has not started yet!", ephemeral=True)
 
 
-@app.slash_command(
+@eggsplode_app.slash_command(
     name="help",
     description="Learn how to play Eggsplode!",
     integration_types={
@@ -641,6 +971,12 @@ async def hand(
     },
 )
 async def show_help(ctx: discord.ApplicationContext):
+    """
+    Shows the help message.
+
+    Args:
+        ctx (discord.ApplicationContext): The application context.
+    """
     await ctx.respond(
         "\n".join(
             (
@@ -657,7 +993,7 @@ async def show_help(ctx: discord.ApplicationContext):
     )
 
 
-@app.slash_command(
+@eggsplode_app.slash_command(
     name="ping",
     description="Check if Eggsplode is online.",
     integration_types={
@@ -666,10 +1002,16 @@ async def show_help(ctx: discord.ApplicationContext):
     },
 )
 async def ping(ctx: discord.ApplicationContext):
-    await ctx.respond(f"Pong! ({app.latency*1000:.0f}ms)")
+    """
+    Checks if the Eggsplode bot is online.
+
+    Args:
+        ctx (discord.ApplicationContext): The application context.
+    """
+    await ctx.respond(f"Pong! ({eggsplode_app.latency*1000:.0f}ms)")
 
 
-@app.slash_command(
+@eggsplode_app.slash_command(
     name="admincmd",
     description="Staff only.",
     integration_types={
@@ -687,15 +1029,22 @@ async def admincmd(
     ctx: discord.ApplicationContext,
     command: str,
 ):
+    """
+    Executes an admin command.
+
+    Args:
+        ctx (discord.ApplicationContext): The application context.
+        command (str): The admin command.
+    """
     if command == ADMIN_MAINTENANCE_CODE:
-        app.admin_maintenance = not app.admin_maintenance
+        eggsplode_app.admin_maintenance = not eggsplode_app.admin_maintenance
         await ctx.respond(
-            f"🔧 Admin maintenance mode {'enabled' if app.admin_maintenance else 'disabled'}.{' ✅ No games running.' if not app.games else ''}",
+            f"🔧 Admin maintenance mode {'enabled' if eggsplode_app.admin_maintenance else 'disabled'}.{' ✅ No games running.' if not eggsplode_app.games else ''}",
             ephemeral=True,
         )
     elif command == ADMIN_LISTGAMES_CODE:
         await ctx.respond(
-            f"📋 **Games:**\n- {', '.join(str(i) for i in app.games)}",
+            f"📋 **Games:**\n- {', '.join(str(i) for i in eggsplode_app.games)}",
             ephemeral=True,
         )
     else:
@@ -703,4 +1052,4 @@ async def admincmd(
 
 
 print("Hello, World!")
-app.run(DISCORD_TOKEN)
+eggsplode_app.run(DISCORD_TOKEN)
