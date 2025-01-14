@@ -5,7 +5,7 @@ Eggsplode Discord Bot
 import os
 from dotenv import load_dotenv
 import discord
-from game_logic import CARDS, Eggsplode, Game, StartGameView, TurnView
+from game_logic import CARDS, Eggsplode, Game, StartGameView, TurnView, ActionContext
 
 load_dotenv()
 ADMIN_MAINTENANCE_CODE = os.getenv("ADMIN_MAINTENANCE_CODE")
@@ -121,7 +121,7 @@ async def play(
     if not eggsplode_app.games[new_game_id].hands:
         await ctx.respond("❌ Game has not started yet!", ephemeral=True)
         return
-    view = TurnView(eggsplode_app, new_game_id)
+    view = TurnView(ActionContext(app=eggsplode_app, game_id=new_game_id))
     await ctx.respond(
         "Click on **Play!** to make your turn.", view=view, ephemeral=True
     )
