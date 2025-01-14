@@ -34,13 +34,6 @@
     "count": 4,
     "usable": true
   },
-  "begg": {
-    "title": "Begg",
-    "description": "Force another player to give you a card of their choice.",
-    "emoji": "🥺",
-    "count": 4,
-    "usable": true
-  },
   "shuffle": {
     "title": "Eggbeater",
     "description": "Shuffle the deck.",
