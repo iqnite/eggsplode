@@ -208,25 +208,6 @@ class Game:
         self.atteggs = 0
         self.next_turn()
 
-    def kick_ends_game(self, user_id):
-        """
-        Kicks a player for inactivity and checks if the game ends.
-
-        Args:
-            user_id (int): Player ID.
-
-        Returns:
-            bool: True if the game ends, False otherwise.
-        """
-        self.remove_player(user_id)
-        if len(self.players) == 1:
-            return True
-        for i in range(len(self.deck) - 1, 0, -1):
-            if self.deck[i] == "eggsplode":
-                self.deck.pop(i)
-                break
-        return False
-
 
 class Eggsplode(commands.Bot):
     """
@@ -278,20 +259,37 @@ class TurnView(discord.ui.View):
         Handles the timeout event.
         """
         if not self.interacted and self.ctx.action_id == self.ctx.game.action_id:
-            assert self.message
             view = TurnView(self.ctx)
-            prev_user = self.ctx.game.current_player_id
-            if self.ctx.game.kick_ends_game(self.ctx.game.current_player_id):
-                await self.message.edit(
-                    content=f"*💀 <@{prev_user}> was kicked for inactivity.*\n# 🎉 <@{self.ctx.game.players[0]}> wins!",
-                    view=None,
-                )
-                del self.ctx.games[self.ctx.game_id]
-            else:
-                await self.message.edit(
-                    content=f"*💀 <@{prev_user}> was kicked for inactivity.*\n### ⌛ <@{self.ctx.game.current_player_id}>'s turn!",
-                    view=view,
-                )
+            turn_player = self.ctx.game.current_player_id
+            card = self.ctx.game.draw_card(turn_player)
+            assert self.message
+            match card:
+                case "defuse":
+                    await self.message.reply(
+                        f"## 🔧 <@{turn_player}> drew an Eggsplode card! Luckily, they had an Defuse and put it back into the deck!"
+                    )
+                case "eggsplode":
+                    await self.message.reply(
+                        f"## 💥 <@{turn_player}> drew an Eggsplode card and died!"
+                    )
+                case "gameover":
+                    await self.message.reply(
+                        f"## 💥 <@{turn_player}> drew an Eggsplode card and died!"
+                    )
+                    await self.message.reply(
+                        f"# 🎉 <@{self.ctx.game.players[0]}> wins!"
+                    )
+                    del self.ctx.games[self.ctx.game_id]
+                    self.on_timeout = super().on_timeout
+                    return
+                case _:
+                    await self.message.reply(
+                        f"🃏 <@{turn_player}> couldn't make up their mind, so they just drew a card!"
+                    )
+            await self.message.reply(
+                f"### ⌛ <@{self.ctx.game.current_player_id}>'s turn!",
+                view=view,
+            )
 
     @discord.ui.button(label="Play!", style=discord.ButtonStyle.blurple, emoji="🤚")
     async def play(self, _: discord.ui.Button, interaction: discord.Interaction):
@@ -350,7 +348,7 @@ class PlayView(discord.ui.View):
             game_id (int): The game ID.
             action_id (int): The action ID.
         """
-        super().__init__(timeout=120)
+        super().__init__(timeout=60)
         self.ctx = ctx
         self.interacted = False
         self.play_card_select = None
@@ -366,18 +364,40 @@ class PlayView(discord.ui.View):
         Handles the timeout event.
         """
         if not self.interacted and self.ctx.action_id == self.ctx.game.action_id:
-            view = TurnView(self.ctx)
-            prev_user = self.ctx.game.current_player_id
-            if self.ctx.game.kick_ends_game(self.ctx.game.current_player_id):
-                await self.ctx.parent_interaction.followup.send(
-                    content=f"*💀 <@{prev_user}> was kicked for inactivity.*\n# 🎉 <@{self.ctx.game.players[0]}> wins!"
-                )
-                del self.ctx.games[self.ctx.game_id]
-            else:
-                await self.ctx.parent_interaction.followup.send(
-                    content=f"*💀 <@{prev_user}> was kicked for inactivity.*\n### ⌛ <@{self.ctx.game.current_player_id}>'s turn!",
-                    view=view,
-                )
+            turn_player = self.ctx.game.current_player_id
+            card = self.ctx.game.draw_card(turn_player)
+            self.disable_all_items()
+            assert self.message
+            await self.message.edit(view=self)
+            card = self.ctx.game.draw_card(turn_player)
+            match card:
+                case "defuse":
+                    await self.message.reply(
+                        f"## 🔧 <@{turn_player}> drew an Eggsplode card! Luckily, they had an Defuse and put it back into the deck!"
+                    )
+                case "eggsplode":
+                    await self.message.reply(
+                        f"## 💥 <@{turn_player}> drew an Eggsplode card and died!"
+                    )
+                case "gameover":
+                    await self.message.reply(
+                        f"## 💥 <@{turn_player}> drew an Eggsplode card and died!"
+                    )
+                    await self.message.reply(
+                        f"# 🎉 <@{self.ctx.game.players[0]}> wins!"
+                    )
+                    del self.ctx.games[self.ctx.game_id]
+                    self.on_timeout = super().on_timeout
+                    return
+                case _:
+                    await self.message.reply(
+                        f"🃏 <@{turn_player}> drew a card!"
+                    )
+                    await self.message.edit(
+                        content=f"You drew a **{CARDS[card]['emoji']} {CARDS[card]['title']}**!",
+                        view=self,
+                    )
+            await self.end_turn(self.ctx.parent_interaction)
             await super().on_timeout()
 
     async def verify_turn(self, interaction: discord.Interaction):
@@ -786,7 +806,7 @@ class StartGameView(discord.ui.View):
         self.disable_all_items()
         await interaction.response.edit_message(view=self)
         await interaction.followup.send("🚀 Game Started!")
-        view = TurnView(ActionContext(app=self.app, game_id=self.game_id))
+        view = TurnView(ActionContext(app=self.app, parent_interaction=interaction, game_id=self.game_id))
         await interaction.followup.send(
             f"### ⌛ <@{game.current_player_id}>'s turn!", view=view
         )
