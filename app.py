@@ -26,7 +26,6 @@ Functions:
 import os
 import random
 import json
-import discord.ext.commands
 from dotenv import load_dotenv
 import discord
 from discord.ext import commands
