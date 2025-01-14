@@ -13,11 +13,6 @@ assert DISCORD_TOKEN is not None, "DISCORD_TOKEN is not set in .env file"
 with open("cardtypes.json", encoding="utf-8") as f:
     CARDS = json.load(f)
 
-app = commands.Bot(
-    activity=discord.Activity(type=discord.ActivityType.watching, name="you")
-)
-admin_maintenance = False
-
 
 class Game:
     def __init__(self, *players):
@@ -69,16 +64,16 @@ class Game:
         self.current_player = self.next_player
 
     def group_hand(self, user_id, usable_only=False):
-        hand = self.hands[user_id]
+        player_cards = self.hands[user_id]
         result_cards = []
         result_counts = []
-        for card in hand:
+        for card in player_cards:
             if usable_only and not CARDS[card]["usable"]:
                 continue
             if card in result_cards:
                 continue
             result_cards.append(card)
-            result_counts.append(hand.count(card))
+            result_counts.append(player_cards.count(card))
         return list(zip(result_cards, result_counts))
 
     def draw_card(self, user_id):
@@ -89,16 +84,14 @@ class Game:
                 self.deck.insert(random.randint(0, len(self.deck)), "eggsplode")
                 self.next_turn()
                 return "defuse"
+            self.remove_player(user_id)
+            if len(self.players) == 1:
+                return "gameover"
             else:
-                self.remove_player(user_id)
-                if len(self.players) == 1:
-                    return "gameover"
-                else:
-                    return "eggsplode"
-        else:
-            self.hands[user_id].append(card)
-            self.next_turn()
-            return card
+                return "eggsplode"
+        self.hands[user_id].append(card)
+        self.next_turn()
+        return card
 
     def remove_player(self, user_id):
         del self.players[self.players.index(user_id)]
@@ -111,36 +104,40 @@ class Game:
         self.remove_player(user_id)
         if len(self.players) == 1:
             return True
-        else:
-            for i in range(len(self.deck) - 1, 0, -1):
-                if self.deck[i] == "eggsplode":
-                    self.deck.pop(i)
-                    break
-            return False
+        for i in range(len(self.deck) - 1, 0, -1):
+            if self.deck[i] == "eggsplode":
+                self.deck.pop(i)
+                break
+        return False
 
 
-games: dict[int, Game] = {}
+class Eggsplode(commands.Bot):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.admin_maintenance: bool = False
+        self.games: dict[int, Game] = {}
 
 
 class TurnView(discord.ui.View):
-    def __init__(self, game_id: int):
+    def __init__(self, app: Eggsplode, game_id: int):
         super().__init__(timeout=30)
+        self.app = app
         self.game_id = game_id
-        self.game: Game = games[game_id]
+        self.game: Game = self.app.games[game_id]
         self.action_id = self.game.action_id
         self.interacted = False
 
     async def on_timeout(self):
         if not self.interacted and self.action_id == self.game.action_id:
             assert self.message
-            view = TurnView(self.game_id)
+            view = TurnView(self.app, self.game_id)
             prev_user = self.game.current_player_id
             if self.game.kick_ends_game(self.game.current_player_id):
                 await self.message.edit(
                     content=f"*💀 <@{prev_user}> was kicked for inactivity.*\n# 🎉 <@{self.game.players[0]}> wins!",
                     view=None,
                 )
-                del games[self.game_id]
+                del self.app.games[self.game_id]
             else:
                 await self.message.edit(
                     content=f"*💀 <@{prev_user}> was kicked for inactivity.*\n### ⌛ <@{self.game.current_player_id}>'s turn!",
@@ -148,7 +145,7 @@ class TurnView(discord.ui.View):
                 )
 
     @discord.ui.button(label="Play!", style=discord.ButtonStyle.blurple, emoji="🤚")
-    async def play(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def play(self, _: discord.ui.Button, interaction: discord.Interaction):
         assert interaction.user
         if interaction.user.id != self.game.current_player_id:
             await interaction.response.send_message(
@@ -177,23 +174,24 @@ class PlayView(discord.ui.View):
         super().__init__(timeout=120)
         self.parent_view = parent_view
         self.parent_interaction = parent_interaction
-        self.game = games[game_id]
+        self.game = parent_view.app.games[game_id]
         self.game_id = game_id
         self.action_id = action_id
         self.interacted = False
+        self.play_card_select = None
 
     async def create_view(self):
         await self.create_card_selection(self.parent_interaction)
 
     async def on_timeout(self):
         if not self.interacted and self.action_id == self.game.action_id:
-            view = TurnView(self.game_id)
+            view = TurnView(self.parent_view.app, self.game_id)
             prev_user = self.game.current_player_id
             if self.game.kick_ends_game(self.game.current_player_id):
                 await self.parent_interaction.followup.send(
                     content=f"*💀 <@{prev_user}> was kicked for inactivity.*\n# 🎉 <@{self.game.players[0]}> wins!"
                 )
-                del games[self.game_id]
+                del self.parent_view.app.games[self.game_id]
             else:
                 await self.parent_interaction.followup.send(
                     content=f"*💀 <@{prev_user}> was kicked for inactivity.*\n### ⌛ <@{self.game.current_player_id}>'s turn!",
@@ -222,7 +220,7 @@ class PlayView(discord.ui.View):
 
     async def end_turn(self, interaction: discord.Interaction):
         self.interacted = True
-        view = TurnView(self.game_id)
+        view = TurnView(self.parent_view.app, self.game_id)
         await interaction.followup.send(
             f"### ⌛ <@{self.game.current_player_id}>'s turn!", view=view
         )
@@ -256,7 +254,7 @@ class PlayView(discord.ui.View):
 
     @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
     async def draw_callback(
-        self, button: discord.ui.Button, interaction: discord.Interaction
+        self, _: discord.ui.Button, interaction: discord.Interaction
     ):
         await self.draw_card(interaction)
 
@@ -281,7 +279,7 @@ class PlayView(discord.ui.View):
                     f"## 💥 <@{interaction.user.id}> drew an Eggsplode card and died!"
                 )
                 await interaction.followup.send(f"# 🎉 <@{self.game.players[0]}> wins!")
-                del games[self.game_id]
+                del self.parent_view.app.games[self.game_id]
                 self.on_timeout = super().on_timeout
                 return
             case _:
@@ -297,6 +295,7 @@ class PlayView(discord.ui.View):
     async def play_card(self, interaction: discord.Interaction):
         if not await self.verify_turn(interaction):
             return
+        assert self.play_card_select
         selected = self.play_card_select.values[0]
         assert isinstance(selected, str)
         assert interaction.user
@@ -310,6 +309,7 @@ class PlayView(discord.ui.View):
                     f"⚡ <@{interaction.user.id}> wants to skip and force <@{self.game.next_player_id}> to draw twice. Accept?",
                     view=NopeView(
                         parent_interaction=interaction,
+                        app=self.parent_view.app,
                         game_id=self.game_id,
                         action_id=self.action_id,
                         target_player=self.game.next_player_id,
@@ -321,6 +321,7 @@ class PlayView(discord.ui.View):
                     f"⏩ <@{interaction.user.id}> skipped their turn and did not draw a card! Next up: <@{self.game.next_player_id if self.game.atteggs < 2 else interaction.user.id}>. Accept?",
                     view=NopeView(
                         parent_interaction=interaction,
+                        app=self.parent_view.app,
                         game_id=self.game_id,
                         action_id=self.action_id,
                         target_player=(
@@ -353,7 +354,7 @@ class PlayView(discord.ui.View):
                 )
             case _:
                 await interaction.followup.send(
-                    f"🙁 Sorry, not implemented yet.", ephemeral=True
+                    "🙁 Sorry, not implemented yet.", ephemeral=True
                 )
 
     async def finalize_attegg(self, interaction: discord.Interaction):
@@ -378,6 +379,7 @@ class NopeView(discord.ui.View):
     def __init__(
         self,
         parent_interaction: discord.Interaction,
+        app: Eggsplode,
         game_id: int,
         action_id: int,
         target_player: int,
@@ -385,7 +387,7 @@ class NopeView(discord.ui.View):
     ):
         super().__init__(timeout=30)
         self.parent_interaction = parent_interaction
-        self.game = games[game_id]
+        self.game = app.games[game_id]
         self.game_id = game_id
         self.action_id = action_id
         self.target_player = target_player
@@ -400,7 +402,7 @@ class NopeView(discord.ui.View):
 
     @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
     async def ok_callback(
-        self, button: discord.ui.Button, interaction: discord.Interaction
+        self, _: discord.ui.Button, interaction: discord.Interaction
     ):
         assert interaction.user
         assert self.parent_interaction.user
@@ -417,7 +419,7 @@ class NopeView(discord.ui.View):
 
     @discord.ui.button(label="Nope!", style=discord.ButtonStyle.red, emoji="🛑")
     async def nope_callback(
-        self, button: discord.ui.Button, interaction: discord.Interaction
+        self, _: discord.ui.Button, interaction: discord.Interaction
     ):
         assert interaction.user
         assert self.parent_interaction.user
@@ -448,19 +450,20 @@ class NopeView(discord.ui.View):
 
 
 class StartGameView(discord.ui.View):
-    def __init__(self, game_id: int):
+    def __init__(self, app: Eggsplode, game_id: int):
         super().__init__(timeout=600)
+        self.app = app
         self.game_id = game_id
 
     async def on_timeout(self):
-        del games[self.game_id]
+        del self.app.games[self.game_id]
         await super().on_timeout()
 
     @discord.ui.button(label="Join", style=discord.ButtonStyle.blurple, emoji="👋")
     async def join_game(
-        self, button: discord.ui.Button, interaction: discord.Interaction
+        self, _: discord.ui.Button, interaction: discord.Interaction
     ):
-        game = games[self.game_id]
+        game = self.app.games[self.game_id]
         assert interaction.user
         if interaction.user.id in game.players:
             await interaction.response.send_message(
@@ -475,9 +478,9 @@ class StartGameView(discord.ui.View):
 
     @discord.ui.button(label="Start Game", style=discord.ButtonStyle.green, emoji="🚀")
     async def start_game(
-        self, button: discord.ui.Button, interaction: discord.Interaction
+        self, _: discord.ui.Button, interaction: discord.Interaction
     ):
-        game: Game = games[self.game_id]
+        game = self.app.games[self.game_id]
         assert interaction.user
         if interaction.user.id != game.players[0]:
             await interaction.response.send_message(
@@ -492,11 +495,16 @@ class StartGameView(discord.ui.View):
         game.start()
         self.disable_all_items()
         await interaction.response.edit_message(view=self)
-        await interaction.followup.send(f"🚀 Game Started!")
-        view = TurnView(self.game_id)
+        await interaction.followup.send("🚀 Game Started!")
+        view = TurnView(self.app, self.game_id)
         await interaction.followup.send(
             f"### ⌛ <@{game.current_player_id}>'s turn!", view=view
         )
+
+
+app = Eggsplode(
+    activity=discord.Activity(type=discord.ActivityType.watching, name="you")
+)
 
 
 @app.slash_command(
@@ -508,7 +516,7 @@ class StartGameView(discord.ui.View):
     },
 )
 async def start(ctx: discord.ApplicationContext):
-    if admin_maintenance:
+    if app.admin_maintenance:
         await ctx.respond(
             "⚠️ The bot is currently under maintenance. Please try again later. You can find more info in our support server.",
             ephemeral=True,
@@ -516,8 +524,8 @@ async def start(ctx: discord.ApplicationContext):
         return
     assert ctx.interaction.user
     game_id = ctx.interaction.id
-    view = StartGameView(game_id)
-    games[game_id] = Game(ctx.interaction.user.id)
+    view = StartGameView(app, game_id)
+    app.games[game_id] = Game(ctx.interaction.user.id)
     await ctx.respond(
         f"# New game\n-# Game ID: {game_id}\n<@{ctx.interaction.user.id}> wants to start a new Eggsplode game! Click on **Join** to participate!\n**Players:**\n- <@{ctx.interaction.user.id}>",
         view=view,
@@ -525,7 +533,7 @@ async def start(ctx: discord.ApplicationContext):
 
 
 def games_with_user(user_id):
-    return [i for i in games.keys() if user_id in games[i].players]
+    return [i for i in app.games if user_id in app.games[i].players]
 
 
 async def game_id_autocomplete(ctx: discord.AutocompleteContext):
@@ -563,16 +571,16 @@ async def play(
         new_game_id = games_with_id[0]
     else:
         new_game_id = int(game_id)
-    if new_game_id not in games:
+    if new_game_id not in app.games:
         await ctx.respond("❌ Game not found!", ephemeral=True)
         return
-    if ctx.interaction.user.id not in games[new_game_id].players:
+    if ctx.interaction.user.id not in app.games[new_game_id].players:
         await ctx.respond("❌ You are not in this game!", ephemeral=True)
         return
     try:
-        view = TurnView(new_game_id)
+        view = TurnView(app, new_game_id)
         await ctx.respond(
-            f"Click on **Play!** to make your turn.", view=view, ephemeral=True
+            "Click on **Play!** to make your turn.", view=view, ephemeral=True
         )
     except KeyError:
         await ctx.respond("❌ Game has not started yet!", ephemeral=True)
@@ -607,14 +615,14 @@ async def hand(
         new_game_id = games_with_id[0]
     else:
         new_game_id = int(game_id)
-    if new_game_id not in games:
+    if new_game_id not in app.games:
         await ctx.respond("❌ Game not found!", ephemeral=True)
         return
-    if ctx.interaction.user.id not in games[new_game_id].players:
+    if ctx.interaction.user.id not in app.games[new_game_id].players:
         await ctx.respond("❌ You are not in this game!", ephemeral=True)
         return
     try:
-        player_hand = games[new_game_id].group_hand(ctx.interaction.user.id)
+        player_hand = app.games[new_game_id].group_hand(ctx.interaction.user.id)
         hand_details = "".join(
             f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']}** ({count}x): {CARDS[card]['description']}"
             for card, count in player_hand
@@ -632,7 +640,7 @@ async def hand(
         discord.IntegrationType.user_install,
     },
 )
-async def help(ctx: discord.ApplicationContext):
+async def show_help(ctx: discord.ApplicationContext):
     await ctx.respond(
         "\n".join(
             (
@@ -680,15 +688,14 @@ async def admincmd(
     command: str,
 ):
     if command == ADMIN_MAINTENANCE_CODE:
-        global admin_maintenance
-        admin_maintenance = not admin_maintenance
+        app.admin_maintenance = not app.admin_maintenance
         await ctx.respond(
-            f"🔧 Admin maintenance mode {'enabled' if admin_maintenance else 'disabled'}.{' ✅ No games running.' if not games else ''}",
+            f"🔧 Admin maintenance mode {'enabled' if app.admin_maintenance else 'disabled'}.{' ✅ No games running.' if not app.games else ''}",
             ephemeral=True,
         )
     elif command == ADMIN_LISTGAMES_CODE:
         await ctx.respond(
-            f"📋 **Games:**\n- {', '.join(str(i) for i in games.keys())}",
+            f"📋 **Games:**\n- {', '.join(str(i) for i in app.games)}",
             ephemeral=True,
         )
     else:
