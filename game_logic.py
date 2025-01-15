@@ -17,26 +17,24 @@ class ActionContext:
     def __init__(
         self,
         *,
-        app=None,
-        parent_view=None,
-        parent_interaction: discord.Interaction | None = None,
-        game_id: int | None = None,
-        action_id: int | None = None,
+        app,
+        parent_view,
+        parent_interaction,
+        game_id,
+        action_id,
     ):
-        self.app: Eggsplode | None = app
-        self.games: dict[int, Game] | None = self.app.games if self.app else None
+        self.app: Eggsplode = app
+        self.games: dict[int, Game] = self.app.games
         self.parent_view: discord.ui.View | TurnView | PlayView | NopeView | None = (
             parent_view
         )
         self.parent_interaction: discord.Interaction | None = parent_interaction
-        self.game_id: int | None = game_id
-        self.game: Game | None = self.games[game_id] if self.games else None
+        self.game_id: int = game_id
+        self.game: Game = self.games[game_id]
         if action_id:
-            self.action_id: int | None = action_id
+            self.action_id: int = action_id
         elif self.game:
-            self.action_id: int | None = self.game.action_id
-        else:
-            self.action_id: int | None = None
+            self.action_id: int = self.game.action_id
 
     def copy(
         self,
@@ -255,7 +253,7 @@ class TurnView(discord.ui.View):
                 game
                 game_id
         """
-        super().__init__(timeout=60)
+        super().__init__(timeout=60, disable_on_timeout=True)
         self.ctx = ctx
         self.interacted = False
 
@@ -351,7 +349,7 @@ class PlayView(discord.ui.View):
                 game_id
                 action_id
         """
-        super().__init__(timeout=60)
+        super().__init__(timeout=60, disable_on_timeout=True)
         self.ctx = ctx
         self.play_card_select = None
 
@@ -652,7 +650,7 @@ class NopeView(discord.ui.View):
             target_player (int): The target player ID.
             staged_action (callable): The staged action to perform.
         """
-        super().__init__(timeout=10)
+        super().__init__(timeout=10, disable_on_timeout=True)
         self.ctx = ctx
         self.target_player = target_player
         self.staged_action = staged_action
@@ -751,7 +749,7 @@ class StartGameView(discord.ui.View):
             app (Eggsplode): The Eggsplode bot instance.
             game_id (int): The game ID.
         """
-        super().__init__(timeout=600)
+        super().__init__(timeout=600, disable_on_timeout=True)
         self.app = app
         self.game_id = game_id
         self.started = False
@@ -818,6 +816,8 @@ class StartGameView(discord.ui.View):
             ActionContext(
                 app=self.app,
                 parent_interaction=interaction,
+                parent_view=None,
+                action_id=None,
                 game_id=self.game_id,
             )
         )

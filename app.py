@@ -6,7 +6,14 @@ import os
 import json
 from dotenv import load_dotenv
 import discord
-from game_logic import CARDS, Eggsplode, Game, StartGameView, TurnView, ActionContext
+from game_logic import (
+    CARDS,
+    Eggsplode,
+    Game,
+    StartGameView,
+    TurnView,
+    ActionContext,
+)
 
 load_dotenv()
 ADMIN_MAINTENANCE_CODE = os.getenv("ADMIN_MAINTENANCE_CODE")
@@ -126,7 +133,10 @@ async def play(
     view = TurnView(
         ActionContext(
             app=eggsplode_app,
+            parent_view=None,
+            parent_interaction=None,
             game_id=new_game_id,
+            action_id=None
         )
     )
     await ctx.respond(MESSAGES["turn_prompt"], view=view, ephemeral=True)
@@ -258,7 +268,11 @@ async def admincmd(
         await ctx.respond(
             MESSAGES["maintenance_mode_toggle"].format(
                 "enabled" if eggsplode_app.admin_maintenance else "disabled",
-                MESSAGES["maintenance_mode_no_games_running"] if not eggsplode_app.games else "",
+                (
+                    MESSAGES["maintenance_mode_no_games_running"]
+                    if not eggsplode_app.games
+                    else ""
+                ),
             ),
             ephemeral=True,
         )
