@@ -13,15 +13,19 @@ with open("messages.json", encoding="utf-8") as f:
     MESSAGES = json.load(f)
 
 
-class ActionContext:
-    def __init__(
+class ActionContext:  # pylint: disable=too-few-public-methods
+    """
+    Represents the context of an action.
+    """
+
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         *,
         app,
-        parent_view,
-        parent_interaction,
         game_id,
-        action_id,
+        action_id=None,
+        parent_view=None,
+        parent_interaction=None,
     ):
         self.app: Eggsplode = app
         self.games: dict[int, Game] = self.app.games
@@ -36,23 +40,18 @@ class ActionContext:
         elif self.game:
             self.action_id: int = self.game.action_id
 
-    def copy(
-        self,
-        *,
-        app=None,
-        parent_view=None,
-        parent_interaction=None,
-        game_id=None,
-        action_id=None,
-    ):
+    def copy(self, **kwargs):
+        """
+        Copies the context with the given changes.
+        """
         return ActionContext(
-            app=app if app else self.app,
-            parent_view=parent_view if parent_view else self.parent_view,
-            parent_interaction=(
-                parent_interaction if parent_interaction else self.parent_interaction
+            app=kwargs.get("app", self.app),
+            parent_view=kwargs.get("parent_view", self.parent_view),
+            parent_interaction=kwargs.get(
+                "parent_interaction", self.parent_interaction
             ),
-            game_id=game_id if game_id else self.game_id,
-            action_id=action_id if action_id else self.action_id,
+            game_id=kwargs.get("game_id", self.game_id),
+            action_id=kwargs.get("action_id", self.action_id),
         )
 
 
