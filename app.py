@@ -6,7 +6,7 @@ import os
 import json
 from dotenv import load_dotenv
 import discord
-from game_logic import CARDS, Eggsplode, Game, StartGameView, TurnView
+from game_logic import CARDS, Eggsplode, Game, StartGameView, TurnView, ActionContext
 
 load_dotenv()
 ADMIN_MAINTENANCE_CODE = os.getenv("ADMIN_MAINTENANCE_CODE")
@@ -124,10 +124,10 @@ async def play(
         await ctx.respond(MESSAGES["game_not_started"], ephemeral=True)
         return
     view = TurnView(
-        {
-            "app": eggsplode_app,
-            "game_id": new_game_id,
-        }
+        ActionContext(
+            app=eggsplode_app,
+            game_id=new_game_id,
+        )
     )
     await ctx.respond(MESSAGES["turn_prompt"], view=view, ephemeral=True)
 
