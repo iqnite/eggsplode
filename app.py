@@ -34,7 +34,8 @@ async def start(ctx: discord.ApplicationContext):
     """
     if eggsplode_app.admin_maintenance:
         await ctx.respond(
-            "⚠️ The bot is currently under maintenance. Please try again later. You can find more info in our support server.",
+            "⚠️ The bot is currently under maintenance. "
+            + "Please try again later. You can find more info in our support server.",
             ephemeral=True,
         )
         return
@@ -43,7 +44,15 @@ async def start(ctx: discord.ApplicationContext):
     view = StartGameView(eggsplode_app, game_id)
     eggsplode_app.games[game_id] = Game(ctx.interaction.user.id)
     await ctx.respond(
-        f"# New game\n-# Game ID: {game_id}\n<@{ctx.interaction.user.id}> wants to start a new Eggsplode game! Click on **Join** to participate!\n**Players:**\n- <@{ctx.interaction.user.id}>",
+        "\n".join(
+            (
+                "# New game",
+                f"-# Game ID: {game_id}",
+                f"<@{ctx.interaction.user.id}> wants to start a new Eggsplode game! "
+                + "Click on **Join** to participate!",
+                "**Players:**" f"- <@{ctx.interaction.user.id}>",
+            )
+        ),
         view=view,
     )
 
@@ -179,7 +188,12 @@ async def hand(
             ctx.interaction.user.id
         )
         hand_details = "".join(
-            f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']}** ({count}x): {CARDS[card]['description']}"
+            "\n- **{} {}** ({}x): {}".format(
+                CARDS[card]["emoji"],
+                CARDS[card]["title"],
+                count,
+                CARDS[card]["description"],
+            )
             for card, count in player_hand
         )
         await ctx.respond(f"# Your hand:{hand_details}", ephemeral=True)
@@ -264,7 +278,10 @@ async def admincmd(
     if command == ADMIN_MAINTENANCE_CODE:
         eggsplode_app.admin_maintenance = not eggsplode_app.admin_maintenance
         await ctx.respond(
-            f"🔧 Admin maintenance mode {'enabled' if eggsplode_app.admin_maintenance else 'disabled'}.{' ✅ No games running.' if not eggsplode_app.games else ''}",
+            "🔧 Admin maintenance mode {}. {}".format(
+                "enabled" if eggsplode_app.admin_maintenance else "disabled",
+                "✅ No games running." if not eggsplode_app.games else "",
+            ),
             ephemeral=True,
         )
     elif command == ADMIN_LISTGAMES_CODE:

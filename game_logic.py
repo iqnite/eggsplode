@@ -221,7 +221,8 @@ class TurnView(discord.ui.View):
             match card:
                 case "defuse":
                     await self.message.reply(
-                        f"## 🔧 <@{turn_player}> drew an Eggsplode card! Luckily, they had an Defuse and put it back into the deck!"
+                        f"## 🔧 <@{turn_player}> drew an Eggsplode card! "
+                        + "Luckily, they had an Defuse and put it back into the deck!"
                     )
                 case "eggsplode":
                     await self.message.reply(
@@ -344,7 +345,8 @@ class PlayView(discord.ui.View):
             self.disable_all_items()
             await interaction.response.edit_message(view=self)
             await interaction.followup.send(
-                "❌ This turn has ended or the action is not valid anymore! Use **/play** to update it.",
+                "❌ This turn has ended or the action is not valid anymore! "
+                + "Use **/play** to update it.",
                 ephemeral=True,
             )
             return False
@@ -430,7 +432,8 @@ class PlayView(discord.ui.View):
         match card:
             case "defuse":
                 await interaction.followup.send(
-                    f"## 🔧 <@{interaction.user.id}> drew an Eggsplode card! Luckily, they had an Defuse and put it back into the deck!"
+                    f"## 🔧 <@{interaction.user.id}> drew an Eggsplode card! "
+                    + "Luckily, they had an Defuse and put it back into the deck!"
                 )
             case "eggsplode":
                 await interaction.followup.send(
@@ -478,7 +481,8 @@ class PlayView(discord.ui.View):
         match selected:
             case "attegg":
                 await interaction.followup.send(
-                    f"⚡ <@{interaction.user.id}> wants to skip and force <@{self.ctx['game'].next_player_id}> to draw twice. Accept?",
+                    f"⚡ <@{interaction.user.id}> wants to skip and force "
+                    + f"<@{self.ctx['game'].next_player_id}> to draw twice. Accept?",
                     view=NopeView(
                         ctx=new_ctx,
                         target_player=self.ctx["game"].next_player_id,
@@ -487,7 +491,14 @@ class PlayView(discord.ui.View):
                 )
             case "skip":
                 await interaction.followup.send(
-                    f"⏩ <@{interaction.user.id}> skipped their turn and did not draw a card! Next up: <@{self.ctx['game'].next_player_id if self.ctx['game'].atteggs < 2 else interaction.user.id}>. Accept?",
+                    f"⏩ <@{interaction.user.id}> skipped their turn and did not draw a card! "
+                    + "Next up: <@"
+                    + str(
+                        self.ctx["game"].next_player_id
+                        if self.ctx["game"].atteggs < 2
+                        else interaction.user.id
+                    )
+                    + ">. Accept?",
                     view=NopeView(
                         ctx=new_ctx,
                         target_player=(
@@ -655,7 +666,7 @@ class NopeView(discord.ui.View):
         self.interacted = True
         self.disable_all_items()
         await interaction.response.edit_message(
-            content=f"~~{interaction.message.content}~~\n🛑 <@{interaction.user.id}>: **Nope!**\n-# Don't forget to draw a card!",
+            content=f"~~{interaction.message.content}~~\n🛑 <@{interaction.user.id}>: **Nope!**",
             view=self,
         )
 
