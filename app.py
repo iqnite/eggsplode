@@ -3,9 +3,17 @@ Eggsplode Discord Bot
 """
 
 import os
+import json
 from dotenv import load_dotenv
 import discord
-from game_logic import CARDS, Eggsplode, Game, StartGameView, TurnView, ActionContext
+from game_logic import (
+    CARDS,
+    Eggsplode,
+    Game,
+    StartGameView,
+    TurnView,
+    ActionContext,
+)
 
 load_dotenv()
 ADMIN_MAINTENANCE_CODE = os.getenv("ADMIN_MAINTENANCE_CODE")
@@ -15,6 +23,8 @@ assert DISCORD_TOKEN is not None, "DISCORD_TOKEN is not set in .env file"
 eggsplode_app = Eggsplode(
     activity=discord.Activity(type=discord.ActivityType.watching, name="you")
 )
+with open("messages.json", encoding="utf-8") as f:
+    MESSAGES = json.load(f)
 
 
 @eggsplode_app.slash_command(
@@ -33,17 +43,16 @@ async def start(ctx: discord.ApplicationContext):
         ctx (discord.ApplicationContext): The application context.
     """
     if eggsplode_app.admin_maintenance:
-        await ctx.respond(
-            "⚠️ The bot is currently under maintenance. Please try again later. You can find more info in our support server.",
-            ephemeral=True,
-        )
+        await ctx.respond(MESSAGES["maintenance"], ephemeral=True)
         return
     assert ctx.interaction.user
     game_id = ctx.interaction.id
     view = StartGameView(eggsplode_app, game_id)
     eggsplode_app.games[game_id] = Game(ctx.interaction.user.id)
     await ctx.respond(
-        f"# New game\n-# Game ID: {game_id}\n<@{ctx.interaction.user.id}> wants to start a new Eggsplode game! Click on **Join** to participate!\n**Players:**\n- <@{ctx.interaction.user.id}>",
+        MESSAGES["start"].format(
+            game_id, ctx.interaction.user.id, ctx.interaction.user.id
+        ),
         view=view,
     )
 
@@ -107,24 +116,30 @@ async def play(
     if not game_id:
         games_with_id = games_with_user(ctx.interaction.user.id)
         if not games_with_id:
-            await ctx.respond("❌ You are not in any games!", ephemeral=True)
+            await ctx.respond(MESSAGES["user_not_in_any_games"], ephemeral=True)
             return
         new_game_id = games_with_id[0]
     else:
         new_game_id = int(game_id)
     if new_game_id not in eggsplode_app.games:
-        await ctx.respond("❌ Game not found!", ephemeral=True)
+        await ctx.respond(MESSAGES["gmae_not_found"], ephemeral=True)
         return
     if ctx.interaction.user.id not in eggsplode_app.games[new_game_id].players:
-        await ctx.respond("❌ You are not in this game!", ephemeral=True)
+        await ctx.respond(MESSAGES["user_not_in_game"], ephemeral=True)
         return
     if not eggsplode_app.games[new_game_id].hands:
-        await ctx.respond("❌ Game has not started yet!", ephemeral=True)
+        await ctx.respond(MESSAGES["game_not_started"], ephemeral=True)
         return
-    view = TurnView(ActionContext(app=eggsplode_app, game_id=new_game_id))
-    await ctx.respond(
-        "Click on **Play!** to make your turn.", view=view, ephemeral=True
+    view = TurnView(
+        ActionContext(
+            app=eggsplode_app,
+            parent_view=None,
+            parent_interaction=None,
+            game_id=new_game_id,
+            action_id=None
+        )
     )
+    await ctx.respond(MESSAGES["turn_prompt"], view=view, ephemeral=True)
 
 
 @eggsplode_app.slash_command(
@@ -158,26 +173,31 @@ async def hand(
     if not game_id:
         games_with_id = games_with_user(ctx.interaction.user.id)
         if not games_with_id:
-            await ctx.respond("❌ You are not in any games!", ephemeral=True)
+            await ctx.respond(MESSAGES["user_not_in_any_games"], ephemeral=True)
             return
         new_game_id = games_with_id[0]
     else:
         new_game_id = int(game_id)
     if new_game_id not in eggsplode_app.games:
-        await ctx.respond("❌ Game not found!", ephemeral=True)
+        await ctx.respond(MESSAGES["game_not_found"], ephemeral=True)
         return
     if ctx.interaction.user.id not in eggsplode_app.games[new_game_id].players:
-        await ctx.respond("❌ You are not in this game!", ephemeral=True)
+        await ctx.respond(MESSAGES["user_not_in_game"], ephemeral=True)
         return
     try:
         player_hand = eggsplode_app.games[new_game_id].group_hand(
             ctx.interaction.user.id
         )
         hand_details = "".join(
-            f"\n- **{CARDS[card]['emoji']} {CARDS[card]['title']}** ({count}x): {CARDS[card]['description']}"
+            MESSAGES["hand_list"].format(
+                CARDS[card]["emoji"],
+                CARDS[card]["title"],
+                count,
+                CARDS[card]["description"],
+            )
             for card, count in player_hand
         )
-        await ctx.respond(f"# Your hand:{hand_details}", ephemeral=True)
+        await ctx.respond(MESSAGES["hand_title"].format(hand_details), ephemeral=True)
     except KeyError:
         await ctx.respond("❌ Game has not started yet!", ephemeral=True)
 
@@ -197,20 +217,7 @@ async def show_help(ctx: discord.ApplicationContext):
     Args:
         ctx (discord.ApplicationContext): The application context.
     """
-    await ctx.respond(
-        "\n".join(
-            (
-                "# How to start a game",
-                "Use the </start:1325457141628141661> command to create a new game. Once everyone has joined, select **Start game** to begin!",
-                "# How to play",
-                "1. Once it's your turn, click on **Play!**",
-                "2. Play as many cards form the dropdown menu as you want. You can also not play any cards.",
-                "3. Click on **Draw** to draw a card from the deck and end your turn. It may not be required after playing some card types.",
-                "# Eggsploding and Defusing",
-                "If you draw an **Eggsplode** card and don't have **Defuse** card, you're out of the game. If you have a **Defuse** card, you can put the **Eggsplode** card back into the deck.",
-            )
-        )
-    )
+    await ctx.respond("\n".join(MESSAGES["help"]))
 
 
 @eggsplode_app.slash_command(
@@ -259,16 +266,25 @@ async def admincmd(
     if command == ADMIN_MAINTENANCE_CODE:
         eggsplode_app.admin_maintenance = not eggsplode_app.admin_maintenance
         await ctx.respond(
-            f"🔧 Admin maintenance mode {'enabled' if eggsplode_app.admin_maintenance else 'disabled'}.{' ✅ No games running.' if not eggsplode_app.games else ''}",
+            MESSAGES["maintenance_mode_toggle"].format(
+                "enabled" if eggsplode_app.admin_maintenance else "disabled",
+                (
+                    MESSAGES["maintenance_mode_no_games_running"]
+                    if not eggsplode_app.games
+                    else ""
+                ),
+            ),
             ephemeral=True,
         )
     elif command == ADMIN_LISTGAMES_CODE:
         await ctx.respond(
-            f"📋 **Games:**\n- {', '.join(str(i) for i in eggsplode_app.games)}",
+            MESSAGES["list_games_title"].format(
+                ", ".join(str(i) for i in eggsplode_app.games)
+            ),
             ephemeral=True,
         )
     else:
-        await ctx.respond("❌ Invalid command.", ephemeral=True)
+        await ctx.respond(MESSAGES["invalid_command"], ephemeral=True)
 
 
 print("Hello, World!")
