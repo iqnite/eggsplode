@@ -316,7 +316,9 @@ class TurnView(discord.ui.View):
         )
         await view.create_view()
         await interaction.response.send_message(
-            MESSAGES["play_prompt"],
+            MESSAGES["play_prompt"].format(
+                len(self.ctx.game.deck), self.ctx.game.deck.count("eggsplode")
+            ),
             view=view,
             ephemeral=True,
         )
