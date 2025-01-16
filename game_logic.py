@@ -253,21 +253,18 @@ class TurnView(discord.ui.View):
                 game_id
         """
         super().__init__(timeout=60, disable_on_timeout=True)
-        self.ctx = ctx
+        self.ctx: ActionContext = ctx
         self.interacted = False
 
     async def on_timeout(self):
         """
         Handles the timeout event.
         """
-        assert self.ctx.game
-        assert self.ctx.games
-        assert self.ctx.game_id
         if not self.interacted and self.ctx.action_id == self.ctx.game.action_id:
+            assert self.message
             view = TurnView(self.ctx.copy())
             turn_player: int = self.ctx.game.current_player_id
             card: str = self.ctx.game.draw_card(turn_player)
-            assert self.message
             match card:
                 case "defuse":
                     await self.message.reply(MESSAGES["defused"].format(turn_player))
@@ -298,7 +295,6 @@ class TurnView(discord.ui.View):
             interaction (discord.Interaction): The interaction instance.
         """
         assert interaction.user
-        assert self.ctx.game
         if interaction.user.id != self.ctx.game.current_player_id:
             await interaction.response.send_message(
                 MESSAGES["not_your_turn"], ephemeral=True
@@ -349,7 +345,7 @@ class PlayView(discord.ui.View):
                 action_id
         """
         super().__init__(timeout=60, disable_on_timeout=True)
-        self.ctx = ctx
+        self.ctx: ActionContext = ctx
         self.play_card_select = None
 
     async def create_view(self):
@@ -364,7 +360,6 @@ class PlayView(discord.ui.View):
         Handles the timeout event.
         """
         assert isinstance(self.ctx.parent_view, TurnView)
-        assert self.ctx.game
         if (
             not self.ctx.parent_view.interacted
             and self.ctx.action_id == self.ctx.game.action_id
@@ -382,8 +377,6 @@ class PlayView(discord.ui.View):
             bool: True if it's the player's turn, False otherwise.
         """
         assert interaction.user
-        assert self.ctx.game
-        assert self.ctx.action_id is not None
         if interaction.user.id != self.ctx.game.current_player_id:
             self.disable_all_items()
             await interaction.response.edit_message(view=self)
@@ -406,7 +399,6 @@ class PlayView(discord.ui.View):
             interaction (discord.Interaction): The interaction instance.
         """
         assert isinstance(self.ctx.parent_view, TurnView)
-        assert self.ctx.game
         assert self.ctx.parent_interaction
         self.ctx.parent_view.interacted = True
         view = TurnView(self.ctx.copy())
@@ -427,7 +419,6 @@ class PlayView(discord.ui.View):
             interaction (discord.Interaction): The interaction instance.
         """
         assert interaction.user
-        assert self.ctx.game
         user_cards: list = self.ctx.game.group_hand(
             interaction.user.id, usable_only=True
         )
@@ -475,9 +466,6 @@ class PlayView(discord.ui.View):
         self.disable_all_items()
         await interaction.response.edit_message(view=self)
         assert interaction.user
-        assert self.ctx.games
-        assert self.ctx.game
-        assert self.ctx.game_id
         card: str = self.ctx.game.draw_card(interaction.user.id)
         match card:
             case "defuse":
@@ -520,7 +508,6 @@ class PlayView(discord.ui.View):
         if not await self.verify_turn(interaction):
             return
         assert self.play_card_select
-        assert self.ctx.game
         selected = self.play_card_select.values[0]
         assert isinstance(selected, str)
         assert interaction.user
@@ -594,7 +581,6 @@ class PlayView(discord.ui.View):
             interaction (discord.Interaction): The interaction instance.
         """
         assert interaction.message
-        assert self.ctx.game
         self.disable_all_items()
         await interaction.followup.edit_message(interaction.message.id, view=self)
         prev_atteggs: int = self.ctx.game.atteggs
@@ -611,7 +597,6 @@ class PlayView(discord.ui.View):
             interaction (discord.Interaction): The interaction instance.
         """
         assert interaction.message
-        assert self.ctx.game
         self.disable_all_items()
         await interaction.followup.edit_message(interaction.message.id, view=self)
         self.ctx.game.next_turn()
@@ -659,7 +644,6 @@ class NopeView(discord.ui.View):
         """
         Handles the timeout event.
         """
-        assert self.ctx.game
         if not self.interacted and self.ctx.action_id == self.ctx.game.action_id:
             if self.staged_action:
                 await self.staged_action()
@@ -700,7 +684,6 @@ class NopeView(discord.ui.View):
             interaction (discord.Interaction): The interaction instance.
         """
         assert interaction.user
-        assert self.ctx.game
         assert self.ctx.parent_interaction
         assert self.ctx.parent_interaction.user
         if self.ctx.parent_interaction.user.id == interaction.user.id:
