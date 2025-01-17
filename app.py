@@ -45,13 +45,17 @@ async def start(ctx: discord.ApplicationContext):
     if eggsplode_app.admin_maintenance:
         await ctx.respond(MESSAGES["maintenance"], ephemeral=True)
         return
+    game_id = ctx.interaction.channel_id
+    assert game_id
+    if game_id in eggsplode_app.games:
+        await ctx.respond(MESSAGES["game_already_exists"], ephemeral=True)
+        return
     assert ctx.interaction.user
-    game_id = ctx.interaction.id
     view = StartGameView(eggsplode_app, game_id)
     eggsplode_app.games[game_id] = Game(ctx.interaction.user.id)
     await ctx.respond(
         MESSAGES["start"].format(
-            game_id, ctx.interaction.user.id, ctx.interaction.user.id
+            ctx.interaction.user.id, ctx.interaction.user.id
         ),
         view=view,
     )
@@ -93,18 +97,15 @@ async def game_id_autocomplete(ctx: discord.AutocompleteContext):
         discord.IntegrationType.user_install,
     },
 )
-@discord.option(
-    "game_id",
-    type=str,
-    description="The game ID",
-    required=False,
-    default="",
-    autocomplete=game_id_autocomplete,
-)
-async def play(
-    ctx: discord.ApplicationContext,
-    game_id: str,
-):
+# @discord.option(
+#     "game_id",
+#     type=str,
+#     description="The game ID",
+#     required=False,
+#     default="",
+#     autocomplete=game_id_autocomplete,
+# )
+async def play(ctx: discord.ApplicationContext):
     """
     Plays the user's turn.
 
@@ -113,21 +114,15 @@ async def play(
         game_id (str): The game ID.
     """
     assert ctx.interaction.user
-    if not game_id:
-        games_with_id = games_with_user(ctx.interaction.user.id)
-        if not games_with_id:
-            await ctx.respond(MESSAGES["user_not_in_any_games"], ephemeral=True)
-            return
-        new_game_id = games_with_id[0]
-    else:
-        new_game_id = int(game_id)
-    if new_game_id not in eggsplode_app.games:
-        await ctx.respond(MESSAGES["gmae_not_found"], ephemeral=True)
+    game_id = ctx.interaction.channel_id
+    assert game_id
+    if game_id not in eggsplode_app.games:
+        await ctx.respond(MESSAGES["game_not_found"], ephemeral=True)
         return
-    if ctx.interaction.user.id not in eggsplode_app.games[new_game_id].players:
+    if ctx.interaction.user.id not in eggsplode_app.games[game_id].players:
         await ctx.respond(MESSAGES["user_not_in_game"], ephemeral=True)
         return
-    if not eggsplode_app.games[new_game_id].hands:
+    if not eggsplode_app.games[game_id].hands:
         await ctx.respond(MESSAGES["game_not_started"], ephemeral=True)
         return
     view = TurnView(
@@ -135,8 +130,8 @@ async def play(
             app=eggsplode_app,
             parent_view=None,
             parent_interaction=None,
-            game_id=new_game_id,
-            action_id=None
+            game_id=game_id,
+            action_id=None,
         )
     )
     await ctx.respond(MESSAGES["turn_prompt"], view=view, ephemeral=True)
@@ -150,18 +145,15 @@ async def play(
         discord.IntegrationType.user_install,
     },
 )
-@discord.option(
-    "game_id",
-    type=str,
-    description="The game ID",
-    required=False,
-    default="",
-    autocomplete=game_id_autocomplete,
-)
-async def hand(
-    ctx: discord.ApplicationContext,
-    game_id: str,
-):
+# @discord.option(
+#     "game_id",
+#     type=str,
+#     description="The game ID",
+#     required=False,
+#     default="",
+#     autocomplete=game_id_autocomplete,
+# )
+async def hand(ctx: discord.ApplicationContext):
     """
     Views the user's hand.
 
@@ -170,24 +162,15 @@ async def hand(
         game_id (str): The game ID.
     """
     assert ctx.interaction.user
-    if not game_id:
-        games_with_id = games_with_user(ctx.interaction.user.id)
-        if not games_with_id:
-            await ctx.respond(MESSAGES["user_not_in_any_games"], ephemeral=True)
-            return
-        new_game_id = games_with_id[0]
-    else:
-        new_game_id = int(game_id)
-    if new_game_id not in eggsplode_app.games:
+    game_id = ctx.interaction.channel_id
+    if game_id not in eggsplode_app.games:
         await ctx.respond(MESSAGES["game_not_found"], ephemeral=True)
         return
-    if ctx.interaction.user.id not in eggsplode_app.games[new_game_id].players:
+    if ctx.interaction.user.id not in eggsplode_app.games[game_id].players:
         await ctx.respond(MESSAGES["user_not_in_game"], ephemeral=True)
         return
     try:
-        player_hand = eggsplode_app.games[new_game_id].group_hand(
-            ctx.interaction.user.id
-        )
+        player_hand = eggsplode_app.games[game_id].group_hand(ctx.interaction.user.id)
         hand_details = "".join(
             MESSAGES["hand_list"].format(
                 CARDS[card]["emoji"],
