@@ -45,14 +45,16 @@ async def start(ctx: discord.ApplicationContext):
     if eggsplode_app.admin_maintenance:
         await ctx.respond(MESSAGES["maintenance"], ephemeral=True)
         return
+    game_id = ctx.interaction.channel_id
+    assert game_id
+    if game_id in eggsplode_app.games:
+        await ctx.respond(MESSAGES["game_already_exists"], ephemeral=True)
+        return
     assert ctx.interaction.user
-    game_id = ctx.interaction.id
     view = StartGameView(eggsplode_app, game_id)
     eggsplode_app.games[game_id] = Game(ctx.interaction.user.id)
     await ctx.respond(
-        MESSAGES["start"].format(
-            game_id, ctx.interaction.user.id, ctx.interaction.user.id
-        ),
+        MESSAGES["start"].format(ctx.interaction.user.id, ctx.interaction.user.id),
         view=view,
     )
 
@@ -65,7 +67,7 @@ def games_with_user(user_id):
         user_id (int): The user ID.
 
     Returns:
-        list[Game]: List of games.
+        list[int]: List of games.
     """
     return [i for i, game in eggsplode_app.games.items() if user_id in game.players]
 
@@ -93,41 +95,23 @@ async def game_id_autocomplete(ctx: discord.AutocompleteContext):
         discord.IntegrationType.user_install,
     },
 )
-@discord.option(
-    "game_id",
-    type=str,
-    description="The game ID",
-    required=False,
-    default="",
-    autocomplete=game_id_autocomplete,
-)
-async def play(
-    ctx: discord.ApplicationContext,
-    game_id: str,
-):
+async def play(ctx: discord.ApplicationContext):
     """
     Plays the user's turn.
 
     Args:
         ctx (discord.ApplicationContext): The application context.
-        game_id (str): The game ID.
     """
     assert ctx.interaction.user
-    if not game_id:
-        games_with_id = games_with_user(ctx.interaction.user.id)
-        if not games_with_id:
-            await ctx.respond(MESSAGES["user_not_in_any_games"], ephemeral=True)
-            return
-        new_game_id = games_with_id[0]
-    else:
-        new_game_id = int(game_id)
-    if new_game_id not in eggsplode_app.games:
-        await ctx.respond(MESSAGES["gmae_not_found"], ephemeral=True)
+    game_id = ctx.interaction.channel_id
+    assert game_id
+    if game_id not in eggsplode_app.games:
+        await ctx.respond(MESSAGES["game_not_found"], ephemeral=True)
         return
-    if ctx.interaction.user.id not in eggsplode_app.games[new_game_id].players:
+    if ctx.interaction.user.id not in eggsplode_app.games[game_id].players:
         await ctx.respond(MESSAGES["user_not_in_game"], ephemeral=True)
         return
-    if not eggsplode_app.games[new_game_id].hands:
+    if not eggsplode_app.games[game_id].hands:
         await ctx.respond(MESSAGES["game_not_started"], ephemeral=True)
         return
     view = TurnView(
@@ -135,8 +119,8 @@ async def play(
             app=eggsplode_app,
             parent_view=None,
             parent_interaction=None,
-            game_id=new_game_id,
-            action_id=None
+            game_id=game_id,
+            action_id=None,
         )
     )
     await ctx.respond(MESSAGES["turn_prompt"], view=view, ephemeral=True)
@@ -150,44 +134,23 @@ async def play(
         discord.IntegrationType.user_install,
     },
 )
-@discord.option(
-    "game_id",
-    type=str,
-    description="The game ID",
-    required=False,
-    default="",
-    autocomplete=game_id_autocomplete,
-)
-async def hand(
-    ctx: discord.ApplicationContext,
-    game_id: str,
-):
+async def hand(ctx: discord.ApplicationContext):
     """
     Views the user's hand.
 
     Args:
         ctx (discord.ApplicationContext): The application context.
-        game_id (str): The game ID.
     """
     assert ctx.interaction.user
-    if not game_id:
-        games_with_id = games_with_user(ctx.interaction.user.id)
-        if not games_with_id:
-            await ctx.respond(MESSAGES["user_not_in_any_games"], ephemeral=True)
-            return
-        new_game_id = games_with_id[0]
-    else:
-        new_game_id = int(game_id)
-    if new_game_id not in eggsplode_app.games:
+    game_id = ctx.interaction.channel_id
+    if game_id not in eggsplode_app.games:
         await ctx.respond(MESSAGES["game_not_found"], ephemeral=True)
         return
-    if ctx.interaction.user.id not in eggsplode_app.games[new_game_id].players:
+    if ctx.interaction.user.id not in eggsplode_app.games[game_id].players:
         await ctx.respond(MESSAGES["user_not_in_game"], ephemeral=True)
         return
     try:
-        player_hand = eggsplode_app.games[new_game_id].group_hand(
-            ctx.interaction.user.id
-        )
+        player_hand = eggsplode_app.games[game_id].group_hand(ctx.interaction.user.id)
         hand_details = "".join(
             MESSAGES["hand_list"].format(
                 CARDS[card]["emoji"],
@@ -200,6 +163,35 @@ async def hand(
         await ctx.respond(MESSAGES["hand_title"].format(hand_details), ephemeral=True)
     except KeyError:
         await ctx.respond("❌ Game has not started yet!", ephemeral=True)
+
+
+@eggsplode_app.slash_command(
+    name="games",
+    description="View which games you're in.",
+    integration_types={
+        discord.IntegrationType.guild_install,
+        discord.IntegrationType.user_install,
+    },
+)
+async def games(ctx: discord.ApplicationContext):
+    """
+    Views the user's games.
+
+    Args:
+        ctx (discord.ApplicationContext): The application context.
+    """
+    assert ctx.interaction.user
+    games = games_with_user(ctx.interaction.user.id)
+    await ctx.respond(
+        (
+            MESSAGES["list_games_title"].format(
+                "\n".join(MESSAGES["list_games_item"].format(i) for i in games)
+            )
+            if games
+            else MESSAGES["user_not_in_any_games"]
+        ),
+        ephemeral=True,
+    )
 
 
 @eggsplode_app.slash_command(
@@ -279,7 +271,7 @@ async def admincmd(
     elif command == ADMIN_LISTGAMES_CODE:
         await ctx.respond(
             MESSAGES["list_games_title"].format(
-                ", ".join(str(i) for i in eggsplode_app.games)
+                "\n- ".join(str(i) for i in eggsplode_app.games)
             ),
             ephemeral=True,
         )
