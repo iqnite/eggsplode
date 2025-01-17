@@ -181,13 +181,13 @@ async def games(ctx: discord.ApplicationContext):
         ctx (discord.ApplicationContext): The application context.
     """
     assert ctx.interaction.user
-    games = games_with_user(ctx.interaction.user.id)
+    found_games = games_with_user(ctx.interaction.user.id)
     await ctx.respond(
         (
             MESSAGES["list_games_title"].format(
-                "\n".join(MESSAGES["list_games_item"].format(i) for i in games)
+                "\n".join(MESSAGES["list_games_item"].format(i) for i in found_games)
             )
-            if games
+            if found_games
             else MESSAGES["user_not_in_any_games"]
         ),
         ephemeral=True,
