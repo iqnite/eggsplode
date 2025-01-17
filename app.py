@@ -54,9 +54,7 @@ async def start(ctx: discord.ApplicationContext):
     view = StartGameView(eggsplode_app, game_id)
     eggsplode_app.games[game_id] = Game(ctx.interaction.user.id)
     await ctx.respond(
-        MESSAGES["start"].format(
-            ctx.interaction.user.id, ctx.interaction.user.id
-        ),
+        MESSAGES["start"].format(ctx.interaction.user.id, ctx.interaction.user.id),
         view=view,
     )
 
@@ -69,7 +67,7 @@ def games_with_user(user_id):
         user_id (int): The user ID.
 
     Returns:
-        list[Game]: List of games.
+        list[int]: List of games.
     """
     return [i for i, game in eggsplode_app.games.items() if user_id in game.players]
 
@@ -97,21 +95,12 @@ async def game_id_autocomplete(ctx: discord.AutocompleteContext):
         discord.IntegrationType.user_install,
     },
 )
-# @discord.option(
-#     "game_id",
-#     type=str,
-#     description="The game ID",
-#     required=False,
-#     default="",
-#     autocomplete=game_id_autocomplete,
-# )
 async def play(ctx: discord.ApplicationContext):
     """
     Plays the user's turn.
 
     Args:
         ctx (discord.ApplicationContext): The application context.
-        game_id (str): The game ID.
     """
     assert ctx.interaction.user
     game_id = ctx.interaction.channel_id
@@ -145,21 +134,12 @@ async def play(ctx: discord.ApplicationContext):
         discord.IntegrationType.user_install,
     },
 )
-# @discord.option(
-#     "game_id",
-#     type=str,
-#     description="The game ID",
-#     required=False,
-#     default="",
-#     autocomplete=game_id_autocomplete,
-# )
 async def hand(ctx: discord.ApplicationContext):
     """
     Views the user's hand.
 
     Args:
         ctx (discord.ApplicationContext): The application context.
-        game_id (str): The game ID.
     """
     assert ctx.interaction.user
     game_id = ctx.interaction.channel_id
@@ -183,6 +163,35 @@ async def hand(ctx: discord.ApplicationContext):
         await ctx.respond(MESSAGES["hand_title"].format(hand_details), ephemeral=True)
     except KeyError:
         await ctx.respond("❌ Game has not started yet!", ephemeral=True)
+
+
+@eggsplode_app.slash_command(
+    name="games",
+    description="View which games you're in.",
+    integration_types={
+        discord.IntegrationType.guild_install,
+        discord.IntegrationType.user_install,
+    },
+)
+async def games(ctx: discord.ApplicationContext):
+    """
+    Views the user's games.
+
+    Args:
+        ctx (discord.ApplicationContext): The application context.
+    """
+    assert ctx.interaction.user
+    games = games_with_user(ctx.interaction.user.id)
+    await ctx.respond(
+        (
+            MESSAGES["list_games_title"].format(
+                "\n".join(MESSAGES["list_games_item"].format(i) for i in games)
+            )
+            if games
+            else MESSAGES["user_not_in_any_games"]
+        ),
+        ephemeral=True,
+    )
 
 
 @eggsplode_app.slash_command(
@@ -262,7 +271,7 @@ async def admincmd(
     elif command == ADMIN_LISTGAMES_CODE:
         await ctx.respond(
             MESSAGES["list_games_title"].format(
-                ", ".join(str(i) for i in eggsplode_app.games)
+                "\n- ".join(str(i) for i in eggsplode_app.games)
             ),
             ephemeral=True,
         )
