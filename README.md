@@ -18,6 +18,7 @@ python -m venv .venv
 ```
 
 4. Activate the venv
+
 **Windows:**
 ```
 venv\Scripts\activate.bat
@@ -35,6 +36,7 @@ pip install -r requirements.txt
 ```
 
 6. Set up a bot on the [Discord Dev Portal](https://discord.dev) and copy its Bot Token; Optionally, you can invite it to a Discord server to test it
+   
 7. In the Eggsplode folder, create a new file called `.env` and paste the following contents into it:
 ```
 DISCORD_TOKEN="YOUR_BOT_TOKEN"
