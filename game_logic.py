@@ -161,8 +161,11 @@ class Game:
         result_cards = []
         result_counts = []
         for card in player_cards:
-            if usable_only and not CARDS[card]["usable"]:
-                continue
+            if usable_only:
+                if not CARDS[card]["usable"]:
+                    continue
+                if CARDS[card].get("combo", 0) > 0 and player_cards.count(card) < 2:
+                    continue
             if card in result_cards:
                 continue
             result_cards.append(card)
@@ -507,73 +510,139 @@ class PlayView(discord.ui.View):
         Args:
             interaction (discord.Interaction): The interaction instance.
         """
+        assert interaction.message
         if not await self.verify_turn(interaction):
             return
         assert self.play_card_select
         selected = self.play_card_select.values[0]
         assert isinstance(selected, str)
         assert interaction.user
+        await interaction.response.edit_message(view=self)
         self.ctx.game.hands[interaction.user.id].remove(selected)
+        if selected == "attegg":
+            await interaction.followup.send(
+                MESSAGES["before_attegg"].format(
+                    interaction.user.id, self.ctx.game.next_player_id
+                ),
+                view=NopeView(
+                    ctx=self.ctx.copy(parent_interaction=interaction, parent_view=self),
+                    target_player_id=self.ctx.game.next_player_id,
+                    callback_action=lambda _: self.finalize_attegg(interaction),
+                ),
+            )
+        elif selected == "skip":
+            await interaction.followup.send(
+                MESSAGES["before_skip"].format(
+                    interaction.user.id,
+                    (
+                        self.ctx.game.next_player_id
+                        if self.ctx.game.atteggs < 2
+                        else interaction.user.id
+                    ),
+                ),
+                view=NopeView(
+                    ctx=self.ctx.copy(parent_interaction=interaction, parent_view=self),
+                    target_player_id=(
+                        self.ctx.game.next_player_id
+                        if self.ctx.game.atteggs < 2
+                        else interaction.user.id
+                    ),
+                    callback_action=lambda _: self.finalize_skip(interaction),
+                ),
+            )
+        elif selected == "shuffle":
+            random.shuffle(self.ctx.game.deck)
+            await interaction.followup.send(
+                MESSAGES["shuffled"].format(interaction.user.id),
+            )
+        elif selected == "predict":
+            next_cards = "".join(
+                MESSAGES["next_cards_list"].format(
+                    CARDS[card]["emoji"], CARDS[card]["title"]
+                )
+                for card in self.ctx.game.deck[-1:-4:-1]
+            )
+            await interaction.followup.send(
+                MESSAGES["predicted"].format(interaction.user.id),
+            )
+            await interaction.followup.send(
+                MESSAGES["next_cards"].format(next_cards),
+                ephemeral=True,
+            )
+        elif selected.startswith("food"):
+            if not self.any_player_has_cards():
+                self.ctx.game.hands[interaction.user.id].append(selected)
+                await interaction.followup.send(MESSAGES["no_players_have_cards"])
+            else:
+                self.ctx.game.hands[interaction.user.id].remove(selected)
+                view = ChoosePlayerView(
+                    self.ctx.copy(parent_interaction=interaction, parent_view=self),
+                    lambda target_player_id: self.begin_steal(
+                        interaction, target_player_id
+                    ),
+                )
+                await view.create_user_selection()
+                await interaction.followup.send(
+                    MESSAGES["steal_prompt"], view=view, ephemeral=True
+                )
+        else:
+            await interaction.followup.send(MESSAGES["not_implemented"], ephemeral=True)
         self.remove_item(self.play_card_select)
         await self.create_card_selection(interaction)
-        await interaction.response.edit_message(view=self)
-        new_ctx = self.ctx.copy()
-        new_ctx.copy(parent_interaction=interaction)
-        match selected:
-            case "attegg":
-                await interaction.followup.send(
-                    MESSAGES["before_attegg"].format(
-                        interaction.user.id, self.ctx.game.next_player_id
-                    ),
-                    view=NopeView(
-                        ctx=new_ctx,
-                        target_player=self.ctx.game.next_player_id,
-                        staged_action=lambda: self.finalize_attegg(interaction),
-                    ),
-                )
-            case "skip":
-                await interaction.followup.send(
-                    MESSAGES["before_skip"].format(
-                        interaction.user.id,
-                        (
-                            self.ctx.game.next_player_id
-                            if self.ctx.game.atteggs < 2
-                            else interaction.user.id
-                        ),
-                    ),
-                    view=NopeView(
-                        ctx=new_ctx,
-                        target_player=(
-                            self.ctx.game.next_player_id
-                            if self.ctx.game.atteggs < 2
-                            else interaction.user.id
-                        ),
-                        staged_action=lambda: self.finalize_skip(interaction),
-                    ),
-                )
-            case "shuffle":
-                random.shuffle(self.ctx.game.deck)
-                await interaction.followup.send(
-                    MESSAGES["shuffled"].format(interaction.user.id),
-                )
-            case "predict":
-                next_cards = "".join(
-                    MESSAGES["next_cards_list"].format(
-                        CARDS[card]["emoji"], CARDS[card]["title"]
-                    )
-                    for card in self.ctx.game.deck[-1:-4:-1]
-                )
-                await interaction.followup.send(
-                    MESSAGES["predicted"].format(interaction.user.id),
-                )
-                await interaction.followup.send(
-                    MESSAGES["next_cards"].format(next_cards),
-                    ephemeral=True,
-                )
-            case _:
-                await interaction.followup.send(
-                    MESSAGES["not_implemented"], ephemeral=True
-                )
+        await interaction.followup.edit_message(interaction.message.id, view=self)
+
+    def any_player_has_cards(self):
+        """
+        Checks if any player has cards.
+        """
+        eligible_players = self.ctx.game.players.copy()
+        eligible_players.remove(self.ctx.game.current_player_id)
+        return any(self.ctx.game.hands[player] for player in eligible_players)
+
+    async def begin_steal(
+        self, interaction: discord.Interaction, target_player_id: int
+    ):
+        assert interaction.user
+        await interaction.followup.send(
+            MESSAGES["before_steal"].format(interaction.user.id, target_player_id),
+            view=NopeView(
+                ctx=self.ctx.copy(parent_interaction=interaction, parent_view=self),
+                target_player_id=target_player_id,
+                callback_action=lambda target_interaction: self.finalize_steal(
+                    interaction, target_interaction, target_player_id
+                ),
+            ),
+        )
+
+    async def finalize_steal(
+        self,
+        interaction: discord.Interaction,
+        target_interaction: discord.Interaction,
+        target_player_id: int,
+    ):
+        target_hand = self.ctx.game.hands[target_player_id]
+        stolen_card = random.choice(target_hand)
+        self.ctx.game.hands[target_player_id].remove(stolen_card)
+        self.ctx.game.hands[self.ctx.game.current_player_id].append(stolen_card)
+        await interaction.followup.send(
+            MESSAGES["stolen_card_public"].format(
+                self.ctx.game.current_player_id, target_player_id
+            )
+        )
+        await interaction.followup.send(
+            MESSAGES["stolen_card_you"].format(
+                CARDS[stolen_card]["emoji"], CARDS[stolen_card]["title"]
+            ),
+            ephemeral=True,
+        )
+        await target_interaction.followup.send(
+            MESSAGES["stolen_card_them"].format(
+                self.ctx.game.current_player_id,
+                CARDS[stolen_card]["emoji"],
+                CARDS[stolen_card]["title"],
+            ),
+            ephemeral=True,
+        )
 
     async def finalize_attegg(self, interaction: discord.Interaction):
         """
@@ -615,15 +684,15 @@ class NopeView(discord.ui.View):
         game_id (int): The game ID.
         action_id (int): The action ID.
         target_player (int): The target player ID.
-        staged_action (callable): The staged action to perform.
+        callback_action (callable): The staged action to perform.
         interacted (bool): Whether the view has been interacted with.
     """
 
     def __init__(
         self,
         ctx: ActionContext,
-        target_player: int,
-        staged_action=None,
+        target_player_id: int,
+        callback_action=None,
     ):
         """
         Initializes the NopeView.
@@ -634,12 +703,12 @@ class NopeView(discord.ui.View):
                 game
                 action_id
             target_player (int): The target player ID.
-            staged_action (callable): The staged action to perform.
+            callback_action (callable): The staged action to perform.
         """
         super().__init__(timeout=10, disable_on_timeout=True)
         self.ctx = ctx
-        self.target_player = target_player
-        self.staged_action = staged_action
+        self.target_player = target_player_id
+        self.callback_action = callback_action
         self.interacted = False
 
     async def on_timeout(self):
@@ -647,8 +716,8 @@ class NopeView(discord.ui.View):
         Handles the timeout event.
         """
         if not self.interacted and self.ctx.action_id == self.ctx.game.action_id:
-            if self.staged_action:
-                await self.staged_action()
+            if self.callback_action:
+                await self.callback_action(None)
             return await super().on_timeout()
 
     @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
@@ -671,8 +740,8 @@ class NopeView(discord.ui.View):
         self.interacted = True
         self.disable_all_items()
         await interaction.response.edit_message(view=self)
-        if self.staged_action:
-            await self.staged_action()
+        if self.callback_action:
+            await self.callback_action(interaction)
 
     @discord.ui.button(label="Nope!", style=discord.ButtonStyle.red, emoji="🛑")
     async def nope_callback(
@@ -714,6 +783,70 @@ class NopeView(discord.ui.View):
             ),
             view=self,
         )
+
+
+class ChoosePlayerView(discord.ui.View):
+    """
+    Represents the view to select a user.
+    """
+
+    def __init__(self, ctx: ActionContext, callback_action):
+        """
+        Initializes the ChoosePlayerView.
+        """
+        super().__init__(timeout=10, disable_on_timeout=True)
+        self.ctx: ActionContext = ctx
+        self.eligible_players = self.ctx.game.players.copy()
+        self.eligible_players.remove(self.ctx.game.current_player_id)
+        self.callback_action = callback_action
+        self.user_select = None
+        self.interacted = False
+
+    async def on_timeout(self):
+        if not self.interacted:
+            assert self.user_select
+            await self.callback_action(self.user_select.options[0].value)
+            return await super().on_timeout()
+
+    async def create_user_selection(self):
+        """
+        Creates the user selection dropdown.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+        """
+        options = []
+        for user_id in self.eligible_players:
+            user = await self.ctx.app.get_or_fetch_user(user_id)
+            assert user
+            if not self.ctx.game.hands[user_id]:
+                continue
+            options.append(
+                discord.SelectOption(
+                    value=str(user_id),
+                    label=user.display_name,
+                )
+            )
+        self.user_select = discord.ui.Select(
+            placeholder="Select a user",
+            min_values=1,
+            max_values=1,
+            options=options,
+        )
+        self.user_select.callback = self.selection_callback
+        self.add_item(self.user_select)
+
+    async def selection_callback(self, interaction: discord.Interaction):
+        """
+        Called when the user selects an item.
+        """
+        assert interaction
+        assert self.user_select
+        self.interacted = True
+        self.disable_all_items()
+        await interaction.response.edit_message(view=self)
+        assert isinstance(self.user_select.values[0], str)
+        await self.callback_action(int(self.user_select.values[0]))
 
 
 class StartGameView(discord.ui.View):
