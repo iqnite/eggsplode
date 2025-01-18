@@ -522,6 +522,7 @@ class PlayView(discord.ui.View):
         Args:
             interaction (discord.Interaction): The interaction instance.
         """
+        assert interaction.message
         if not await self.verify_turn(interaction):
             return
         assert self.play_card_select
@@ -529,6 +530,7 @@ class PlayView(discord.ui.View):
         selected = self.play_card_select.values[0]
         assert isinstance(selected, str)
         assert interaction.user
+        await interaction.response.edit_message(view=self)
         self.ctx.game.hands[interaction.user.id].remove(selected)
         if selected == "attegg":
             await interaction.followup.send(
@@ -584,20 +586,23 @@ class PlayView(discord.ui.View):
             if not self.any_player_has_cards():
                 self.ctx.game.hands[interaction.user.id].append(selected)
                 await interaction.followup.send(MESSAGES["no_players_have_cards"])
-                return
-            self.ctx.game.hands[interaction.user.id].remove(selected)
-            view = ChoosePlayerView(
-                self.ctx.copy(parent_interaction=interaction, parent_view=self),
-                lambda target_player_id: self.begin_steal(
-                    interaction, target_player_id
-                ),
-            )
-            await view.create_user_selection()
-            await interaction.followup.send(MESSAGES["steal_prompt"], view=view)
+            else:
+                self.ctx.game.hands[interaction.user.id].remove(selected)
+                view = ChoosePlayerView(
+                    self.ctx.copy(parent_interaction=interaction, parent_view=self),
+                    lambda target_player_id: self.begin_steal(
+                        interaction, target_player_id
+                    ),
+                )
+                await view.create_user_selection()
+                await interaction.followup.send(
+                    MESSAGES["steal_prompt"], view=view, ephemeral=True
+                )
         else:
             await interaction.followup.send(MESSAGES["not_implemented"], ephemeral=True)
+        self.remove_item(self.play_card_select)
         await self.create_card_selection(interaction)
-        await interaction.response.edit_message(view=self)
+        await interaction.followup.edit_message(interaction.message.id, view=self)
 
     def any_player_has_cards(self):
         """
@@ -816,7 +821,8 @@ class ChoosePlayerView(discord.ui.View):
 
     async def on_timeout(self):
         if not self.interacted:
-            await self.callback_action()
+            assert self.user_select
+            await self.callback_action(self.user_select.options[0].value)
             return await super().on_timeout()
 
     async def create_user_selection(self):
@@ -854,7 +860,10 @@ class ChoosePlayerView(discord.ui.View):
         assert interaction
         assert self.user_select
         self.interacted = True
-        await self.callback_action(self.user_select.values[0])
+        self.disable_all_items()
+        await interaction.response.edit_message(view=self)
+        assert isinstance(self.user_select.values[0], str)
+        await self.callback_action(int(self.user_select.values[0]))
 
 
 class StartGameView(discord.ui.View):
