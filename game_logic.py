@@ -839,11 +839,11 @@ class ChoosePlayerView(discord.ui.View):
             options.append(
                 discord.SelectOption(
                     value=str(user_id),
-                    label=user.display_name,
+                    label=f"{user.display_name} ({len(self.ctx.game.hands[user_id])} cards)",
                 )
             )
         self.user_select = discord.ui.Select(
-            placeholder="Select a user",
+            placeholder="Select another player",
             min_values=1,
             max_values=1,
             options=options,
