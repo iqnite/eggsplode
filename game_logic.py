@@ -602,6 +602,13 @@ class PlayView(discord.ui.View):
     async def begin_steal(
         self, interaction: discord.Interaction, target_player_id: int
     ):
+        """
+        Begins the steal action.
+
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+            target_player_id (int): The target player ID.
+        """
         assert interaction.user
         await interaction.followup.send(
             MESSAGES["before_steal"].format(interaction.user.id, target_player_id),
@@ -620,6 +627,14 @@ class PlayView(discord.ui.View):
         target_interaction: discord.Interaction,
         target_player_id: int,
     ):
+        """
+        Finalizes the steal action.
+        
+        Args:
+            interaction (discord.Interaction): The interaction instance.
+            target_interaction (discord.Interaction): The target interaction instance.
+            target_player_id (int): The target player ID.
+        """
         target_hand = self.ctx.game.hands[target_player_id]
         stolen_card = random.choice(target_hand)
         self.ctx.game.hands[target_player_id].remove(stolen_card)
