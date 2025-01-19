@@ -639,6 +639,9 @@ class PlayView(discord.ui.View):
         stolen_card = random.choice(target_hand)
         self.ctx.game.hands[target_player_id].remove(stolen_card)
         self.ctx.game.hands[self.ctx.game.current_player_id].append(stolen_card)
+        await self.create_card_selection(interaction)
+        assert interaction.message
+        await interaction.followup.edit_message(interaction.message.id, view=self)
         await interaction.followup.send(
             MESSAGES["stolen_card_public"].format(
                 self.ctx.game.current_player_id, target_player_id
