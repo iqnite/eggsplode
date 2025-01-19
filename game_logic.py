@@ -624,12 +624,12 @@ class PlayView(discord.ui.View):
     async def finalize_steal(
         self,
         interaction: discord.Interaction,
-        target_interaction: discord.Interaction,
+        target_interaction: discord.Interaction | None,
         target_player_id: int,
     ):
         """
         Finalizes the steal action.
-        
+
         Args:
             interaction (discord.Interaction): The interaction instance.
             target_interaction (discord.Interaction): The target interaction instance.
@@ -650,14 +650,15 @@ class PlayView(discord.ui.View):
             ),
             ephemeral=True,
         )
-        await target_interaction.followup.send(
-            MESSAGES["stolen_card_them"].format(
-                self.ctx.game.current_player_id,
-                CARDS[stolen_card]["emoji"],
-                CARDS[stolen_card]["title"],
-            ),
-            ephemeral=True,
-        )
+        if target_interaction:
+            await target_interaction.followup.send(
+                MESSAGES["stolen_card_them"].format(
+                    self.ctx.game.current_player_id,
+                    CARDS[stolen_card]["emoji"],
+                    CARDS[stolen_card]["title"],
+                ),
+                ephemeral=True,
+            )
 
     async def finalize_attegg(self, interaction: discord.Interaction):
         """
@@ -707,7 +708,7 @@ class NopeView(discord.ui.View):
         self,
         ctx: ActionContext,
         target_player_id: int,
-        callback_action=None,
+        callback_action,
     ):
         """
         Initializes the NopeView.
