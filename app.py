@@ -3,17 +3,34 @@ Eggsplode Discord Bot
 """
 
 import os
-import json
 from dotenv import load_dotenv
 import discord
-from game_logic import (
-    CARDS,
-    Eggsplode,
-    Game,
-    StartGameView,
-    TurnView,
-    ActionContext,
-)
+from discord.ext import commands
+from common import MESSAGES, CARDS
+from game_logic import Game, ActionContext
+from views import StartGameView, TurnView
+
+
+class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
+    """
+    Represents the Eggsplode bot.
+
+    Attributes:
+        admin_maintenance (bool): Whether the bot is in maintenance mode.
+        games (dict[int, Game]): Dictionary of active games.
+    """
+
+    def __init__(self, **kwargs):
+        """
+        Initializes the Eggsplode bot.
+
+        Args:
+            kwargs: Additional keyword arguments.
+        """
+        super().__init__(**kwargs)
+        self.admin_maintenance: bool = False
+        self.games: dict[int, Game] = {}
+
 
 load_dotenv()
 ADMIN_MAINTENANCE_CODE = os.getenv("ADMIN_MAINTENANCE_CODE")
@@ -23,8 +40,6 @@ assert DISCORD_TOKEN is not None, "DISCORD_TOKEN is not set in .env file"
 eggsplode_app = Eggsplode(
     activity=discord.Activity(type=discord.ActivityType.watching, name="you")
 )
-with open("messages.json", encoding="utf-8") as f:
-    MESSAGES = json.load(f)
 
 
 @eggsplode_app.slash_command(
@@ -51,8 +66,8 @@ async def start(ctx: discord.ApplicationContext):
         await ctx.respond(MESSAGES["game_already_exists"], ephemeral=True)
         return
     assert ctx.interaction.user
-    view = StartGameView(eggsplode_app, game_id)
     eggsplode_app.games[game_id] = Game(ctx.interaction.user.id)
+    view = StartGameView(ActionContext(app=eggsplode_app, game_id=game_id))
     await ctx.respond(
         MESSAGES["start"].format(ctx.interaction.user.id, ctx.interaction.user.id),
         view=view,
@@ -82,9 +97,11 @@ async def game_id_autocomplete(ctx: discord.AutocompleteContext):
     Returns:
         list[str]: List of game IDs.
     """
-    if not ctx.interaction.user:
-        return []
-    return map(str, games_with_user(ctx.interaction.user.id))
+    return (
+        map(str, games_with_user(ctx.interaction.user.id))
+        if ctx.interaction.user
+        else []
+    )
 
 
 @eggsplode_app.slash_command(
@@ -114,15 +131,7 @@ async def play(ctx: discord.ApplicationContext):
     if not eggsplode_app.games[game_id].hands:
         await ctx.respond(MESSAGES["game_not_started"], ephemeral=True)
         return
-    view = TurnView(
-        ActionContext(
-            app=eggsplode_app,
-            parent_view=None,
-            parent_interaction=None,
-            game_id=game_id,
-            action_id=None,
-        )
-    )
+    view = TurnView(ActionContext(app=eggsplode_app, game_id=game_id))
     await ctx.respond(MESSAGES["turn_prompt"], view=view, ephemeral=True)
 
 
