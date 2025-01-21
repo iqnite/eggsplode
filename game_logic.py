@@ -81,6 +81,7 @@ class Game:
         self.current_player: int = 0
         self.action_id: int = 0
         self.atteggs: int = 0
+        self.awaiting_prompt: bool = False
 
     def start(self):
         """
@@ -382,6 +383,9 @@ class PlayView(discord.ui.View):
             bool: True if it's the player's turn, False otherwise.
         """
         assert interaction.user
+        if self.ctx.game.awaiting_prompt:
+            await interaction.response.send_message(MESSAGES["not_your_turn"], ephemeral=True)
+            return False
         if interaction.user.id != self.ctx.game.current_player_id:
             self.disable_all_items()
             await interaction.response.edit_message(view=self)
@@ -729,12 +733,14 @@ class NopeView(discord.ui.View):
         self.target_player = target_player_id
         self.callback_action = callback_action
         self.interacted = False
+        self.ctx.game.awaiting_prompt = True
 
     async def on_timeout(self):
         """
         Handles the timeout event.
         """
         if not self.interacted and self.ctx.action_id == self.ctx.game.action_id:
+            self.ctx.game.awaiting_prompt = False
             if self.callback_action:
                 await self.callback_action(None)
             return await super().on_timeout()
@@ -757,6 +763,7 @@ class NopeView(discord.ui.View):
             )
             return
         self.interacted = True
+        self.ctx.game.awaiting_prompt = False
         self.disable_all_items()
         await interaction.response.edit_message(view=self)
         if self.callback_action:
@@ -795,6 +802,7 @@ class NopeView(discord.ui.View):
             return
         assert interaction.message
         self.interacted = True
+        self.ctx.game.awaiting_prompt = False
         self.disable_all_items()
         await interaction.response.edit_message(
             content=MESSAGES["message_edit_on_nope"].format(
