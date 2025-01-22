@@ -154,36 +154,45 @@ class PlayView(discord.ui.View):
         ):
             await super().on_timeout()
 
-    async def verify_turn(self, interaction: discord.Interaction):
+    @staticmethod
+    def action_method(func):
         """
-        Verifies if it's the player's turn.
+        Decorator that verifies if it's the player's turn and handles other common turn tasks.
 
         Args:
             interaction (discord.Interaction): The interaction instance.
 
         Returns:
-            bool: True if it's the player's turn, False otherwise.
+            callable: The wrapped function.
         """
-        if not interaction.user:
-            raise TypeError("interaction.user is None")
-        if self.ctx.game.awaiting_prompt:
-            await interaction.response.send_message(
-                MESSAGES["not_your_turn"], ephemeral=True
-            )
-            return False
-        if interaction.user.id != self.ctx.game.current_player_id:
-            self.disable_all_items()
-            await interaction.response.edit_message(view=self)
-            await interaction.followup.send(MESSAGES["not_your_turn"], ephemeral=True)
-            return False
-        if self.ctx.action_id != self.ctx.game.action_id:
-            self.disable_all_items()
-            await interaction.response.edit_message(view=self)
-            await interaction.followup.send(MESSAGES["invalid_turn"], ephemeral=True)
-            return False
-        self.ctx.game.action_id += 1
-        self.ctx.action_id += 1
-        return True
+
+        async def wrapped(self, interaction: discord.Interaction):
+            if not interaction.user:
+                raise TypeError("interaction.user is None")
+            if self.ctx.game.awaiting_prompt:
+                await interaction.response.send_message(
+                    MESSAGES["not_your_turn"], ephemeral=True
+                )
+                return
+            if interaction.user.id != self.ctx.game.current_player_id:
+                self.disable_all_items()
+                await interaction.response.edit_message(view=self)
+                await interaction.followup.send(
+                    MESSAGES["not_your_turn"], ephemeral=True
+                )
+                return
+            if self.ctx.action_id != self.ctx.game.action_id:
+                self.disable_all_items()
+                await interaction.response.edit_message(view=self)
+                await interaction.followup.send(
+                    MESSAGES["invalid_turn"], ephemeral=True
+                )
+                return
+            self.ctx.game.action_id += 1
+            self.ctx.action_id += 1
+            await func(self, interaction)
+
+        return wrapped
 
     async def end_turn(self, interaction: discord.Interaction):
         """
@@ -217,10 +226,10 @@ class PlayView(discord.ui.View):
         """
         if not interaction.user:
             return
-        user_cards: list = self.ctx.game.group_hand(
+        user_cards: dict = self.ctx.game.group_hand(
             interaction.user.id, usable_only=True
         )
-        if len(user_cards) == 0:
+        if not user_cards:
             return
         self.play_card_select = discord.ui.Select(
             placeholder="Select a card to play",
@@ -240,6 +249,7 @@ class PlayView(discord.ui.View):
         self.add_item(self.play_card_select)
 
     @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
+    @action_method
     async def draw_callback(
         self, _: discord.ui.Button, interaction: discord.Interaction
     ):
@@ -260,8 +270,6 @@ class PlayView(discord.ui.View):
             interaction (discord.Interaction): The interaction instance.
         """
         if not interaction.user:
-            return
-        if not await self.verify_turn(interaction):
             return
         self.disable_all_items()
         await interaction.response.edit_message(view=self)
@@ -297,6 +305,7 @@ class PlayView(discord.ui.View):
                 )
         await self.end_turn(interaction)
 
+    @action_method
     async def play_card(self, interaction: discord.Interaction):
         """
         Plays a selected card.
@@ -305,8 +314,6 @@ class PlayView(discord.ui.View):
             interaction (discord.Interaction): The interaction instance.
         """
         if not (interaction.message and interaction.user and self.play_card_select):
-            return
-        if not await self.verify_turn(interaction):
             return
         selected = self.play_card_select.values[0]
         if not isinstance(selected, str):

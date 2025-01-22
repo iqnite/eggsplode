@@ -44,12 +44,10 @@ class Game:
         random.shuffle(self.deck)
         for _ in range(7):
             for player in self.players:
-                assert isinstance(player, int), "Player must be an integer"
                 if player not in self.hands:
                     self.hands[player] = []
                 self.hands[player].append(self.deck.pop())
         for player in self.players:
-            assert isinstance(player, int), "Player must be an integer"
             self.hands[player].append("defuse")
         for _ in range(len(self.players) - 1):
             self.deck.append("eggsplode")
@@ -110,19 +108,17 @@ class Game:
             list[tuple[str, int]]: List of tuples containing card names and counts.
         """
         player_cards = self.hands[user_id]
-        result_cards = []
-        result_counts = []
+        result = {}
         for card in player_cards:
             if usable_only:
                 if not CARDS[card]["usable"]:
                     continue
                 if CARDS[card].get("combo", 0) > 0 and player_cards.count(card) < 2:
                     continue
-            if card in result_cards:
+            if card in result:
                 continue
-            result_cards.append(card)
-            result_counts.append(player_cards.count(card))
-        return list(zip(result_cards, result_counts))
+            result[card] = player_cards.count(card)
+        return result
 
     def draw_card(self, user_id):
         """
