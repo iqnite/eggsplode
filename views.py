@@ -319,7 +319,7 @@ class PlayView(discord.ui.View):
         if not isinstance(selected, str):
             raise TypeError("selected is not a str")
         await interaction.response.edit_message(view=self)
-        self.ctx.game.hands[interaction.user.id].remove(selected)
+        self.ctx.game.current_player_hand.remove(selected)
         if CARDS[selected].get("combo", 0) == 1:
             await self.food_combo(interaction, selected)
         else:
@@ -424,10 +424,10 @@ class PlayView(discord.ui.View):
         if not interaction.user:
             return
         if not self.ctx.game.any_player_has_cards():
-            self.ctx.game.hands[interaction.user.id].append(selected)
+            self.ctx.game.current_player_hand.append(selected)
             await interaction.followup.send(MESSAGES["no_players_have_cards"])
         else:
-            self.ctx.game.hands[interaction.user.id].remove(selected)
+            self.ctx.game.current_player_hand.remove(selected)
             view = ChoosePlayerView(
                 self.ctx.copy(parent_interaction=interaction, parent_view=self),
                 lambda target_player_id: self.begin_steal(
@@ -481,7 +481,7 @@ class PlayView(discord.ui.View):
         target_hand = self.ctx.game.hands[target_player_id]
         stolen_card = random.choice(target_hand)
         self.ctx.game.hands[target_player_id].remove(stolen_card)
-        self.ctx.game.hands[self.ctx.game.current_player_id].append(stolen_card)
+        self.ctx.game.current_player_hand.append(stolen_card)
         self.create_card_selection(interaction)
         await interaction.followup.edit_message(interaction.message.id, view=self)
         await interaction.followup.send(
@@ -767,15 +767,14 @@ class StartGameView(discord.ui.View):
             _ (discord.ui.Button): The button instance.
             interaction (discord.Interaction): The interaction instance.
         """
-        game = self.ctx.games[self.ctx.game_id]
         if not interaction.user:
             return
-        if interaction.user.id in game.players:
+        if interaction.user.id in self.ctx.game.players:
             await interaction.response.send_message(
                 MESSAGES["already_in_game"], ephemeral=True
             )
             return
-        game.players.append(interaction.user.id)
+        self.ctx.game.players.append(interaction.user.id)
         if not (interaction.message and interaction.message.content):
             return
         await interaction.response.edit_message(

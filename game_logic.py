@@ -64,6 +64,16 @@ class Game:
         return self.players[self.current_player]
 
     @property
+    def current_player_hand(self):
+        """
+        Returns the current player's hand.
+
+        Returns:
+            list[str]: Current player's hand.
+        """
+        return self.hands[self.current_player_id]
+
+    @property
     def next_player(self):
         """
         Returns the index of the next player.
