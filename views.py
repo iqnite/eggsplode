@@ -80,6 +80,15 @@ class TurnView(discord.ui.View):
             )
             return
         assert interaction.message
+        hand_details = "\n".join(
+            MESSAGES["hand_list"].format(
+                CARDS[card]["emoji"],
+                CARDS[card]["title"],
+                count,
+                CARDS[card]["description"],
+            )
+            for card, count in self.ctx.game.group_hand(interaction.user.id)
+        )
         view = PlayView(
             ActionContext(
                 app=self.ctx.app,
@@ -92,7 +101,9 @@ class TurnView(discord.ui.View):
         await view.create_view()
         await interaction.response.send_message(
             MESSAGES["play_prompt"].format(
-                len(self.ctx.game.deck), self.ctx.game.deck.count("eggsplode")
+                hand_details,
+                len(self.ctx.game.deck),
+                self.ctx.game.deck.count("eggsplode"),
             ),
             view=view,
             ephemeral=True,

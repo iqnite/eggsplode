@@ -39,7 +39,7 @@
   "not_game_creator_start": "❌ Only the game creator can start the game!",
   "not_implemented": "🙁 Sorry, not implemented yet.",
   "not_your_turn": "❌ It's not your turn!",
-  "play_prompt": "**Play** as many cards as you want, then **draw** a card to end your turn!\n-# Cards remaining on the deck: {} | Eggsplode cards: {}",
+  "play_prompt": "**Play** as many cards as you want, then **draw** a card to end your turn!\n## Your cards:\n{}\n-# Cards remaining on the deck: {} | Eggsplode cards: {}",
   "players_list_item": "{}\n- <@{}>",
   "predicted": "🔮 <@{}> looked at the next 3 cards on the deck!",
   "shuffled": "🌀 <@{}> shuffled the deck!",

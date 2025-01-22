@@ -131,7 +131,6 @@ async def play(ctx: discord.ApplicationContext):
     if not eggsplode_app.games[game_id].hands:
         await ctx.respond(MESSAGES["game_not_started"], ephemeral=True)
         return
-    player_hand = eggsplode_app.games[game_id].group_hand(ctx.interaction.user.id)
     hand_details = "\n".join(
         MESSAGES["hand_list"].format(
             CARDS[card]["emoji"],
@@ -139,7 +138,9 @@ async def play(ctx: discord.ApplicationContext):
             count,
             CARDS[card]["description"],
         )
-        for card, count in player_hand
+        for card, count in eggsplode_app.games[game_id].group_hand(
+            ctx.interaction.user.id
+        )
     )
     view = TurnView(ActionContext(app=eggsplode_app, game_id=game_id))
     await ctx.respond(
