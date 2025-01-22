@@ -33,10 +33,13 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
 
 
 load_dotenv()
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 ADMIN_MAINTENANCE_CODE = os.getenv("ADMIN_MAINTENANCE_CODE")
 ADMIN_LISTGAMES_CODE = os.getenv("ADMIN_LISTGAMES_CODE")
-DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-assert DISCORD_TOKEN is not None, "DISCORD_TOKEN is not set in .env file"
+if not (DISCORD_TOKEN and ADMIN_MAINTENANCE_CODE and ADMIN_LISTGAMES_CODE):
+    raise TypeError(
+        "DISCORD_TOKEN, ADMIN_MAINTENANCE_CODE, and ADMIN_LISTGAMES_CODE must be set in .env file"
+    )
 eggsplode_app = Eggsplode(
     activity=discord.Activity(type=discord.ActivityType.watching, name="you")
 )
@@ -61,11 +64,11 @@ async def start(ctx: discord.ApplicationContext):
         await ctx.respond(MESSAGES["maintenance"], ephemeral=True)
         return
     game_id = ctx.interaction.channel_id
-    assert game_id
+    if not (game_id and ctx.interaction.user):
+        return
     if game_id in eggsplode_app.games:
         await ctx.respond(MESSAGES["game_already_exists"], ephemeral=True)
         return
-    assert ctx.interaction.user
     eggsplode_app.games[game_id] = Game(ctx.interaction.user.id)
     view = StartGameView(ActionContext(app=eggsplode_app, game_id=game_id))
     await ctx.respond(
@@ -119,9 +122,9 @@ async def play(ctx: discord.ApplicationContext):
     Args:
         ctx (discord.ApplicationContext): The application context.
     """
-    assert ctx.interaction.user
     game_id = ctx.interaction.channel_id
-    assert game_id
+    if not (game_id and ctx.interaction.user):
+        return
     if game_id not in eggsplode_app.games:
         await ctx.respond(MESSAGES["game_not_found"], ephemeral=True)
         return
@@ -131,20 +134,15 @@ async def play(ctx: discord.ApplicationContext):
     if not eggsplode_app.games[game_id].hands:
         await ctx.respond(MESSAGES["game_not_started"], ephemeral=True)
         return
-    hand_details = "\n".join(
-        MESSAGES["hand_list"].format(
-            CARDS[card]["emoji"],
-            CARDS[card]["title"],
-            count,
-            CARDS[card]["description"],
-        )
-        for card, count in eggsplode_app.games[game_id].group_hand(
-            ctx.interaction.user.id
-        )
-    )
     view = TurnView(ActionContext(app=eggsplode_app, game_id=game_id))
     await ctx.respond(
-        MESSAGES["turn_prompt"].format(hand_details), view=view, ephemeral=True
+        MESSAGES["turn_prompt"].format(
+            eggsplode_app.games[game_id].cards_help(
+                ctx.interaction.user.id, template=MESSAGES["hand_list"]
+            )
+        ),
+        view=view,
+        ephemeral=True,
     )
 
 
@@ -163,7 +161,8 @@ async def games(ctx: discord.ApplicationContext):
     Args:
         ctx (discord.ApplicationContext): The application context.
     """
-    assert ctx.interaction.user
+    if not ctx.interaction.user:
+        return
     found_games = games_with_user(ctx.interaction.user.id)
     await ctx.respond(
         (

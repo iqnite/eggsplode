@@ -170,6 +170,26 @@ class Game:
         eligible_players.remove(self.current_player_id)
         return any(self.hands[player] for player in eligible_players)
 
+    def cards_help(self, user_id, template=""):
+        """
+        Returns the help message for cards.
+
+        Args:
+            user_id (int): Player ID.
+
+        Returns:
+            str: Help message.
+        """
+        "\n".join(
+            template.format(
+                CARDS[card]["emoji"],
+                CARDS[card]["title"],
+                count,
+                CARDS[card]["description"],
+            )
+            for card, count in self.group_hand(user_id)
+        )
+
 
 class ActionContext:  # pylint: disable=too-few-public-methods
     """
