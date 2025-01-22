@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 import discord
 from discord.ext import commands
-from common import MESSAGES, CARDS
+from common import MESSAGES
 from game_logic import Game, ActionContext
 from views import StartGameView, TurnView
 
