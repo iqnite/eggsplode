@@ -131,47 +131,18 @@ async def play(ctx: discord.ApplicationContext):
     if not eggsplode_app.games[game_id].hands:
         await ctx.respond(MESSAGES["game_not_started"], ephemeral=True)
         return
-    view = TurnView(ActionContext(app=eggsplode_app, game_id=game_id))
-    await ctx.respond(MESSAGES["turn_prompt"], view=view, ephemeral=True)
-
-
-@eggsplode_app.slash_command(
-    name="hand",
-    description="View your hand.",
-    integration_types={
-        discord.IntegrationType.guild_install,
-        discord.IntegrationType.user_install,
-    },
-)
-async def hand(ctx: discord.ApplicationContext):
-    """
-    Views the user's hand.
-
-    Args:
-        ctx (discord.ApplicationContext): The application context.
-    """
-    assert ctx.interaction.user
-    game_id = ctx.interaction.channel_id
-    if game_id not in eggsplode_app.games:
-        await ctx.respond(MESSAGES["game_not_found"], ephemeral=True)
-        return
-    if ctx.interaction.user.id not in eggsplode_app.games[game_id].players:
-        await ctx.respond(MESSAGES["user_not_in_game"], ephemeral=True)
-        return
-    try:
-        player_hand = eggsplode_app.games[game_id].group_hand(ctx.interaction.user.id)
-        hand_details = "".join(
-            MESSAGES["hand_list"].format(
-                CARDS[card]["emoji"],
-                CARDS[card]["title"],
-                count,
-                CARDS[card]["description"],
-            )
-            for card, count in player_hand
+    player_hand = eggsplode_app.games[game_id].group_hand(ctx.interaction.user.id)
+    hand_details = "\n".join(
+        MESSAGES["hand_list"].format(
+            CARDS[card]["emoji"],
+            CARDS[card]["title"],
+            count,
+            CARDS[card]["description"],
         )
-        await ctx.respond(MESSAGES["hand_title"].format(hand_details), ephemeral=True)
-    except KeyError:
-        await ctx.respond("❌ Game has not started yet!", ephemeral=True)
+        for card, count in player_hand
+    )
+    view = TurnView(ActionContext(app=eggsplode_app, game_id=game_id))
+    await ctx.respond(MESSAGES["turn_prompt"].format(hand_details), view=view, ephemeral=True)
 
 
 @eggsplode_app.slash_command(
@@ -280,7 +251,7 @@ async def admincmd(
     elif command == ADMIN_LISTGAMES_CODE:
         await ctx.respond(
             MESSAGES["list_games_title"].format(
-                "\n- ".join(str(i) for i in eggsplode_app.games)
+                "\n".join(f"- {i}" for i in eggsplode_app.games)
             ),
             ephemeral=True,
         )
