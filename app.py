@@ -142,7 +142,9 @@ async def play(ctx: discord.ApplicationContext):
         for card, count in player_hand
     )
     view = TurnView(ActionContext(app=eggsplode_app, game_id=game_id))
-    await ctx.respond(MESSAGES["turn_prompt"].format(hand_details), view=view, ephemeral=True)
+    await ctx.respond(
+        MESSAGES["turn_prompt"].format(hand_details), view=view, ephemeral=True
+    )
 
 
 @eggsplode_app.slash_command(
