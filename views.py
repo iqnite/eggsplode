@@ -82,35 +82,33 @@ class TurnView(BaseView):
             view = TurnView(self.ctx.copy())
             turn_player: int = self.ctx.game.current_player_id
             card: str = self.ctx.game.draw_card(turn_player)
-            try:
-                match card:
-                    case "defuse":
-                        await self.message.reply(
-                            MESSAGES["defused"].format(turn_player)
-                        )
-                    case "eggsplode":
-                        await self.message.reply(
-                            MESSAGES["eggsploded"].format(turn_player)
-                        )
-                    case "gameover":
-                        await self.message.reply(
-                            MESSAGES["eggsploded"].format(turn_player)
-                        )
-                        await self.message.reply(
-                            MESSAGES["game_over"].format(self.ctx.game.players[0])
-                        )
-                        del self.ctx.games[self.ctx.game_id]
-                        self.on_timeout = super().on_timeout
-                        return
-                    case _:
-                        await self.message.reply(
-                            MESSAGES["timeout"].format(turn_player)
-                        )
-            finally:
-                await self.message.reply(
-                    MESSAGES["next_turn"].format(self.ctx.game.current_player_id),
-                    view=view,
-                )
+            match card:
+                case "defuse":
+                    await self.message.reply(
+                        MESSAGES["defused"].format(turn_player)
+                    )
+                case "eggsplode":
+                    await self.message.reply(
+                        MESSAGES["eggsploded"].format(turn_player)
+                    )
+                case "gameover":
+                    await self.message.reply(
+                        MESSAGES["eggsploded"].format(turn_player)
+                    )
+                    await self.message.reply(
+                        MESSAGES["game_over"].format(self.ctx.game.players[0])
+                    )
+                    del self.ctx.games[self.ctx.game_id]
+                    self.on_timeout = super().on_timeout
+                    return
+                case _:
+                    await self.message.reply(
+                        MESSAGES["timeout"].format(turn_player)
+                    )
+            await self.message.reply(
+                MESSAGES["next_turn"].format(self.ctx.game.current_player_id),
+                view=view,
+            )
 
     @discord.ui.button(label="Play!", style=discord.ButtonStyle.blurple, emoji="🤚")
     async def play(self, _: discord.ui.Button, interaction: discord.Interaction):
