@@ -23,12 +23,12 @@ python -m venv .venv
 
 **Windows:**
 ```
-venv\Scripts\activate.bat
+.venv\Scripts\activate.bat
 ```
 
 **Linux/macOS:**
 ```
-source myvenv/bin/activate
+source .venv/bin/activate
 ```
 
 6. Install the dependencies
