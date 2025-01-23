@@ -1,4 +1,5 @@
 {
+  "action_noped": "🛑 This action has been noped!",
   "already_in_game": "❌ You are already in the game!",
   "before_attegg": "⚡ <@{}> wants to skip and force <@{}> to draw twice. Accept?",
   "before_skip": "⏩ <@{}> skipped their turn and did not draw a card! Next up: <@{}>. Accept?",
@@ -28,7 +29,8 @@
   "maintenance": "⚠️ The bot is currently under maintenance. Please try again later. You can find more info in our support server.",
   "maintenance_mode_no_games_running": "✅ No games running.",
   "maintenance_mode_toggle": "🔧 Admin maintenance mode {}. {}",
-  "message_edit_on_nope": "~~{}~~\n🛑 <@{}>: **Nope!**",
+  "message_edit_on_nope": "🛑 <@{}>: **Nope!**",
+  "message_edit_on_yup": "🛑 <@{}>: **Yup!**",
   "next_cards": "### Next 3 cards on the deck:{}",
   "next_cards_list": "\n- **{} {}**",
   "next_turn": "### ⌛ <@{}>'s turn!",

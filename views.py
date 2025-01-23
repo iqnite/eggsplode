@@ -580,6 +580,7 @@ class NopeView(discord.ui.View):
         self.target_player = target_player_id
         self.callback_action = callback_action
         self.interacted = False
+        self.nopes = 0
         self.ctx.game.awaiting_prompt = True
 
     async def on_timeout(self):
@@ -587,8 +588,9 @@ class NopeView(discord.ui.View):
         Handles the timeout event.
         """
         if not self.interacted and self.ctx.action_id == self.ctx.game.action_id:
+            self.interacted = True
             self.ctx.game.awaiting_prompt = False
-            if self.callback_action:
+            if not self.nopes % 2 and self.callback_action:
                 await self.callback_action(None)
             return await super().on_timeout()
 
@@ -608,6 +610,11 @@ class NopeView(discord.ui.View):
         if interaction.user.id != self.target_player:
             await interaction.response.send_message(
                 MESSAGES["not_your_turn"], ephemeral=True
+            )
+            return
+        if self.nopes % 2:
+            await interaction.response.send_message(
+                MESSAGES["action_noped"], ephemeral=True
             )
             return
         self.interacted = True
@@ -651,15 +658,16 @@ class NopeView(discord.ui.View):
             return
         if not interaction.message:
             return
-        self.interacted = True
-        self.ctx.game.awaiting_prompt = False
-        self.disable_all_items()
-        await interaction.response.edit_message(
-            content=MESSAGES["message_edit_on_nope"].format(
-                interaction.message.content, interaction.user.id
-            ),
-            view=self,
+        self.nopes += 1
+        new_message_content = "".join(
+            (line.strip("~~") + "\n" if line.startswith("~~") else "~~" + line + "~~\n")
+            for line in interaction.message.content.split("\n")
+        ) + (
+            MESSAGES["message_edit_on_nope"]
+            if self.nopes % 2
+            else MESSAGES["message_edit_on_yup"]
         )
+        await interaction.response.edit_message(content=new_message_content, view=self)
 
 
 class ChoosePlayerView(discord.ui.View):
