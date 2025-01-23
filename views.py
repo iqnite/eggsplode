@@ -663,9 +663,9 @@ class NopeView(discord.ui.View):
             (line.strip("~~") + "\n" if line.startswith("~~") else "~~" + line + "~~\n")
             for line in interaction.message.content.split("\n")
         ) + (
-            MESSAGES["message_edit_on_nope"]
+            MESSAGES["message_edit_on_nope"].format(interaction.user.id)
             if self.nopes % 2
-            else MESSAGES["message_edit_on_yup"]
+            else MESSAGES["message_edit_on_yup"].format(interaction.user.id)
         )
         await interaction.response.edit_message(content=new_message_content, view=self)
 
