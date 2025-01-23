@@ -8,7 +8,46 @@ from common import MESSAGES, CARDS
 from game_logic import ActionContext
 
 
-class TurnView(discord.ui.View):
+class BaseView(discord.ui.View):
+    """
+    Represents the base view.
+
+    Attributes:
+        ctx (ActionContext): The context dictionary.
+    """
+
+    def __init__(self, ctx: ActionContext, **kwargs):
+        """
+        Initializes the BaseView.
+
+        Args:
+            ctx (dict): The context dictionary.
+        """
+        super().__init__(**kwargs, disable_on_timeout=True)
+        self.ctx = ctx
+        self.interacted = False
+
+    async def on_timeout(self):
+        """
+        Handles the timeout event.
+        """
+        self.disable_all_items()
+        if self.message:
+            await self.message.edit(view=self)
+        await super().on_timeout()
+
+    def default_message(self, user_id: int):
+        """
+        Returns the cards help message.
+        """
+        return MESSAGES["play_prompt"].format(
+            self.ctx.game.cards_help(user_id, template=MESSAGES["hand_list"]),
+            len(self.ctx.game.deck),
+            self.ctx.game.deck.count("eggsplode"),
+        )
+
+
+class TurnView(BaseView):
     """
     Represents the view for a player's turn.
 
@@ -31,15 +70,13 @@ class TurnView(discord.ui.View):
                 game
                 game_id
         """
-        super().__init__(timeout=60, disable_on_timeout=True)
-        self.ctx: ActionContext = ctx
-        self.interacted = False
+        super().__init__(ctx, timeout=60)
 
     async def on_timeout(self):
         """
         Handles the timeout event.
         """
-        if not self.interacted and self.ctx.action_id == self.ctx.game.action_id:
+        if not self.interacted:
             if not self.message:
                 return
             view = TurnView(self.ctx.copy())
@@ -92,19 +129,13 @@ class TurnView(discord.ui.View):
         )
         await view.create_view()
         await interaction.response.send_message(
-            MESSAGES["play_prompt"].format(
-                self.ctx.game.cards_help(
-                    interaction.user.id, template=MESSAGES["hand_list"]
-                ),
-                len(self.ctx.game.deck),
-                self.ctx.game.deck.count("eggsplode"),
-            ),
+            self.default_message(interaction.user.id),
             view=view,
             ephemeral=True,
         )
 
 
-class PlayView(discord.ui.View):
+class PlayView(BaseView):
     """
     Represents the view for playing cards.
 
@@ -130,8 +161,7 @@ class PlayView(discord.ui.View):
                 game_id
                 action_id
         """
-        super().__init__(timeout=60, disable_on_timeout=True)
-        self.ctx: ActionContext = ctx
+        super().__init__(ctx, timeout=60)
         self.play_card_select = None
 
     async def create_view(self):
@@ -166,7 +196,7 @@ class PlayView(discord.ui.View):
             callable: The wrapped function.
         """
 
-        async def wrapped(self, interaction: discord.Interaction):
+        async def wrapped(self, _, interaction: discord.Interaction):
             if not interaction.user:
                 raise TypeError("interaction.user is None")
             if self.ctx.game.awaiting_prompt:
@@ -190,7 +220,8 @@ class PlayView(discord.ui.View):
                 return
             self.ctx.game.action_id += 1
             self.ctx.action_id += 1
-            await func(self, interaction)
+            self.ctx.parent_view.timeout = 0
+            await func(self, _, interaction)
 
         return wrapped
 
@@ -224,6 +255,8 @@ class PlayView(discord.ui.View):
         Args:
             interaction (discord.Interaction): The interaction instance.
         """
+        if self.play_card_select:
+            self.remove_item(self.play_card_select)
         if not interaction.user:
             return
         user_cards: dict = self.ctx.game.group_hand(
@@ -238,14 +271,16 @@ class PlayView(discord.ui.View):
             options=[
                 discord.SelectOption(
                     value=card,
-                    label=f"{CARDS[card]['title']} ({count}x)",
+                    label=f"{CARDS[card]['title']} ({user_cards[card]}x)",
                     description=CARDS[card]["description"],
                     emoji=CARDS[card]["emoji"],
                 )
-                for card, count in user_cards
+                for card in user_cards
             ],
         )
-        self.play_card_select.callback = self.play_card
+        self.play_card_select.callback = lambda interaction: self.play_card(
+            None, interaction
+        )
         self.add_item(self.play_card_select)
 
     @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
@@ -306,7 +341,7 @@ class PlayView(discord.ui.View):
         await self.end_turn(interaction)
 
     @action_method
-    async def play_card(self, interaction: discord.Interaction):
+    async def play_card(self, _, interaction: discord.Interaction):
         """
         Plays a selected card.
 
@@ -362,7 +397,7 @@ class PlayView(discord.ui.View):
                 interaction.user.id,
                 (
                     self.ctx.game.next_player_id
-                    if self.ctx.game.atteggs < 2
+                    if self.ctx.game.atteggs == 0
                     else interaction.user.id
                 ),
             ),
@@ -370,7 +405,7 @@ class PlayView(discord.ui.View):
                 ctx=self.ctx.copy(parent_interaction=interaction, parent_view=self),
                 target_player_id=(
                     self.ctx.game.next_player_id
-                    if self.ctx.game.atteggs < 2
+                    if self.ctx.game.atteggs == 0
                     else interaction.user.id
                 ),
                 callback_action=lambda _: self.finalize_skip(interaction),
@@ -421,7 +456,7 @@ class PlayView(discord.ui.View):
         Args:
             interaction (discord.Interaction): The interaction instance.
         """
-        if not interaction.user:
+        if not (interaction.user and interaction.message):
             return
         if not self.ctx.game.any_player_has_cards():
             self.ctx.game.current_player_hand.append(selected)
@@ -433,6 +468,11 @@ class PlayView(discord.ui.View):
                 lambda target_player_id: self.begin_steal(
                     interaction, target_player_id
                 ),
+            )
+            await interaction.followup.edit_message(
+                message_id=interaction.message.id,
+                content=self.default_message(interaction.user.id),
+                view=view,
             )
             await view.create_user_selection()
             await interaction.followup.send(
@@ -476,14 +516,18 @@ class PlayView(discord.ui.View):
             target_interaction (discord.Interaction): The target interaction instance.
             target_player_id (int): The target player ID.
         """
-        if not interaction.message:
+        if not (interaction.message and interaction.user):
             return
         target_hand = self.ctx.game.hands[target_player_id]
         stolen_card = random.choice(target_hand)
         self.ctx.game.hands[target_player_id].remove(stolen_card)
         self.ctx.game.current_player_hand.append(stolen_card)
         self.create_card_selection(interaction)
-        await interaction.followup.edit_message(interaction.message.id, view=self)
+        await interaction.followup.edit_message(
+            interaction.message.id,
+            content=self.default_message(interaction.user.id),
+            view=self,
+        )
         await interaction.followup.send(
             MESSAGES["stolen_card_public"].format(
                 self.ctx.game.current_player_id, target_player_id
@@ -544,7 +588,7 @@ class PlayView(discord.ui.View):
     }
 
 
-class NopeView(discord.ui.View):
+class NopeView(BaseView):
     """
     Represents the view for the Nope action.
 
@@ -575,13 +619,15 @@ class NopeView(discord.ui.View):
             target_player (int): The target player ID.
             callback_action (callable): The staged action to perform.
         """
-        super().__init__(timeout=10, disable_on_timeout=True)
-        self.ctx = ctx
+        super().__init__(ctx, timeout=10)
         self.target_player = target_player_id
         self.callback_action = callback_action
-        self.interacted = False
         self.nopes = 0
         self.ctx.game.awaiting_prompt = True
+        if not isinstance(self.ctx.parent_interaction, discord.Interaction):
+            raise TypeError("parent_interaction is not a discord.Interaction")
+        if not self.ctx.parent_interaction.user:
+            raise TypeError("parent_interaction.user is None")
 
     async def on_timeout(self):
         """
@@ -639,7 +685,10 @@ class NopeView(discord.ui.View):
             raise TypeError("parent_interaction is not a discord.Interaction")
         if not (interaction.user and self.ctx.parent_interaction.user):
             return
-        if self.ctx.parent_interaction.user.id == interaction.user.id:
+        if (
+            not self.nopes % 2
+            and self.ctx.parent_interaction.user.id == interaction.user.id
+        ):
             await interaction.response.send_message(
                 MESSAGES["no_self_nope"], ephemeral=True
             )
@@ -670,7 +719,7 @@ class NopeView(discord.ui.View):
         await interaction.response.edit_message(content=new_message_content, view=self)
 
 
-class ChoosePlayerView(discord.ui.View):
+class ChoosePlayerView(BaseView):
     """
     Represents the view to select a user.
     """
@@ -679,19 +728,18 @@ class ChoosePlayerView(discord.ui.View):
         """
         Initializes the ChoosePlayerView.
         """
-        super().__init__(timeout=10, disable_on_timeout=True)
-        self.ctx: ActionContext = ctx
+        super().__init__(ctx, timeout=10)
         self.eligible_players = self.ctx.game.players.copy()
         self.eligible_players.remove(self.ctx.game.current_player_id)
         self.callback_action = callback_action
         self.user_select = None
-        self.interacted = False
 
     async def on_timeout(self):
         if not self.interacted:
+            self.interacted = True
             if not self.user_select:
                 return
-            await self.callback_action(self.user_select.options[0].value)
+            await self.callback_action(int(self.user_select.options[0].value))
             return await super().on_timeout()
 
     async def create_user_selection(self):
@@ -737,7 +785,7 @@ class ChoosePlayerView(discord.ui.View):
         await self.callback_action(int(self.user_select.values[0]))
 
 
-class StartGameView(discord.ui.View):
+class StartGameView(BaseView):
     """
     Represents the view for starting a game.
 
@@ -754,15 +802,13 @@ class StartGameView(discord.ui.View):
             app (Eggsplode): The Eggsplode bot instance.
             game_id (int): The game ID.
         """
-        super().__init__(timeout=600, disable_on_timeout=True)
-        self.ctx = ctx
-        self.started = False
+        super().__init__(ctx, timeout=600)
 
     async def on_timeout(self):
         """
         Handles the timeout event.
         """
-        if not self.started:
+        if not self.interacted:
             del self.ctx.games[self.ctx.game_id]
             await super().on_timeout()
 
@@ -812,7 +858,7 @@ class StartGameView(discord.ui.View):
                 MESSAGES["not_enough_players_to_start"], ephemeral=True
             )
             return
-        self.started = True
+        self.interacted = True
         self.ctx.game.start()
         self.disable_all_items()
         await interaction.response.edit_message(view=self)

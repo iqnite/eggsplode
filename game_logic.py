@@ -186,14 +186,15 @@ class Game:
         Returns:
             str: Help message.
         """
-        "\n".join(
+        grouped_hand = self.group_hand(user_id)
+        return "\n".join(
             template.format(
                 CARDS[card]["emoji"],
                 CARDS[card]["title"],
                 count,
                 CARDS[card]["description"],
             )
-            for card, count in self.group_hand(user_id)
+            for card, count in grouped_hand.items()
         )
 
 
