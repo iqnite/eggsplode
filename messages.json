@@ -3,7 +3,7 @@
   "already_in_game": "❌ You are already in the game!",
   "before_attegg": "⚡ <@{}> wants to skip and force <@{}> to draw twice. Accept?",
   "before_skip": "⏩ <@{}> skipped their turn and did not draw a card! Next up: <@{}>. Accept?",
-  "before_steal": "👀 <@{}> wants to steal a card from <@{}>! Accept?",
+  "before_steal": "{} <@{}> wants to steal a card from <@{}>! Accept?",
   "defused": "## 🔧 <@{}> drew an Eggsplode card! Luckily, they had a Defuse and put it back into the deck!",
   "eggsploded": "## 💥 <@{}> drew an Eggsplode card and died!",
   "game_already_exists": "❌ Another game is already running in this channel!",
