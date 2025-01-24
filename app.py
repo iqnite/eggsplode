@@ -108,16 +108,16 @@ async def game_id_autocomplete(ctx: discord.AutocompleteContext):
 
 
 @eggsplode_app.slash_command(
-    name="play",
-    description="Play your turn.",
+    name="hand",
+    description="View your hand.",
     integration_types={
         discord.IntegrationType.guild_install,
         discord.IntegrationType.user_install,
     },
 )
-async def play(ctx: discord.ApplicationContext):
+async def hand(ctx: discord.ApplicationContext):
     """
-    Plays the user's turn.
+    Shows the user's hand.
 
     Args:
         ctx (discord.ApplicationContext): The application context.
@@ -134,14 +134,12 @@ async def play(ctx: discord.ApplicationContext):
     if not eggsplode_app.games[game_id].hands:
         await ctx.respond(MESSAGES["game_not_started"], ephemeral=True)
         return
-    view = TurnView(ActionContext(app=eggsplode_app, game_id=game_id))
     await ctx.respond(
-        MESSAGES["turn_prompt"].format(
+        MESSAGES["hand_title"].format(
             eggsplode_app.games[game_id].cards_help(
                 ctx.interaction.user.id, template=MESSAGES["hand_list"]
             )
         ),
-        view=view,
         ephemeral=True,
     )
 
