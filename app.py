@@ -8,7 +8,7 @@ import discord
 from discord.ext import commands
 from common import MESSAGES
 from game_logic import Game, ActionContext
-from views import StartGameView, TurnView
+from views import StartGameView
 
 
 class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
