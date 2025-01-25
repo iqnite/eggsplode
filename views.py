@@ -799,9 +799,9 @@ class StartGameView(BaseView):
         """
         Handles the timeout event.
         """
-        await super().on_timeout()
         if not self.interacted:
             del self.ctx.games[self.ctx.game_id]
+            await super().on_timeout()
 
     @discord.ui.button(label="Join", style=discord.ButtonStyle.blurple, emoji="👋")
     async def join_game(self, _: discord.ui.Button, interaction: discord.Interaction):
