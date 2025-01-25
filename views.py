@@ -94,7 +94,8 @@ class TurnView(BaseView):
                     return
                 case _:
                     await self.ctx.parent_interaction.followup.send(
-                        MESSAGES["timeout"] + MESSAGES["user_drew_card"].format(turn_player)
+                        MESSAGES["timeout"]
+                        + MESSAGES["user_drew_card"].format(turn_player)
                     )
             await self.ctx.parent_interaction.followup.send(
                 MESSAGES["next_turn"].format(self.ctx.game.current_player_id),
