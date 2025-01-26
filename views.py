@@ -208,7 +208,18 @@ class PlayView(BaseView):
                 return
             self.ctx.game.action_id += 1
             self.ctx.action_id += 1
-            self.ctx.parent_view.timeout = 0
+            # Pfusch ahead!
+            view = TurnView(self.ctx.parent_view.ctx)
+            if not isinstance(self.ctx.parent_interaction, discord.Interaction):
+                raise TypeError("parent_interaction is not a discord.Interaction")
+            if not self.ctx.parent_view.message:
+                raise TypeError("parent_interaction.message is None")
+            await self.ctx.parent_interaction.followup.edit_message(
+                message_id=self.ctx.parent_view.message.id,
+                view=view,
+            )
+            self.ctx.parent_view.on_timeout = super().on_timeout
+            self.ctx.parent_view = view
             await func(self, _, interaction)
 
         return wrapped
