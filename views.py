@@ -161,7 +161,7 @@ class PlayView(BaseView):
                 game_id
                 action_id
         """
-        super().__init__(ctx, timeout=60)
+        super().__init__(ctx)
         self.play_card_select = None
 
     async def create_view(self):
