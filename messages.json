@@ -5,7 +5,7 @@
   "before_skip": "⏩ <@{}> skipped their turn and did not draw a card! Next up: <@{}>. Accept?",
   "before_steal": "{} <@{}> wants to steal a card from <@{}>! Accept?",
   "bug_report_print": "===== Bug report from {} in channel {}: [{}] '{}'",
-  "bug_reported": "🐞 Bug reported! Thank you for your help!",
+  "bug_reported": "🐞 Bug reported! Thank you for your help!\nYou can also join our support server at https://discord.gg/UGm36FkGDF",
   "defused": "## 🔧 <@{}> drew an Eggsplode card! Luckily, they had a Defuse and put it back into the deck!",
   "eggsploded": "## 💥 <@{}> drew an Eggsplode card and died!",
   "game_already_exists": "❌ Another game is already running in this channel!",
@@ -26,7 +26,7 @@
     "If you draw an **Eggsplode** card and don't have **Defuse** card, you're out of the game. If you have a **Defuse** card, you can put the **Eggsplode** card back into the deck."
   ],
   "invalid_command": "❌ Invalid command.",
-  "invalid_turn": "❌ This turn has ended or the action is not valid anymore! Make sure to click **Play!** on the latest message.\n*If you think this is a mistake, please use /bugreport to report it!*",
+  "invalid_turn": "❌ This turn has ended or the action is not valid anymore! Make sure to click **Play!** on the latest message.\n*If you think this is a mistake, please use </bugreport:1333499107129561270> to report it!*",
   "list_games_item": "- <#{}>",
   "list_games_title": "📋 **Games:**\n{}",
   "maintenance": "⚠️ The bot is currently under maintenance. Please try again later. You can find more info in our support server.",
