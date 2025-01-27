@@ -67,7 +67,6 @@ class TurnView(BaseView):
         """
         Handles the timeout event.
         """
-        await super().on_timeout()
         if not self.interacted:
             if not isinstance(self.ctx.parent_interaction, discord.Interaction):
                 raise TypeError("parent_interaction is not a discord.Interaction")
@@ -101,6 +100,7 @@ class TurnView(BaseView):
                 MESSAGES["next_turn"].format(self.ctx.game.current_player_id),
                 view=view,
             )
+        await super().on_timeout()
 
     @discord.ui.button(label="Play!", style=discord.ButtonStyle.blurple, emoji="🤚")
     async def play(self, _: discord.ui.Button, interaction: discord.Interaction):
@@ -633,12 +633,12 @@ class NopeView(BaseView):
         """
         Handles the timeout event.
         """
-        await super().on_timeout()
         if not self.interacted and self.ctx.action_id == self.ctx.game.action_id:
             self.interacted = True
             self.ctx.game.awaiting_prompt = False
             if not self.nopes % 2 and self.callback_action:
                 await self.callback_action(None)
+        await super().on_timeout()
 
     @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
     async def ok_callback(self, _: discord.ui.Button, interaction: discord.Interaction):
@@ -736,13 +736,13 @@ class ChoosePlayerView(BaseView):
         self.user_select = None
 
     async def on_timeout(self):
-        await super().on_timeout()
         if not self.interacted:
             self.interacted = True
             self.ctx.game.awaiting_prompt = False
             if not self.user_select:
                 return
             await self.callback_action(int(self.user_select.options[0].value))
+        await super().on_timeout()
 
     async def create_user_selection(self):
         """
@@ -813,7 +813,7 @@ class StartGameView(BaseView):
         """
         if not self.interacted:
             del self.ctx.games[self.ctx.game_id]
-            await super().on_timeout()
+        await super().on_timeout()
 
     @discord.ui.button(label="Join", style=discord.ButtonStyle.blurple, emoji="👋")
     async def join_game(self, _: discord.ui.Button, interaction: discord.Interaction):
