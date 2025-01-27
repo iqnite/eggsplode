@@ -118,6 +118,7 @@ class TurnView(BaseView):
                 MESSAGES["not_your_turn"], ephemeral=True
             )
             return
+        self.ctx.action_id = self.ctx.game.action_id
         view = PlayView(
             ActionContext(
                 app=self.ctx.app,
