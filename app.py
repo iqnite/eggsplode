@@ -193,6 +193,53 @@ async def show_help(ctx: discord.ApplicationContext):
 
 
 @eggsplode_app.slash_command(
+    name="bugreport",
+    description="Report a bug to the Eggsplode developers.",
+    integration_types={
+        discord.IntegrationType.guild_install,
+        discord.IntegrationType.user_install,
+    },
+)
+@discord.option(
+    "bug_type",
+    type=str,
+    description="The type of bug you're reporting.",
+    required=True,
+    autocomplete=lambda _: [
+        "Eggsplode is lagging or does not respond.",
+        "It's my turn, but it says that it's not valid.",
+        "I can't play or draw a card.",
+        "A card is not working as expected.",
+        "I can't start a game, even if there are no other games in the current channel.",
+        "Something else (please describe).",
+    ],
+)
+@discord.option(
+    "description",
+    type=str,
+    description="Please describe your bug. Provide as many details as possible.",
+    required=True,
+)
+async def bugreport(ctx: discord.ApplicationContext, bug_type: str, description: str):
+    """
+    Reports a bug to the developers.
+
+    Args:
+        ctx (discord.ApplicationContext): The application context.
+        type (str): The type of bug.
+        description (str): The bug description.
+    """
+    if not ctx.interaction.user:
+        return
+    print(
+        MESSAGES["bug_report_print"].format(
+            ctx.interaction.user.id, ctx.interaction.channel_id, bug_type, description
+        )
+    )
+    await ctx.respond(MESSAGES["bug_reported"], ephemeral=True)
+
+
+@eggsplode_app.slash_command(
     name="ping",
     description="Check if Eggsplode is online.",
     integration_types={
