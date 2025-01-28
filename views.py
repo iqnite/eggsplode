@@ -107,7 +107,7 @@ class TurnView(BaseView):
             await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
             return False
         return True
-        
+
     @discord.ui.button(label="Play!", style=discord.ButtonStyle.blurple, emoji="🤚")
     async def play(self, _: discord.ui.Button, interaction: discord.Interaction):
         """
