@@ -142,7 +142,7 @@ class TurnView(BaseView):
         if interaction.user.id != self.ctx.game.current_player_id:
             await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
             return False
-        if self.timer < 0:
+        if self.timer <= 0:
             self.disable_all_items()
             await interaction.edit(view=self)
             await interaction.respond(MESSAGES["invalid_turn"], ephemeral=True)
