@@ -140,8 +140,6 @@ class TurnView(BaseView):
         if not interaction.user:
             return False
         if interaction.user.id != self.ctx.game.current_player_id:
-            self.disable_all_items()
-            await interaction.edit(view=self)
             await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
             return False
         if self.timer < 0:
@@ -237,8 +235,6 @@ class PlayView(BaseView):
             await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
             return False
         if interaction.user.id != self.ctx.game.current_player_id:
-            self.disable_all_items()
-            await interaction.edit(view=self)
             await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
             return False
         if self.ctx.action_id != self.ctx.game.action_id:
