@@ -68,37 +68,53 @@ class TurnView(BaseView):
         """
         if not isinstance(self.ctx.parent_interaction, discord.Interaction):
             raise TypeError("parent_interaction is not a discord.Interaction")
-        assert not self.ctx.game.awaiting_prompt
-        view = TurnView(self.ctx.copy())
+        self.ctx.game.awaiting_prompt = False
         turn_player: int = self.ctx.game.current_player_id
         card: str = self.ctx.game.draw_card(turn_player)
-        match card:
-            case "defuse":
+        caught = None
+        for _ in range(5):
+            try:
+                match card:
+                    case "defuse":
+                        await self.ctx.parent_interaction.respond(
+                            MESSAGES["timeout"]
+                            + MESSAGES["defused"].format(turn_player)
+                        )
+                    case "eggsplode":
+                        await self.ctx.parent_interaction.respond(
+                            MESSAGES["timeout"]
+                            + MESSAGES["eggsploded"].format(turn_player)
+                        )
+                    case "gameover":
+                        await self.ctx.parent_interaction.respond(
+                            MESSAGES["timeout"]
+                            + MESSAGES["eggsploded"].format(turn_player)
+                        )
+                        await self.ctx.parent_interaction.respond(
+                            MESSAGES["game_over"].format(self.ctx.game.players[0])
+                        )
+                        del self.ctx.games[self.ctx.game_id]
+                        return
+                    case _:
+                        await self.ctx.parent_interaction.respond(
+                            MESSAGES["timeout"]
+                            + MESSAGES["user_drew_card"].format(turn_player)
+                        )
+                view = TurnView(self.ctx.copy())
+                view.message = self.message
                 await self.ctx.parent_interaction.respond(
-                    MESSAGES["timeout"] + MESSAGES["defused"].format(turn_player)
+                    MESSAGES["next_turn"].format(self.ctx.game.current_player_id),
+                    view=view,
                 )
-            case "eggsplode":
-                await self.ctx.parent_interaction.respond(
-                    MESSAGES["timeout"] + MESSAGES["eggsploded"].format(turn_player)
-                )
-            case "gameover":
-                await self.ctx.parent_interaction.respond(
-                    MESSAGES["timeout"] + MESSAGES["eggsploded"].format(turn_player)
-                )
-                await self.ctx.parent_interaction.respond(
-                    MESSAGES["game_over"].format(self.ctx.game.players[0])
-                )
-                del self.ctx.games[self.ctx.game_id]
-                return
-            case _:
-                await self.ctx.parent_interaction.respond(
-                    MESSAGES["timeout"] + MESSAGES["user_drew_card"].format(turn_player)
-                )
-        await self.ctx.parent_interaction.respond(
-            MESSAGES["next_turn"].format(self.ctx.game.current_player_id),
-            view=view,
-        )
-        await super().on_timeout()
+                await super().on_timeout()
+            except (discord.errors.NotFound, AttributeError) as e:
+                caught = e
+                continue
+            else:
+                break
+        else:
+            if caught:
+                raise caught
 
     async def interaction_check(self, interaction: discord.Interaction):
         if not interaction.user:
@@ -205,11 +221,12 @@ class PlayView(BaseView):
         # Pfusch ahead!
         if not isinstance(self.ctx.parent_view, TurnView):
             raise TypeError("parent_view is not a TurnView")
-        view = TurnView(self.ctx.copy(parent_interaction=interaction, parent_view=self))
         if not isinstance(self.ctx.parent_interaction, discord.Interaction):
             raise TypeError("parent_interaction is not a discord.Interaction")
         if not self.ctx.parent_view.message:
             raise TypeError("parent_interaction.message is None")
+        view = TurnView(self.ctx.copy(parent_interaction=interaction, parent_view=self))
+        view.message = self.ctx.parent_view.message
         await self.ctx.parent_interaction.edit(view=view)
         self.ctx.parent_view.on_timeout = super().on_timeout
         self.ctx.parent_view = view
@@ -228,7 +245,7 @@ class PlayView(BaseView):
             raise TypeError("parent_interaction is not a discord.Interaction")
         self.ctx.parent_view.on_timeout = super().on_timeout
         view = TurnView(self.ctx.copy(parent_interaction=interaction, parent_view=self))
-        await interaction.respond(
+        view.message = await interaction.respond(
             MESSAGES["next_turn"].format(self.ctx.game.current_player_id), view=view
         )
         self.ctx.parent_view.disable_all_items()
@@ -310,6 +327,8 @@ class PlayView(BaseView):
                 await interaction.respond(
                     MESSAGES["game_over"].format(self.ctx.game.players[0])
                 )
+                if isinstance(self.ctx.parent_view, TurnView):
+                    self.ctx.parent_view.on_timeout = super().on_timeout
                 del self.ctx.games[self.ctx.game_id]
                 return
             case _:
@@ -454,7 +473,7 @@ class PlayView(BaseView):
             )
             await interaction.edit(
                 content=self.default_message(interaction.user.id),
-                view=view,
+                view=self,
             )
             await view.create_user_selection()
             await interaction.respond(
@@ -834,6 +853,6 @@ class StartGameView(BaseView):
         await interaction.edit(view=self)
         await interaction.respond(MESSAGES["game_started"], ephemeral=True)
         view = TurnView(self.ctx.copy(parent_interaction=interaction, parent_view=self))
-        await interaction.respond(
+        view.message = await interaction.respond(
             MESSAGES["next_turn"].format(self.ctx.game.current_player_id), view=view
         )
