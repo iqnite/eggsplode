@@ -50,7 +50,7 @@ class TurnView(BaseView):
         interacted (bool): Whether the view has been interacted with.
     """
 
-    def __init__(self, ctx: ActionContext):
+    def __init__(self, ctx: ActionContext, inactivity_count=0):
         """
         Initializes the TurnView.
 
@@ -63,6 +63,7 @@ class TurnView(BaseView):
         """
         super().__init__(ctx, timeout=600)
         self.timer: int
+        self.inactivity_count = inactivity_count
 
     async def action_timer(self):
         """
@@ -87,10 +88,15 @@ class TurnView(BaseView):
         """
         Handles the action timeout event.
         """
+        self.inactivity_count += 1
         if not isinstance(self.ctx.parent_interaction, discord.Interaction):
             raise TypeError("parent_interaction is not a discord.Interaction")
         if not self.message:
             raise TypeError("message is None")
+        if self.inactivity_count > 5:
+            await self.ctx.parent_interaction.respond(MESSAGES["game_timeout"])
+            del self.ctx.games[self.ctx.game_id]
+            return
         turn_player: int = self.ctx.game.current_player_id
         card: str = self.ctx.game.draw_card(turn_player)
         caught = None
