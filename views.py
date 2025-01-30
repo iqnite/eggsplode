@@ -93,6 +93,7 @@ class TurnView(BaseView):
         if not self.message:
             raise TypeError("message is None")
         if self.inactivity_count > 5:
+            self.disable_all_items()
             await self.ctx.parent_interaction.respond(MESSAGES["game_timeout"])
             del self.ctx.games[self.ctx.game_id]
             return
