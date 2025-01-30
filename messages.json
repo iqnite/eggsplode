@@ -14,6 +14,7 @@
   "game_not_started": "❌ The game has not started yet!",
   "game_over": "# 🎉 <@{}> wins!",
   "game_started": "🚀 Game Started!",
+  "game_timeout": "💀 This game has been inactive for too long, so it has been terminated. Start a new game with </start:1325457141628141661>!",
   "hand_list": "- **{} {}** ({}x): {}",
   "hand_title": "# Your cards\n{}",
   "help": [
