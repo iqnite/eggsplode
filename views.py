@@ -89,6 +89,8 @@ class TurnView(BaseView):
         """
         if not isinstance(self.ctx.parent_interaction, discord.Interaction):
             raise TypeError("parent_interaction is not a discord.Interaction")
+        if not self.message:
+            raise TypeError("message is None")
         turn_player: int = self.ctx.game.current_player_id
         card: str = self.ctx.game.draw_card(turn_player)
         caught = None
@@ -121,7 +123,6 @@ class TurnView(BaseView):
                             + MESSAGES["user_drew_card"].format(turn_player)
                         )
                 view = TurnView(self.ctx.copy())
-                view.message = self.message
                 await self.ctx.parent_interaction.respond(
                     MESSAGES["next_turn"].format(self.ctx.game.current_player_id),
                     view=view,
@@ -232,7 +233,7 @@ class PlayView(BaseView):
         if not isinstance(self.ctx.parent_view, TurnView):
             raise TypeError("parent_view is not a TurnView")
         if self.ctx.game.awaiting_prompt:
-            await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
+            await interaction.respond(MESSAGES["awaiting_prompt"], ephemeral=True)
             return False
         if interaction.user.id != self.ctx.game.current_player_id:
             await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
@@ -258,11 +259,13 @@ class PlayView(BaseView):
             raise TypeError("parent_view is not a TurnView")
         if not isinstance(self.ctx.parent_interaction, discord.Interaction):
             raise TypeError("parent_interaction is not a discord.Interaction")
+        if not self.message:
+            raise TypeError("message is None")
         self.ctx.parent_view.stop_timer()
         self.ctx.parent_view.disable_all_items()
         await self.ctx.parent_interaction.edit(view=self.ctx.parent_view)
         view = TurnView(self.ctx.copy(parent_interaction=interaction, parent_view=self))
-        view.message = await interaction.respond(
+        await interaction.respond(
             MESSAGES["next_turn"].format(self.ctx.game.current_player_id), view=view
         )
         await view.action_timer()
@@ -638,10 +641,10 @@ class NopeView(BaseView):
             callback_action (callable): The staged action to perform.
         """
         super().__init__(ctx, timeout=10)
+        self.ctx.game.awaiting_prompt = True
         self.target_player = target_player_id
         self.callback_action = callback_action
         self.nopes = 0
-        self.ctx.game.awaiting_prompt = True
         if not isinstance(self.ctx.parent_interaction, discord.Interaction):
             raise TypeError("parent_interaction is not a discord.Interaction")
         if not self.ctx.parent_interaction.user:
@@ -677,9 +680,9 @@ class NopeView(BaseView):
             await interaction.respond(MESSAGES["action_noped"], ephemeral=True)
             return
         self.on_timeout = super().on_timeout
-        self.ctx.game.awaiting_prompt = False
         self.disable_all_items()
         await interaction.edit(view=self)
+        self.ctx.game.awaiting_prompt = False
         if self.callback_action:
             await self.callback_action(interaction)
 
@@ -736,14 +739,13 @@ class ChoosePlayerView(BaseView):
         Initializes the ChoosePlayerView.
         """
         super().__init__(ctx, timeout=10)
+        self.ctx.game.awaiting_prompt = True
         self.eligible_players = self.ctx.game.players.copy()
         self.eligible_players.remove(self.ctx.game.current_player_id)
         self.callback_action = callback_action
-        self.ctx.game.awaiting_prompt = True
         self.user_select = None
 
     async def on_timeout(self):
-        self.ctx.game.awaiting_prompt = False
         if not self.user_select:
             return
         await self.callback_action(int(self.user_select.options[0].value))
@@ -785,7 +787,6 @@ class ChoosePlayerView(BaseView):
         if not (interaction and self.user_select):
             return
         self.on_timeout = super().on_timeout
-        self.ctx.game.awaiting_prompt = False
         self.disable_all_items()
         await interaction.edit(view=self)
         if not isinstance(self.user_select.values[0], str):
@@ -851,7 +852,7 @@ class StartGameView(BaseView):
             _ (discord.ui.Button): The button instance.
             interaction (discord.Interaction): The interaction instance.
         """
-        if not interaction.user:
+        if not (interaction.user and self.message):
             return
         if interaction.user.id != self.ctx.game.players[0]:
             await interaction.respond(

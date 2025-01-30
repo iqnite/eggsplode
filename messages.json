@@ -1,8 +1,9 @@
 {
   "action_noped": "🛑 This action has been noped!",
   "already_in_game": "❌ You are already in the game!",
+  "awaiting_prompt": "❌ There's a prompt waiting for response.",
   "before_attegg": "⚡ <@{}> wants to skip and force <@{}> to draw twice. Accept?",
-  "before_skip": "⏩ <@{}> skipped their turn and did not draw a card! Next up: <@{}>. Accept?",
+  "before_skip": "⏩ <@{}> wants to skip their turn and not draw a card! Next up: <@{}>. Accept?",
   "before_steal": "{} <@{}> wants to steal a card from <@{}>! Accept?",
   "bug_report_print": "===== Bug report from {} in channel {}: [{}] '{}'",
   "bug_reported": "🐞 Bug reported! Thank you for your help!\nYou can also join our support server at https://discord.gg/UGm36FkGDF",

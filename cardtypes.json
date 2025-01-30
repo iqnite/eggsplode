@@ -15,7 +15,7 @@
   },
   "nope": {
     "title": "Nope",
-    "description": "Stop the action of another card. Can be used at any time by clicking on the **Nope** button.",
+    "description": "Stop the action of another card. Can be used by clicking on the **Nope** button.",
     "emoji": "🛑",
     "count": 5,
     "usable": false
@@ -42,7 +42,7 @@
     "usable": true
   },
   "predict": {
-    "title": "Predict",
+    "title": "See the future",
     "description": "Look at the first 3 cards on the deck.",
     "emoji": "🔮",
     "count": 5,
