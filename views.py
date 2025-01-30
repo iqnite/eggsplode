@@ -88,7 +88,6 @@ class TurnView(BaseView):
         """
         Handles the action timeout event.
         """
-        self.inactivity_count += 1
         if not isinstance(self.ctx.parent_interaction, discord.Interaction):
             raise TypeError("parent_interaction is not a discord.Interaction")
         if not self.message:
@@ -128,7 +127,7 @@ class TurnView(BaseView):
                             MESSAGES["timeout"]
                             + MESSAGES["user_drew_card"].format(turn_player)
                         )
-                view = TurnView(self.ctx.copy())
+                view = TurnView(self.ctx.copy(), inactivity_count=self.inactivity_count+1)
                 await self.ctx.parent_interaction.respond(
                     MESSAGES["next_turn"].format(self.ctx.game.current_player_id),
                     view=view,
