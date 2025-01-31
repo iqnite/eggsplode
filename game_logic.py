@@ -1,30 +1,22 @@
 """
-Eggsplode game logic.
+Contains the game logic for the Eggsplode game.
 """
 
 import random
-from common import CARDS
+from strings import CARDS
 
 
 class Game:
     """
-    Represents a game of Eggsplode.
-
-    Attributes:
-        players (list[int]): List of player IDs.
-        hands (dict[int, list[str]]): Dictionary mapping player IDs to their hands.
-        deck (list[str]): List of cards in the deck.
-        current_player (int): Index of the current player.
-        action_id (int): ID of the current action.
-        atteggs (int): Number of atteggs.
+    Represents the game logic for the Eggsplode game.
     """
 
-    def __init__(self, *players):
+    def __init__(self, *players: int):
         """
-        Initializes a new game with the given players.
+        Initializes the game with the given players.
 
         Args:
-            players (int): Player IDs.
+            players: A list of player IDs.
         """
         self.players: list[int] = list(players)
         self.hands: dict[int, list[str]] = {}
@@ -36,7 +28,7 @@ class Game:
 
     def start(self):
         """
-        Starts the game by shuffling the deck and dealing cards to players.
+        Starts the game by initializing the deck and dealing cards to players.
         """
         for card in CARDS:
             self.deck.extend([card] * CARDS[card]["count"])
@@ -54,32 +46,32 @@ class Game:
         random.shuffle(self.deck)
 
     @property
-    def current_player_id(self):
+    def current_player_id(self) -> int:
         """
         Returns the ID of the current player.
 
         Returns:
-            int: Current player ID.
+            int: The ID of the current player.
         """
         return self.players[self.current_player]
 
     @property
-    def current_player_hand(self):
+    def current_player_hand(self) -> list[str]:
         """
-        Returns the current player's hand.
+        Returns the hand of the current player.
 
         Returns:
-            list[str]: Current player's hand.
+            list[str]: The hand of the current player.
         """
         return self.hands[self.current_player_id]
 
     @property
-    def next_player(self):
+    def next_player(self) -> int:
         """
         Returns the index of the next player.
 
         Returns:
-            int: Index of the next player.
+            int: The index of the next player.
         """
         return (
             0
@@ -88,34 +80,34 @@ class Game:
         )
 
     @property
-    def next_player_id(self):
+    def next_player_id(self) -> int:
         """
         Returns the ID of the next player.
 
         Returns:
-            int: Next player ID.
+            int: The ID of the next player.
         """
         return self.players[self.next_player]
 
     def next_turn(self):
         """
-        Advances the game to the next turn.
+        Advances the game to the next player's turn.
         """
         if self.atteggs > 0:
             self.atteggs -= 1
             return
         self.current_player = self.next_player
 
-    def group_hand(self, user_id, usable_only=False):
+    def group_hand(self, user_id: int, usable_only: bool = False) -> dict:
         """
         Groups the cards in a player's hand.
 
         Args:
-            user_id (int): Player ID.
+            user_id (int): The ID of the player.
             usable_only (bool): Whether to include only usable cards.
 
         Returns:
-            list[tuple[str, int]]: List of tuples containing card names and counts.
+            dict: A dictionary of card counts.
         """
         player_cards = self.hands[user_id]
         result = {}
@@ -130,12 +122,12 @@ class Game:
             result[card] = player_cards.count(card)
         return result
 
-    def draw_card(self, user_id):
+    def draw_card(self, user_id: int) -> str:
         """
-        Draws a card for the given player.
+        Draws a card for the specified player.
 
         Args:
-            user_id (int): Player ID.
+            user_id (int): The ID of the player.
 
         Returns:
             str: The drawn card.
@@ -144,7 +136,6 @@ class Game:
         if card == "eggsplode":
             if "defuse" in self.hands[user_id]:
                 self.hands[user_id].remove("defuse")
-                self.deck.insert(random.randint(0, len(self.deck)), "eggsplode")
                 self.next_turn()
                 return "defuse"
             self.remove_player(user_id)
@@ -155,12 +146,12 @@ class Game:
         self.next_turn()
         return card
 
-    def remove_player(self, user_id):
+    def remove_player(self, user_id: int):
         """
         Removes a player from the game.
 
         Args:
-            user_id (int): Player ID.
+            user_id (int): The ID of the player to remove.
         """
         del self.players[self.players.index(user_id)]
         del self.hands[user_id]
@@ -168,23 +159,27 @@ class Game:
         self.atteggs = 0
         self.next_turn()
 
-    def any_player_has_cards(self):
+    def any_player_has_cards(self) -> bool:
         """
-        Checks if any player has cards.
+        Checks if any player has cards left.
+
+        Returns:
+            bool: True if any player has cards, False otherwise.
         """
         eligible_players = self.players.copy()
         eligible_players.remove(self.current_player_id)
         return any(self.hands[player] for player in eligible_players)
 
-    def cards_help(self, user_id, template=""):
+    def cards_help(self, user_id: int, template: str = "") -> str:
         """
-        Returns the help message for cards.
+        Provides help information for the cards in a player's hand.
 
         Args:
-            user_id (int): Player ID.
+            user_id (int): The ID of the player.
+            template (str): The template for formatting the help information.
 
         Returns:
-            str: Help message.
+            str: The formatted help information.
         """
         grouped_hand = self.group_hand(user_id)
         return "\n".join(
@@ -200,39 +195,45 @@ class Game:
 
 class ActionContext:  # pylint: disable=too-few-public-methods
     """
-    Represents the context of an action.
+    Represents the context for an action in the game.
     """
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
         *,
         app,
-        game_id,
-        action_id=None,
-        parent_view=None,
-        parent_interaction=None,
+        game_id: int,
+        action_id: int | None = None,
     ):
+        """
+        Initializes the action context.
+
+        Args:
+            app: The application instance.
+            game_id (int): The ID of the game.
+            action_id (int, optional): The ID of the action.
+        """
         self.app = app
         self.games: dict[int, Game] = self.app.games
-        self.parent_view = parent_view
-        self.parent_interaction = parent_interaction
         self.game_id: int = game_id
         self.game: Game = self.games[game_id]
-        if action_id:
+        if action_id is not None:
             self.action_id: int = action_id
         elif self.game:
             self.action_id: int = self.game.action_id
 
     def copy(self, **kwargs):
         """
-        Copies the context with the given changes.
+        Creates a copy of the action context with optional overrides.
+
+        Args:
+            **kwargs: Optional overrides for the context attributes.
+
+        Returns:
+            ActionContext: A new action context with the specified overrides.
         """
-        return ActionContext(
+        return self.__class__(
             app=kwargs.get("app", self.app),
-            parent_view=kwargs.get("parent_view", self.parent_view),
-            parent_interaction=kwargs.get(
-                "parent_interaction", self.parent_interaction
-            ),
             game_id=kwargs.get("game_id", self.game_id),
             action_id=kwargs.get("action_id", self.action_id),
         )

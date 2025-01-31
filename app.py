@@ -1,31 +1,32 @@
 """
-Eggsplode Discord Bot
+Eggsplode Discord Bot Application
+
+This module contains the main application logic for the Eggsplode Discord bot.
 """
 
 import os
 from dotenv import load_dotenv
 import discord
 from discord.ext import commands
-from common import MESSAGES
+from strings import MESSAGES
 from game_logic import Game, ActionContext
-from views import StartGameView
+from views.start_game_view import StartGameView
 
 
 class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
     """
-    Represents the Eggsplode bot.
+    A subclass of commands.Bot for the Eggsplode game.
 
     Attributes:
-        admin_maintenance (bool): Whether the bot is in maintenance mode.
-        games (dict[int, Game]): Dictionary of active games.
+        admin_maintenance (bool): Indicates if the bot is in maintenance mode.
+        games (dict[int, Game]): A dictionary of active games.
     """
-
     def __init__(self, **kwargs):
         """
-        Initializes the Eggsplode bot.
+        Initialize the Eggsplode bot.
 
         Args:
-            kwargs: Additional keyword arguments.
+            **kwargs: Arbitrary keyword arguments passed to the superclass.
         """
         super().__init__(**kwargs)
         self.admin_maintenance: bool = False
@@ -45,6 +46,19 @@ eggsplode_app = Eggsplode(
 )
 
 
+def games_with_user(user_id: int) -> list[int]:
+    """
+    Get a list of game IDs that the user is participating in.
+
+    Args:
+        user_id (int): The ID of the user.
+
+    Returns:
+        list: A list of game IDs.
+    """
+    return [i for i, game in eggsplode_app.games.items() if user_id in game.players]
+
+
 @eggsplode_app.slash_command(
     name="start",
     description="Start a new Eggsplode game!",
@@ -55,10 +69,10 @@ eggsplode_app = Eggsplode(
 )
 async def start(ctx: discord.ApplicationContext):
     """
-    Starts a new Eggsplode game.
+    Start a new Eggsplode game.
 
     Args:
-        ctx (discord.ApplicationContext): The application context.
+        ctx (discord.ApplicationContext): The context of the command.
     """
     if eggsplode_app.admin_maintenance:
         await ctx.respond(MESSAGES["maintenance"], ephemeral=True)
@@ -77,36 +91,6 @@ async def start(ctx: discord.ApplicationContext):
     )
 
 
-def games_with_user(user_id):
-    """
-    Returns a list of games that the user is in.
-
-    Args:
-        user_id (int): The user ID.
-
-    Returns:
-        list[int]: List of games.
-    """
-    return [i for i, game in eggsplode_app.games.items() if user_id in game.players]
-
-
-async def game_id_autocomplete(ctx: discord.AutocompleteContext):
-    """
-    Autocompletes the game ID for the user.
-
-    Args:
-        ctx (discord.AutocompleteContext): The autocomplete context.
-
-    Returns:
-        list[str]: List of game IDs.
-    """
-    return (
-        map(str, games_with_user(ctx.interaction.user.id))
-        if ctx.interaction.user
-        else []
-    )
-
-
 @eggsplode_app.slash_command(
     name="hand",
     description="View your hand.",
@@ -117,10 +101,10 @@ async def game_id_autocomplete(ctx: discord.AutocompleteContext):
 )
 async def hand(ctx: discord.ApplicationContext):
     """
-    Shows the user's hand.
+    View the user's hand in the current game.
 
     Args:
-        ctx (discord.ApplicationContext): The application context.
+        ctx (discord.ApplicationContext): The context of the command.
     """
     game_id = ctx.interaction.channel_id
     if not (game_id and ctx.interaction.user):
@@ -154,10 +138,10 @@ async def hand(ctx: discord.ApplicationContext):
 )
 async def games(ctx: discord.ApplicationContext):
     """
-    Views the user's games.
+    View the games the user is participating in.
 
     Args:
-        ctx (discord.ApplicationContext): The application context.
+        ctx (discord.ApplicationContext): The context of the command.
     """
     if not ctx.interaction.user:
         return
@@ -184,10 +168,10 @@ async def games(ctx: discord.ApplicationContext):
 )
 async def show_help(ctx: discord.ApplicationContext):
     """
-    Shows the help message.
+    Show help information for the Eggsplode game.
 
     Args:
-        ctx (discord.ApplicationContext): The application context.
+        ctx (discord.ApplicationContext): The context of the command.
     """
     await ctx.respond("\n".join(MESSAGES["help"]))
 
@@ -222,12 +206,12 @@ async def show_help(ctx: discord.ApplicationContext):
 )
 async def bugreport(ctx: discord.ApplicationContext, bug_type: str, description: str):
     """
-    Reports a bug to the developers.
+    Report a bug to the developers.
 
     Args:
-        ctx (discord.ApplicationContext): The application context.
-        type (str): The type of bug.
-        description (str): The bug description.
+        ctx (discord.ApplicationContext): The context of the command.
+        bug_type (str): The type of bug being reported.
+        description (str): A detailed description of the bug.
     """
     if not ctx.interaction.user:
         return
@@ -249,10 +233,10 @@ async def bugreport(ctx: discord.ApplicationContext, bug_type: str, description:
 )
 async def ping(ctx: discord.ApplicationContext):
     """
-    Checks if the Eggsplode bot is online.
+    Check if the Eggsplode bot is online.
 
     Args:
-        ctx (discord.ApplicationContext): The application context.
+        ctx (discord.ApplicationContext): The context of the command.
     """
     await ctx.respond(f"Pong! ({eggsplode_app.latency*1000:.0f}ms)")
 
@@ -276,11 +260,11 @@ async def admincmd(
     command: str,
 ):
     """
-    Executes an admin command.
+    Execute an admin command.
 
     Args:
-        ctx (discord.ApplicationContext): The application context.
-        command (str): The admin command.
+        ctx (discord.ApplicationContext): The context of the command.
+        command (str): The admin command to execute.
     """
     if command == ADMIN_MAINTENANCE_CODE:
         eggsplode_app.admin_maintenance = not eggsplode_app.admin_maintenance
