@@ -5,8 +5,6 @@ This module contains the main application logic for the Eggsplode Discord bot.
 """
 
 import os
-import sys
-import logging
 from dotenv import load_dotenv
 import discord
 from discord.ext import commands
@@ -23,7 +21,6 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
         admin_maintenance (bool): Indicates if the bot is in maintenance mode.
         games (dict[int, Game]): A dictionary of active games.
     """
-
     def __init__(self, **kwargs):
         """
         Initialize the Eggsplode bot.
@@ -35,16 +32,6 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
         self.admin_maintenance: bool = False
         self.games: dict[int, Game] = {}
 
-
-logger = logging.getLogger("discord")
-logging.basicConfig(
-    filename="eggsplode.log",
-    filemode="a",
-    format="%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    level=logging.DEBUG,
-)
-sys.excepthook = logger.error
 
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -228,7 +215,7 @@ async def bugreport(ctx: discord.ApplicationContext, bug_type: str, description:
     """
     if not ctx.interaction.user:
         return
-    logger.info(
+    print(
         MESSAGES["bug_report_print"].format(
             ctx.interaction.user.id, ctx.interaction.channel_id, bug_type, description
         )
@@ -303,6 +290,5 @@ async def admincmd(
         await ctx.respond(MESSAGES["invalid_command"], ephemeral=True)
 
 
-if __name__ == "__main__":
-    logger.info("Hello, World!")
-    eggsplode_app.run(DISCORD_TOKEN)
+print("Hello, World!")
+eggsplode_app.run(DISCORD_TOKEN)
