@@ -29,9 +29,9 @@ class PlayView(BaseView):
         self,
         ctx: ActionContext,
         *,
-        on_valid_interaction: Callable[[discord.Interaction]],
+        on_valid_interaction: Callable[[discord.Interaction], None],
         end_turn: Callable[[discord.Interaction], Coroutine],
-        on_game_over: Callable[[]],
+        on_game_over: Callable[[], None],
     ):
         """
         Initialize the PlayView.
