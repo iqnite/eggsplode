@@ -36,7 +36,6 @@ class DefuseView(BaseView):
         Inserts the "eggsplode" card back into the deck and disables all interaction items.
         """
         self.ctx.game.deck.insert(self.eggsplode_position, "eggsplode")
-        self.disable_all_items()
         await self.callback_action()
 
     async def on_timeout(self):
@@ -54,8 +53,9 @@ class DefuseView(BaseView):
             _ (discord.ui.Button): The button that was clicked.
             interaction (discord.Interaction): The interaction object.
         """
-        await self.finish()
+        self.disable_all_items()
         await interaction.edit(view=self)
+        await self.finish()
 
     @discord.ui.button(label="Move up", style=discord.ButtonStyle.blurple, emoji="⬆️")
     async def move_up(self, _: discord.ui.Button, interaction: discord.Interaction):
@@ -97,7 +97,7 @@ class DefuseView(BaseView):
         await interaction.edit(
             content=MESSAGES["defuse_prompt"].format(
                 self.eggsplode_position,
-                "".join(
+                "\n".join(
                     MESSAGES["players_list_item"].format(player)
                     for player in self.ctx.game.players
                 ),

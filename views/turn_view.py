@@ -37,14 +37,33 @@ class TurnView(BaseView):
             inactivity_count (int, optional): The count of inactivity periods. Defaults to 0.
         """
         super().__init__(ctx, timeout=600)
-        self.timer: int
+        self.timer = 0
         self.inactivity_count = inactivity_count
         self.parent_interaction = parent_interaction
+
+    async def __aenter__(self):
+        """
+        Enters the context manager.
+        """
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        """
+        Exits the context manager.
+
+        Args:
+            exc_type: The type of the exception that was raised
+            exc_value: The instance of the exception that was raised
+            traceback: The traceback of the exception
+        """
+        await self.action_timer()
 
     async def action_timer(self):
         """
         Starts the action timer and handles the timeout logic.
         """
+        if self.timer < 0:
+            return
         self.start_timer()
         while self.timer < 60:
             await asyncio.sleep(1)
@@ -54,17 +73,18 @@ class TurnView(BaseView):
                 self.timer += 1
         await self.on_action_timeout()
 
-    def stop_timer(self):
+    def deactivate(self):
         """
-        Stops the action timer.
+        Stops the action timer and disables the view.
         """
-        self.timer = -2
+        self.timer = -200
+        self.ctx.action_id = -1
 
     def start_timer(self):
         """
         Starts the action timer.
         """
-        self.timer = 0
+        self.timer = min(self.timer, 0)
 
     async def on_action_timeout(self):
         """
@@ -72,8 +92,8 @@ class TurnView(BaseView):
         """
         if not self.message:
             raise TypeError("message is None")
+        self.deactivate()
         if self.inactivity_count > 5:
-            self.disable_all_items()
             await self.parent_interaction.respond(MESSAGES["game_timeout"])
             del self.ctx.games[self.ctx.game_id]
             return
@@ -111,20 +131,19 @@ class TurnView(BaseView):
                             MESSAGES["timeout"]
                             + MESSAGES["user_drew_card"].format(turn_player)
                         )
-                view = self.__class__(
+                async with TurnView(
                     self.ctx.copy(),
                     parent_interaction=self.parent_interaction,
                     inactivity_count=self.inactivity_count + 1,
-                )
-                await self.parent_interaction.respond(
-                    MESSAGES["next_turn"].format(self.ctx.game.current_player_id),
-                    view=view,
-                )
+                ) as view:
+                    await self.parent_interaction.respond(
+                        MESSAGES["next_turn"].format(self.ctx.game.current_player_id),
+                        view=view,
+                    )
             except (discord.errors.NotFound, AttributeError) as e:
                 caught = e
                 continue
             else:
-                await view.action_timer()
                 break
         else:
             if caught:
@@ -173,7 +192,7 @@ class TurnView(BaseView):
             ),
             on_valid_interaction=lambda _: self.start_timer(),
             end_turn=self.end_turn,
-            on_game_over=self.stop_timer,
+            on_game_over=self.deactivate,
         )
         await view.create_view()
         await interaction.respond(
@@ -189,10 +208,8 @@ class TurnView(BaseView):
         Args:
             interaction (discord.Interaction): The interaction that ends the turn.
         """
-        self.stop_timer()
-        self.disable_all_items()
-        view = self.__class__(self.ctx.copy(), parent_interaction=interaction)
-        await interaction.respond(
-            MESSAGES["next_turn"].format(self.ctx.game.current_player_id), view=view
-        )
-        await view.action_timer()
+        self.deactivate()
+        async with TurnView(self.ctx.copy(), parent_interaction=interaction) as view:
+            await interaction.respond(
+                MESSAGES["next_turn"].format(self.ctx.game.current_player_id), view=view
+            )

@@ -132,13 +132,13 @@ class PlayView(BaseView):
                 await interaction.respond(
                     MESSAGES["defuse_prompt"].format(
                         0,
-                        "".join(
+                        "\n".join(
                             MESSAGES["players_list_item"].format(player)
                             for player in self.ctx.game.players
                         ),
                     ),
                     view=DefuseView(
-                        self.ctx.copy(parent_interaction=interaction, parent_view=self),
+                        self.ctx.copy(),
                         lambda: self.finalize_defuse(interaction),
                     ),
                     ephemeral=True,
@@ -207,7 +207,7 @@ class PlayView(BaseView):
                 interaction.user.id, self.ctx.game.next_player_id
             ),
             view=NopeView(
-                ctx=self.ctx.copy(parent_interaction=interaction, parent_view=self),
+                ctx=self.ctx.copy(),
                 target_player_id=self.ctx.game.next_player_id,
                 callback_action=lambda _: self.finalize_attegg(interaction),
             ),
@@ -232,7 +232,7 @@ class PlayView(BaseView):
                 ),
             ),
             view=NopeView(
-                ctx=self.ctx.copy(parent_interaction=interaction, parent_view=self),
+                ctx=self.ctx.copy(),
                 target_player_id=(
                     self.ctx.game.next_player_id
                     if self.ctx.game.atteggs == 0
@@ -299,7 +299,7 @@ class PlayView(BaseView):
                 view=self,
             )
             view = ChoosePlayerView(
-                self.ctx.copy(parent_interaction=interaction, parent_view=self),
+                self.ctx.copy(),
                 lambda target_player_id: self.begin_steal(
                     interaction, target_player_id, selected
                 ),
@@ -327,7 +327,7 @@ class PlayView(BaseView):
                 CARDS[food_card]["emoji"], interaction.user.id, target_player_id
             ),
             view=NopeView(
-                ctx=self.ctx.copy(parent_interaction=interaction, parent_view=self),
+                ctx=self.ctx.copy(),
                 target_player_id=target_player_id,
                 callback_action=lambda target_interaction: self.finalize_steal(
                     interaction, target_interaction, target_player_id

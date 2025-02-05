@@ -14,7 +14,8 @@ class BaseView(discord.ui.View):
     Attributes:
         ctx (ActionContext): The context of the current action.
     """
-    def __init__(self, ctx: ActionContext, **kwargs):
+
+    def __init__(self, ctx: ActionContext, timeout=600):
         """
         Initializes the BaseView with the given context and additional keyword arguments.
 
@@ -22,7 +23,7 @@ class BaseView(discord.ui.View):
             ctx (ActionContext): The context of the current action.
             **kwargs: Additional keyword arguments for the discord.ui.View.
         """
-        super().__init__(**kwargs, disable_on_timeout=True)
+        super().__init__(timeout=timeout, disable_on_timeout=True)
         self.ctx = ctx
 
     def default_message(self, user_id: int) -> str:

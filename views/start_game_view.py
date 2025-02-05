@@ -81,8 +81,7 @@ class StartGameView(BaseView):
         self.disable_all_items()
         await interaction.edit(view=self)
         await interaction.respond(MESSAGES["game_started"], ephemeral=True)
-        view = TurnView(self.ctx.copy(), parent_interaction=interaction)
-        view.message = await interaction.respond(
-            MESSAGES["next_turn"].format(self.ctx.game.current_player_id), view=view
-        )
-        await view.action_timer()
+        async with TurnView(self.ctx.copy(), parent_interaction=interaction) as view:
+            view.message = await interaction.respond(
+                MESSAGES["next_turn"].format(self.ctx.game.current_player_id), view=view
+            )
