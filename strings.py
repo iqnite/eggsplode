@@ -1,5 +1,5 @@
 """
-Common variables and functions used by the bot.
+Common strings used by modules.
 """
 
 import json
