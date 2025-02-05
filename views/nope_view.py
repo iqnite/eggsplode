@@ -44,11 +44,13 @@ class NopeView(BaseView):
         """
         Handles the timeout event for the view.
         """
-        if self.ctx.action_id == self.ctx.game.action_id:
-            self.ctx.game.awaiting_prompt = False
-            if not self.nopes % 2:
-                await self.callback_action(None)
-        await super().on_timeout()
+        try:
+            await super().on_timeout()
+        finally:
+            if self.ctx.action_id == self.ctx.game.action_id:
+                self.ctx.game.awaiting_prompt = False
+                if not self.nopes % 2:
+                    await self.callback_action(None)
 
     @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
     async def ok_callback(self, _: discord.ui.Button, interaction: discord.Interaction):

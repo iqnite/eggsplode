@@ -42,7 +42,10 @@ class DefuseView(BaseView):
         """
         Handles the timeout event by finishing the interaction.
         """
-        await self.finish()
+        try:
+            await super().on_timeout()
+        finally:
+            await self.finish()
 
     @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green, emoji="✅")
     async def confirm(self, _: discord.ui.Button, interaction: discord.Interaction):
@@ -55,6 +58,7 @@ class DefuseView(BaseView):
         """
         self.disable_all_items()
         await interaction.edit(view=self)
+        self.on_timeout = super().on_timeout
         await self.finish()
 
     @discord.ui.button(label="Move up", style=discord.ButtonStyle.blurple, emoji="⬆️")

@@ -40,8 +40,10 @@ class ChoosePlayerView(BaseView):
         """
         if not self.user_select:
             return
-        await self.callback_action(int(self.user_select.options[0].value))
-        await super().on_timeout()
+        try:
+            await super().on_timeout()
+        finally:
+            await self.callback_action(int(self.user_select.options[0].value))
 
     async def create_user_selection(self):
         """
