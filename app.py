@@ -7,6 +7,7 @@ This module contains the main application logic for the Eggsplode Discord bot.
 import os
 import sys
 import logging
+from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 import discord
 from discord.ext import commands
@@ -37,13 +38,16 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
 
 
 logger = logging.getLogger("discord")
-logging.basicConfig(
-    filename="eggsplode.log",
-    filemode="a",
-    format="%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    level=logging.DEBUG,
+handler = RotatingFileHandler(
+    "eggsplode.log", maxBytes=5 * 1024 * 1024, backupCount=5
 )
+formatter = logging.Formatter(
+    "%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
 sys.excepthook = logger.error
 
 load_dotenv()
