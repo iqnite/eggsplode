@@ -19,8 +19,8 @@ class Game:
             players: A list of player IDs.
         """
         self.players: list[int] = list(players)
-        self.hands: dict[int, list[str]] = {}
-        self.deck: list[str] = []
+        self.hands: dict[int, list[str]]
+        self.deck: list[str]
         self.current_player: int = 0
         self.action_id: int = 0
         self.atteggs: int = 0
@@ -30,19 +30,16 @@ class Game:
         """
         Starts the game by initializing the deck and dealing cards to players.
         """
+        self.deck = []
         for card in CARDS:
-            self.deck.extend([card] * CARDS[card]["count"])
+            self.deck += [card] * CARDS[card]["count"]
         self.deck = self.deck * (1 + len(self.players) // 5)
         random.shuffle(self.deck)
-        for _ in range(7):
-            for player in self.players:
-                if player not in self.hands:
-                    self.hands[player] = []
-                self.hands[player].append(self.deck.pop())
-        for player in self.players:
-            self.hands[player].append("defuse")
-        for _ in range(len(self.players) - 1):
-            self.deck.append("eggsplode")
+        self.hands = {
+            player: ["defuse"] + [self.deck.pop() for _ in range(7)]
+            for player in self.players
+        }
+        self.deck += ["eggsplode"] * (len(self.players) - 1)
         random.shuffle(self.deck)
 
     @property
