@@ -50,7 +50,7 @@ eggsplode_app = Eggsplode(
 
 logger = logging.getLogger("discord")
 if LOG_PATH:
-    handler = RotatingFileHandler(LOG_PATH, maxBytes=5 * 1024 * 1024, backupCount=5)
+    handler = RotatingFileHandler(LOG_PATH, maxBytes=5 * 1024 * 1024, backupCount=5, encoding='utf-8')
     formatter = logging.Formatter(
         "%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -324,7 +324,7 @@ async def admincmd(
 
 if __name__ == "__main__":
     if LOG_PATH:
-        logger.info("Hello, World!")
+        logger.info("PROGRAM STARTED!")
     else:
-        print("Hello, World!")
+        print("PROGRAM STARTED!")
     eggsplode_app.run(DISCORD_TOKEN)
