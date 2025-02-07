@@ -7,6 +7,7 @@ This module contains the main application logic for the Eggsplode Discord bot.
 import os
 import sys
 import logging
+from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 import discord
 from discord.ext import commands
@@ -36,27 +37,30 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
         self.games: dict[int, Game] = {}
 
 
-logger = logging.getLogger("discord")
-logging.basicConfig(
-    filename="eggsplode.log",
-    filemode="a",
-    format="%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    level=logging.DEBUG,
-)
-sys.excepthook = logger.error
-
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+LOG_PATH = os.getenv("LOG_PATH")
 ADMIN_MAINTENANCE_CODE = os.getenv("ADMIN_MAINTENANCE_CODE")
 ADMIN_LISTGAMES_CODE = os.getenv("ADMIN_LISTGAMES_CODE")
-if not (DISCORD_TOKEN and ADMIN_MAINTENANCE_CODE and ADMIN_LISTGAMES_CODE):
-    raise TypeError(
-        "DISCORD_TOKEN, ADMIN_MAINTENANCE_CODE, and ADMIN_LISTGAMES_CODE must be set in .env file"
-    )
+if not DISCORD_TOKEN:
+    raise TypeError("DISCORD_TOKEN must be set in .env file. ")
 eggsplode_app = Eggsplode(
     activity=discord.Activity(type=discord.ActivityType.watching, name="you")
 )
+
+logger = logging.getLogger("discord")
+if LOG_PATH:
+    handler = RotatingFileHandler(
+        LOG_PATH, maxBytes=5 * 1024 * 1024, backupCount=5, encoding="utf-8"
+    )
+    formatter = logging.Formatter(
+        "%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG)
+    sys.excepthook = logger.error
 
 
 @eggsplode_app.slash_command(
@@ -321,5 +325,8 @@ async def admincmd(
 
 
 if __name__ == "__main__":
-    logger.info("Hello, World!")
+    if LOG_PATH:
+        logger.info("PROGRAM STARTED!")
+    else:
+        print("PROGRAM STARTED!")
     eggsplode_app.run(DISCORD_TOKEN)
