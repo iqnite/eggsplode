@@ -41,7 +41,6 @@ class BaseView(discord.ui.View):
             exc_value: The instance of the exception that was raised
             traceback: The traceback of the exception
         """
-        pass
 
     def default_message(self, user_id: int) -> str:
         """
