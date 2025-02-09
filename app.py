@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 import discord
 from discord.ext import commands
-from common import MESSAGES
+from common import MESSAGES, VERSION
 from game_logic import Game, ActionContext
 from views import StartGameView
 
@@ -194,7 +194,7 @@ async def games(ctx: discord.ApplicationContext):
 
 @eggsplode_app.slash_command(
     name="help",
-    description="Learn how to play Eggsplode!",
+    description="Learn how to play Eggsplode and view useful info!",
     integration_types={
         discord.IntegrationType.guild_install,
         discord.IntegrationType.user_install,
@@ -207,7 +207,13 @@ async def show_help(ctx: discord.ApplicationContext):
     Args:
         ctx (discord.ApplicationContext): The application context.
     """
-    await ctx.respond("\n".join(MESSAGES["help"]))
+    await ctx.respond(
+        "\n".join(MESSAGES["help"]).format(
+            eggsplode_app.latency * 1000,
+            VERSION,
+            MESSAGES["maintenance"] if eggsplode_app.admin_maintenance else "",
+        )
+    )
 
 
 @eggsplode_app.slash_command(
@@ -255,24 +261,6 @@ async def bugreport(ctx: discord.ApplicationContext, bug_type: str, description:
         )
     )
     await ctx.respond(MESSAGES["bug_reported"], ephemeral=True)
-
-
-@eggsplode_app.slash_command(
-    name="ping",
-    description="Check if Eggsplode is online.",
-    integration_types={
-        discord.IntegrationType.guild_install,
-        discord.IntegrationType.user_install,
-    },
-)
-async def ping(ctx: discord.ApplicationContext):
-    """
-    Checks if the Eggsplode bot is online.
-
-    Args:
-        ctx (discord.ApplicationContext): The application context.
-    """
-    await ctx.respond(f"Pong! ({eggsplode_app.latency*1000:.0f}ms)")
 
 
 @eggsplode_app.slash_command(
