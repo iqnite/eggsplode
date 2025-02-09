@@ -72,7 +72,7 @@ class Game:
         """
         return (
             0
-            if self.current_player == len(self.players) - 1
+            if self.current_player >= len(self.players) - 1
             else self.current_player + 1
         )
 
