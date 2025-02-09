@@ -23,7 +23,7 @@ class Game:
         self.deck: list[str]
         self.current_player: int = 0
         self.action_id: int = 0
-        self.atteggs: int = 0
+        self.draw_in_turn: int = 0
         self.awaiting_prompt: bool = False
 
     def start(self):
@@ -90,8 +90,10 @@ class Game:
         """
         Advances the game to the next player's turn.
         """
-        if self.atteggs > 0:
-            self.atteggs -= 1
+        if self.draw_in_turn > 1:
+            self.draw_in_turn -= 1
+            if self.draw_in_turn == 1:
+                self.draw_in_turn = 0
             return
         self.current_player = self.next_player
 
@@ -136,6 +138,7 @@ class Game:
                 self.next_turn()
                 return "defuse"
             self.remove_player(user_id)
+            self.draw_in_turn = 0
             if len(self.players) == 1:
                 return "gameover"
             return "eggsplode"
@@ -153,7 +156,7 @@ class Game:
         del self.players[self.players.index(user_id)]
         del self.hands[user_id]
         self.current_player -= 1
-        self.atteggs = 0
+        self.draw_in_turn = 0
         self.next_turn()
 
     def any_player_has_cards(self) -> bool:

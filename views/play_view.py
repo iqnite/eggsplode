@@ -16,7 +16,7 @@ from .defuse_view import DefuseView
 class PlayView(BaseView):
     """
     A view for handling the play actions in the game.
-    
+
     Attributes:
         ctx (ActionContext): The context of the current action.
         play_card_select (discord.ui.Select): The select menu for choosing a card to play.
@@ -227,7 +227,7 @@ class PlayView(BaseView):
                 interaction.user.id,
                 (
                     self.ctx.game.next_player_id
-                    if self.ctx.game.atteggs == 0
+                    if self.ctx.game.draw_in_turn == 0
                     else interaction.user.id
                 ),
             ),
@@ -235,7 +235,7 @@ class PlayView(BaseView):
                 ctx=self.ctx.copy(),
                 target_player_id=(
                     self.ctx.game.next_player_id
-                    if self.ctx.game.atteggs == 0
+                    if self.ctx.game.draw_in_turn == 0
                     else interaction.user.id
                 ),
                 callback_action=lambda _: self.finalize_skip(interaction),
@@ -404,10 +404,10 @@ class PlayView(BaseView):
             return
         self.disable_all_items()
         await interaction.edit(view=self)
-        prev_atteggs: int = self.ctx.game.atteggs
-        self.ctx.game.atteggs = 0
+        prev_to_draw_in_turn = self.ctx.game.draw_in_turn
+        self.ctx.game.draw_in_turn = 0
         self.ctx.game.next_turn()
-        self.ctx.game.atteggs = prev_atteggs + 1
+        self.ctx.game.draw_in_turn = prev_to_draw_in_turn + 2
         await self.end_turn(interaction)
 
     async def finalize_skip(self, interaction: discord.Interaction):
