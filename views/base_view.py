@@ -26,6 +26,22 @@ class BaseView(discord.ui.View):
         super().__init__(timeout=timeout, disable_on_timeout=True)
         self.ctx = ctx
 
+    async def __aenter__(self):
+        """
+        Enters the context manager.
+        """
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        """
+        Exits the context manager.
+
+        Args:
+            exc_type: The type of the exception that was raised
+            exc_value: The instance of the exception that was raised
+            traceback: The traceback of the exception
+        """
+
     def default_message(self, user_id: int) -> str:
         """
         Generates the default message to be displayed to the user.

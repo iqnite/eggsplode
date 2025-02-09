@@ -19,8 +19,8 @@ class Game:
             players: A list of player IDs.
         """
         self.players: list[int] = list(players)
-        self.hands: dict[int, list[str]]
-        self.deck: list[str]
+        self.hands: dict[int, list[str]] = {}
+        self.deck: list[str] = []
         self.current_player: int = 0
         self.action_id: int = 0
         self.draw_in_turn: int = 0

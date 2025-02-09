@@ -41,12 +41,6 @@ class TurnView(BaseView):
         self.inactivity_count = inactivity_count
         self.parent_interaction = parent_interaction
 
-    async def __aenter__(self):
-        """
-        Enters the context manager.
-        """
-        return self
-
     async def __aexit__(self, exc_type, exc_value, traceback):
         """
         Exits the context manager.
@@ -184,7 +178,7 @@ class TurnView(BaseView):
         if not interaction.user:
             return
         self.ctx.action_id = self.ctx.game.action_id
-        view = PlayView(
+        async with PlayView(
             ActionContext(
                 app=self.ctx.app,
                 game_id=self.ctx.game_id,
@@ -193,13 +187,12 @@ class TurnView(BaseView):
             on_valid_interaction=lambda _: self.start_timer(),
             end_turn=self.end_turn,
             on_game_over=self.deactivate,
-        )
-        await view.create_view()
-        await interaction.respond(
-            self.default_message(interaction.user.id),
-            view=view,
-            ephemeral=True,
-        )
+        ) as view:
+            await interaction.respond(
+                self.default_message(interaction.user.id),
+                view=view,
+                ephemeral=True,
+            )
 
     async def end_turn(self, interaction: discord.Interaction):
         """

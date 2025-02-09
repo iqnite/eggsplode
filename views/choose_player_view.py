@@ -34,34 +34,38 @@ class ChoosePlayerView(BaseView):
         self.callback_action = callback_action
         self.user_select = None
 
+    async def __aenter__(self):
+        """
+        Enters the context manager.
+
+        Returns:
+            ChoosePlayerView: The ChoosePlayerView object.
+        """
+        await self.create_user_selection()
+        return self
+
     async def on_timeout(self):
         """
         Handles the timeout event for the view.
         """
-        if not self.user_select:
-            return
         try:
             await super().on_timeout()
         finally:
-            await self.callback_action(int(self.user_select.options[0].value))
+            await self.callback_action(self.eligible_players[0])
 
     async def create_user_selection(self):
         """
         Creates the user selection menu with eligible players.
         """
-        options = []
-        for user_id in self.eligible_players:
-            user = await self.ctx.app.get_or_fetch_user(user_id)
-            if not user:
-                continue
-            if not self.ctx.game.hands[user_id]:
-                continue
-            options.append(
-                discord.SelectOption(
-                    value=str(user_id),
-                    label=f"{user.display_name} ({len(self.ctx.game.hands[user_id])} cards)",
-                )
+        options = [
+            discord.SelectOption(
+                value=str(user_id),
+                label=f"{user.display_name} ({len(self.ctx.game.hands[user_id])} cards)",
             )
+            for user_id in self.eligible_players
+            if (user := await self.ctx.app.get_or_fetch_user(user_id))
+            and self.ctx.game.hands[user_id]
+        ]
         self.user_select = discord.ui.Select(
             placeholder="Select another player",
             min_values=1,
