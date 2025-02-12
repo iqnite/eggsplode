@@ -4,6 +4,7 @@ Eggsplode Discord Bot Application
 This module contains the main application logic for the Eggsplode Discord bot.
 """
 
+import asyncio
 import os
 import sys
 import logging
@@ -40,6 +41,7 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 LOG_PATH = os.getenv("LOG_PATH")
+RESTART_CMD = os.getenv("RESTART_CMD")
 ADMIN_MAINTENANCE_CODE = os.getenv("ADMIN_MAINTENANCE_CODE")
 ADMIN_LISTGAMES_CODE = os.getenv("ADMIN_LISTGAMES_CODE")
 if not DISCORD_TOKEN:
@@ -284,6 +286,14 @@ async def admincmd(
             ),
             ephemeral=True,
         )
+        while eggsplode_app.games and eggsplode_app.admin_maintenance:
+            await asyncio.sleep(10)
+        if RESTART_CMD and eggsplode_app.admin_maintenance:
+            if LOG_PATH:
+                logger.info("RESTARTING VIA ADMIN COMMAND")
+            else:
+                print("RESTARING VIA ADMIN COMMAND")
+            os.system(RESTART_CMD)
     elif command == ADMIN_LISTGAMES_CODE:
         await ctx.respond(
             MESSAGES["list_games_title"].format(
