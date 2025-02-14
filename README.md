@@ -56,7 +56,7 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
   
-7. Copy the `.env.example` file and replace `YOUR_BOT_TOKEN` with the token you copied earlier
+7. Copy the `.env.example` file, rename it to `.env`, and replace `YOUR_BOT_TOKEN` with the token you copied earlier
 
 8. Finally, start the bot by running the `app.py` file:
 ```
