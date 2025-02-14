@@ -28,6 +28,7 @@ class DefuseView(BaseView):
             callback_action (callable): The function to execute after finishing the interaction.
         """
         super().__init__(ctx, timeout=10)
+        self.ctx.game.awaiting_prompt = True
         self.callback_action = callback_action
         self.eggsplode_position = 0
 
@@ -36,6 +37,7 @@ class DefuseView(BaseView):
         Inserts the "eggsplode" card back into the deck and disables all interaction items.
         """
         self.ctx.game.deck.insert(self.eggsplode_position, "eggsplode")
+        self.ctx.game.awaiting_prompt = False
         await self.callback_action()
 
     async def on_timeout(self):

@@ -103,10 +103,9 @@ async def start(ctx: discord.ApplicationContext):
         await ctx.respond(MESSAGES["game_already_exists"], ephemeral=True)
         return
     eggsplode_app.games[game_id] = Game(ctx.interaction.user.id)
-    view = StartGameView(ActionContext(app=eggsplode_app, game_id=game_id))
     await ctx.respond(
         MESSAGES["start"].format(ctx.interaction.user.id, ctx.interaction.user.id),
-        view=view,
+        view=StartGameView(ActionContext(app=eggsplode_app, game_id=game_id)),
     )
 
 

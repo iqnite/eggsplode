@@ -48,9 +48,15 @@ class PlayView(BaseView):
         self.end_turn = end_turn
         self.on_game_over = on_game_over
 
-    async def create_view(self):
-        """Create the view for card selection."""
+    async def __aenter__(self):
+        """
+        Enter the context manager.
+        
+        Returns:
+            PlayView: The PlayView object.
+        """
         self.create_card_selection()
+        return self
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """
@@ -298,16 +304,15 @@ class PlayView(BaseView):
                 content=self.default_message(interaction.user.id),
                 view=self,
             )
-            view = ChoosePlayerView(
+            async with ChoosePlayerView(
                 self.ctx.copy(),
                 lambda target_player_id: self.begin_steal(
                     interaction, target_player_id, selected
                 ),
-            )
-            await view.create_user_selection()
-            await interaction.respond(
-                MESSAGES["steal_prompt"], view=view, ephemeral=True
-            )
+            ) as view:
+                await interaction.respond(
+                    MESSAGES["steal_prompt"], view=view, ephemeral=True
+                )
 
     async def begin_steal(
         self, interaction: discord.Interaction, target_player_id: int, food_card: str
