@@ -21,7 +21,7 @@ Play items, betray your friends, and be the last one to survive in this action-p
 
 ## Installing (Test version)
 
-1. Set up a bot on the [Discord Dev Portal](https://discord.dev) and copy its Bot Token; Optionally, you can invite it to a Discord server to test it.
+1. Set up a bot on the [Discord Dev Portal](https://discord.dev) and copy its Bot Token (can be found on the *Bot* page); Optionally, you can invite it to a Discord server to test it.
 
 2. Clone the GitHub repo:
 ```
@@ -56,10 +56,7 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
   
-7. In the Eggsplode folder, create a new file called `.env` (Replace YOUR_BOT_TOKEN with the token you copied earlier; You can use a text editor or the following command in a terminal):
-```
-echo DISCORD_TOKEN="YOUR_BOT_TOKEN" > .env
-```
+7. Copy the `.env.example` file, rename it to `.env`, and replace `YOUR_BOT_TOKEN` with the token you copied earlier
 
 8. Finally, start the bot by running the `app.py` file:
 ```
