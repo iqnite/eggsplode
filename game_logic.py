@@ -12,6 +12,8 @@ class Game:
     Represents the game logic for the Eggsplode game.
     """
 
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self, *players: int):
         """
         Initializes the game with the given players.
