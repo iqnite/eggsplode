@@ -5,6 +5,7 @@ This module contains the main application logic for the Eggsplode Discord bot.
 """
 
 import asyncio
+from datetime import datetime
 import os
 import sys
 import logging
@@ -78,6 +79,15 @@ def games_with_user(user_id: int) -> list[int]:
     return [i for i, game in eggsplode_app.games.items() if user_id in game.players]
 
 
+def cleanup():
+    """
+    Delete games that have been inactive for 30 minutes.
+    """
+    for game_id in list(eggsplode_app.games):
+        if (datetime.now() - eggsplode_app.games[game_id].last_activity).total_seconds() > 1800:
+            del eggsplode_app.games[game_id]
+
+
 @eggsplode_app.slash_command(
     name="start",
     description="Start a new Eggsplode game!",
@@ -93,6 +103,7 @@ async def start(ctx: discord.ApplicationContext):
     Args:
         ctx (discord.ApplicationContext): The context of the command.
     """
+    cleanup()
     if eggsplode_app.admin_maintenance:
         await ctx.respond(MESSAGES["maintenance"], ephemeral=True)
         return
@@ -161,6 +172,7 @@ async def games(ctx: discord.ApplicationContext):
     Args:
         ctx (discord.ApplicationContext): The context of the command.
     """
+    cleanup()
     if not ctx.interaction.user:
         return
     found_games = games_with_user(ctx.interaction.user.id)
@@ -273,6 +285,7 @@ async def admincmd(
         command (str): The admin command to execute.
     """
     if command == ADMIN_MAINTENANCE_CODE:
+        cleanup()
         eggsplode_app.admin_maintenance = not eggsplode_app.admin_maintenance
         await ctx.respond(
             MESSAGES["maintenance_mode_toggle"].format(

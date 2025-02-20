@@ -2,6 +2,7 @@
 Contains the game logic for the Eggsplode game.
 """
 
+from datetime import datetime
 import random
 from strings import CARDS
 
@@ -10,6 +11,8 @@ class Game:
     """
     Represents the game logic for the Eggsplode game.
     """
+
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, *players: int):
         """
@@ -25,11 +28,13 @@ class Game:
         self.action_id: int = 0
         self.draw_in_turn: int = 0
         self.awaiting_prompt: bool = False
+        self.last_activity = datetime.now()
 
     def start(self):
         """
         Starts the game by initializing the deck and dealing cards to players.
         """
+        self.last_activity = datetime.now()
         self.deck = []
         for card in CARDS:
             self.deck += [card] * CARDS[card]["count"]
@@ -90,6 +95,7 @@ class Game:
         """
         Advances the game to the next player's turn.
         """
+        self.last_activity = datetime.now()
         if self.draw_in_turn > 1:
             self.draw_in_turn -= 1
             if self.draw_in_turn == 1:
