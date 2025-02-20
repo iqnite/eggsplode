@@ -16,6 +16,7 @@ from discord.ext import commands
 from strings import MESSAGES, VERSION
 from game_logic import Game, ActionContext
 from views.start_game_view import StartGameView
+from views.help_view import HelpView
 
 
 class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
@@ -208,7 +209,8 @@ async def show_help(ctx: discord.ApplicationContext):
             eggsplode_app.latency * 1000,
             VERSION,
             MESSAGES["maintenance"] if eggsplode_app.admin_maintenance else "",
-        )
+        ),
+        view=HelpView(),
     )
 
 

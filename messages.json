@@ -5,7 +5,7 @@
   "before_attegg": "⚡ <@{}> wants to skip and force <@{}> to draw twice. Accept?",
   "before_skip": "⏩ <@{}> wants to skip their turn and not draw a card! Next up: <@{}>. Accept?",
   "before_steal": "{} <@{}> wants to steal a card from <@{}>! Accept?",
-  "bug_report_print": "===== Bug report from {} in channel {}: [{}] '{}'",
+  "bug_report_print": "BUG REPORT from {} in channel {}: [{}] '{}'",
   "bug_reported": "🐞 Bug reported! Thank you for your help!\nYou can also join our support server at https://discord.gg/UGm36FkGDF",
   "defuse_prompt": "🔧 You drew an **Eggsplode** card! Please decide where on the deck you want to put it.\n**Current position: {}**\n**Players:**\n{}",
   "defused": "## 🔧 <@{}> drew an Eggsplode card! Luckily, they had a Defuse and put it back into the deck!",
@@ -31,9 +31,6 @@
     "Some actions can be cancelled by clicking on **Nope**, if you have a **Nope** card. You can nope actions targeted at you or other players. Clicking on **Nope** on already cancelled actions will 'un-nope' (or 'yup') them.",
     "# Stealing",
     "If you have two food cards of the same type, you can steal a random card from another player of your choice.",
-    "# Still have questions?",
-    "You can ask for help or give feedback on our Discord server at https://discord.gg/UGm36FkGDF",
-    "If you experience any issue with the bot, please reach out by using the </bugreport:1333499107129561270> command.",
     "-# Ping: {:.0f}ms | Version: {} {}"
   ],
   "invalid_command": "❌ Invalid command.",
