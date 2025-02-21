@@ -1,3 +1,7 @@
+"""
+Contains the HelpView class for showing link buttons on the help command.
+"""
+
 import discord
 
 
