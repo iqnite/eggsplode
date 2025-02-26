@@ -4,7 +4,7 @@ Common strings used by modules.
 
 import json
 
-VERSION = "v0.5.0"
+VERSION = "v0.5.2"
 
 with open("messages.json", encoding="utf-8") as f:
     MESSAGES = json.load(f)

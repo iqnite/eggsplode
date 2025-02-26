@@ -138,6 +138,7 @@ class PlayView(BaseView):
                 await interaction.respond(
                     MESSAGES["defuse_prompt"].format(
                         0,
+                        len(self.ctx.game.deck),
                         "\n".join(
                             MESSAGES["players_list_item"].format(player)
                             for player in self.ctx.game.players

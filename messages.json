@@ -7,7 +7,7 @@
   "before_steal": "{} <@{}> wants to steal a card from <@{}>! Accept?",
   "bug_report_print": "===== Bug report from {} in channel {}: [{}] '{}'",
   "bug_reported": "🐞 Bug reported! Thank you for your help!\nYou can also join our support server at https://discord.gg/UGm36FkGDF",
-  "defuse_prompt": "🔧 You drew an **Eggsplode** card! Please decide where on the deck you want to put it.\n**Current position: {}**\n**Players:**\n{}",
+  "defuse_prompt": "🔧 You drew an **Eggsplode** card! Please decide where on the deck you want to put it.\n**Current position: {} (0 = bottom, {} = top)**\n**Players:**\n{}",
   "defused": "## 🔧 <@{}> drew an Eggsplode card! Luckily, they had a Defuse and put it back into the deck!",
   "eggsploded": "## 💥 <@{}> drew an Eggsplode card and died!",
   "game_already_exists": "❌ Another game is already running in this channel!",
