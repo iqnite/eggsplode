@@ -105,7 +105,6 @@ async def start(ctx: discord.ApplicationContext):
     Args:
         ctx (discord.ApplicationContext): The context of the command.
     """
-    await ctx.response.defer()
     cleanup()
     if eggsplode_app.admin_maintenance:
         await ctx.respond(MESSAGES["maintenance"], ephemeral=True)
@@ -142,7 +141,6 @@ async def hand(ctx: discord.ApplicationContext):
     Args:
         ctx (discord.ApplicationContext): The context of the command.
     """
-    await ctx.response.defer()
     game_id = ctx.interaction.channel_id
     if not (game_id and ctx.interaction.user):
         return
@@ -180,7 +178,6 @@ async def games(ctx: discord.ApplicationContext):
     Args:
         ctx (discord.ApplicationContext): The context of the command.
     """
-    await ctx.response.defer()
     cleanup()
     if not ctx.interaction.user:
         return
@@ -212,7 +209,6 @@ async def show_help(ctx: discord.ApplicationContext):
     Args:
         ctx (discord.ApplicationContext): The context of the command.
     """
-    await ctx.response.defer()
     await ctx.respond(
         "\n".join(MESSAGES["help"]).format(
             eggsplode_app.latency * 1000,
@@ -259,7 +255,6 @@ async def bugreport(ctx: discord.ApplicationContext, bug_type: str, description:
         bug_type (str): The type of bug being reported.
         description (str): A detailed description of the bug.
     """
-    await ctx.response.defer()
     if not ctx.interaction.user:
         return
     logger.info(
@@ -295,7 +290,6 @@ async def admincmd(
         ctx (discord.ApplicationContext): The context of the command.
         command (str): The admin command to execute.
     """
-    await ctx.response.defer()
     if command == ADMIN_MAINTENANCE_CODE:
         cleanup()
         eggsplode_app.admin_maintenance = not eggsplode_app.admin_maintenance
