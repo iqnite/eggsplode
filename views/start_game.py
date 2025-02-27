@@ -5,21 +5,22 @@ Contains the StartGameView class which handles the start game view in the Discor
 import discord
 from strings import MESSAGES
 from game_logic import ActionContext
-from .base_view import BaseView
-from .turn_view import TurnView
+from .base import BaseView
+from .action import TurnView
 
 
 class StartGameView(BaseView):
     """
     A view that allows users to join and start a game.
-    
+
     Attributes:
         ctx (ActionContext): The context of the action.
     """
+
     def __init__(self, ctx: ActionContext):
         """
         Initializes the StartGameView with the given context.
-        
+
         Args:
             ctx (ActionContext): The context of the action.
         """
@@ -36,7 +37,7 @@ class StartGameView(BaseView):
     async def join_game(self, _: discord.ui.Button, interaction: discord.Interaction):
         """
         Handles the join game button click event.
-        
+
         Args:
             _ (discord.ui.Button): The button that was clicked.
             interaction (discord.Interaction): The interaction object.
@@ -59,7 +60,7 @@ class StartGameView(BaseView):
     async def start_game(self, _: discord.ui.Button, interaction: discord.Interaction):
         """
         Handles the start game button click event.
-        
+
         Args:
             _ (discord.ui.Button): The button that was clicked.
             interaction (discord.Interaction): The interaction object.
@@ -90,7 +91,7 @@ class StartGameView(BaseView):
     async def settings(self, _: discord.ui.Button, interaction: discord.Interaction):
         """
         Handles the settings button click event.
-        
+
         Args:
             _ (discord.ui.Button): The button that was clicked.
             interaction (discord.Interaction): The interaction object.

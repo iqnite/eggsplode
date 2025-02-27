@@ -33,11 +33,10 @@
     "If you have two food cards of the same type, you can steal a random card from another player of your choice.",
     "# Still have questions?",
     "You can ask for help or give feedback on our Discord server at https://discord.gg/UGm36FkGDF",
-    "If you experience any issue with the bot, please reach out by using the </bugreport:1333499107129561270> command.",
     "-# Ping: {:.0f}ms | Version: {} {}"
   ],
   "invalid_command": "❌ Invalid command.",
-  "invalid_turn": "❌ This turn has ended or the action is not valid anymore! Make sure to click **Play!** on the latest message.\n*If you think this is a mistake, please use </bugreport:1333499107129561270> to report it!*",
+  "invalid_turn": "❌ This turn has ended or the action is not valid anymore! Make sure to click **Play!** on the latest message.",
   "list_games_item": "- <#{}>",
   "list_games_title": "📋 **Games:**\n{}",
   "maintenance": "⚠️ The bot is currently under maintenance. You can find more info in our support server.",
