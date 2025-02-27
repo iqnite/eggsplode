@@ -84,7 +84,9 @@ def cleanup():
     Delete games that have been inactive for 30 minutes.
     """
     for game_id in list(eggsplode_app.games):
-        if (datetime.now() - eggsplode_app.games[game_id].last_activity).total_seconds() > 1800:
+        if (
+            datetime.now() - eggsplode_app.games[game_id].last_activity
+        ).total_seconds() > 1800:
             del eggsplode_app.games[game_id]
 
 
@@ -114,7 +116,11 @@ async def start(ctx: discord.ApplicationContext):
     if game_id in eggsplode_app.games:
         await ctx.respond(MESSAGES["game_already_exists"], ephemeral=True)
         return
-    eggsplode_app.games[game_id] = Game(ctx.interaction.user.id)
+    eggsplode_app.games[game_id] = Game(
+        {
+            "players": [ctx.interaction.user.id],
+        }
+    )
     await ctx.respond(
         MESSAGES["start"].format(ctx.interaction.user.id, ctx.interaction.user.id),
         view=StartGameView(ActionContext(app=eggsplode_app, game_id=game_id)),

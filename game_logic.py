@@ -14,14 +14,15 @@ class Game:
 
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, *players: int):
+    def __init__(self, config: dict):
         """
         Initializes the game with the given players.
 
         Args:
             players: A list of player IDs.
         """
-        self.players: list[int] = list(players)
+        self.config = config
+        self.players: list[int] = list(config.get("players", []))
         self.hands: dict[int, list[str]] = {}
         self.deck: list[str] = []
         self.current_player: int = 0
