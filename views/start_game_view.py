@@ -85,3 +85,20 @@ class StartGameView(BaseView):
             view.message = await interaction.respond(
                 MESSAGES["next_turn"].format(self.ctx.game.current_player_id), view=view
             )
+
+    @discord.ui.button(label="Settings", style=discord.ButtonStyle.grey, emoji="⚙️")
+    async def settings(self, _: discord.ui.Button, interaction: discord.Interaction):
+        """
+        Handles the settings button click event.
+        
+        Args:
+            _ (discord.ui.Button): The button that was clicked.
+            interaction (discord.Interaction): The interaction object.
+        """
+        if not (interaction.user and self.message):
+            return
+        if interaction.user.id != self.ctx.game.players[0]:
+            await interaction.respond(
+                MESSAGES["not_game_creator_edit_settings"], ephemeral=True
+            )
+            return
