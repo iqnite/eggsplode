@@ -15,7 +15,7 @@ from strings import (
     RESTART_CMD,
     VERSION,
 )
-from views.start_game import StartGameView
+from views.starter import StartGameView, HelpView
 
 
 class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
@@ -139,7 +139,9 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
             ephemeral=True,
         )
 
-    async def show_help(self, ctx: discord.ApplicationContext):
+    async def show_help(
+        self, ctx: discord.ApplicationContext | discord.Interaction, ephemeral=False
+    ):
         """
         Show help information for the Eggsplode game.
 
@@ -151,7 +153,9 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
                 self.latency * 1000,
                 VERSION,
                 MESSAGES["maintenance"] if self.admin_maintenance else "",
-            )
+            ),
+            view=HelpView(),
+            ephemeral=ephemeral,
         )
 
     async def admincmd(

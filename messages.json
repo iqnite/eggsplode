@@ -11,6 +11,7 @@
   "defused": "## 🔧 <@{}> drew an Eggsplode card! Luckily, they had a Defuse and put it back into the deck!",
   "eggsploded": "## 💥 <@{}> drew an Eggsplode card and died!",
   "game_already_exists": "❌ Another game is already running in this channel!",
+  "game_cancelled": "**🚫 Everyone left, so the game has been cancelled. Start a new game with </start:1325457141628141661>!**",
   "game_not_found": "❌ No game found in this channel! Start a new game with </start:1325457141628141661>!",
   "game_not_started": "❌ The game has not started yet!",
   "game_over": "# 🎉 <@{}> wins!",
