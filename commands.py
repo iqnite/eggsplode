@@ -37,6 +37,7 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
         super().__init__(**kwargs)
         self.admin_maintenance: bool = False
         self.games: dict[int, Game] = {}
+        self.create_commands()
 
     def games_with_user(self, user_id: int) -> list[int]:
         """
@@ -59,6 +60,62 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
                 datetime.now() - self.games[game_id].last_activity
             ).total_seconds() > 1800:
                 del self.games[game_id]
+
+    def create_commands(self):
+        """
+        Create the commands for the Eggsplode game.
+        """
+        self.slash_command(
+            name="hand",
+            description="View your hand.",
+            integration_types={
+                discord.IntegrationType.guild_install,
+                discord.IntegrationType.user_install,
+            },
+        )(self.hand)
+
+        self.slash_command(
+            name="games",
+            description="View which games you're in.",
+            integration_types={
+                discord.IntegrationType.guild_install,
+                discord.IntegrationType.user_install,
+            },
+        )(self.list_user_games)
+
+        self.slash_command(
+            name="help",
+            description="Learn how to play Eggsplode and view useful info!",
+            integration_types={
+                discord.IntegrationType.guild_install,
+                discord.IntegrationType.user_install,
+            },
+        )(self.show_help)
+
+        self.slash_command(
+            name="admincmd",
+            description="Staff only.",
+            integration_types={
+                discord.IntegrationType.guild_install,
+                discord.IntegrationType.user_install,
+            },
+        )(
+            discord.option(
+                "command",
+                type=str,
+                description="If you don't know any command, you're not an admin.",
+                required=True,
+            )(self.admincmd)
+        )
+
+        self.slash_command(
+            name="start",
+            description="Start a new Eggsplode game!",
+            integration_types={
+                discord.IntegrationType.guild_install,
+                discord.IntegrationType.user_install,
+            },
+        )(self.start_game)
 
     async def start_game(self, ctx: discord.ApplicationContext):
         """

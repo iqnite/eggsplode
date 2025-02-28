@@ -32,58 +32,6 @@ if LOG_PATH:
     logger.setLevel(logging.DEBUG)
     sys.excepthook = logger.error
 
-eggsplode_app.slash_command(
-    name="hand",
-    description="View your hand.",
-    integration_types={
-        discord.IntegrationType.guild_install,
-        discord.IntegrationType.user_install,
-    },
-)(eggsplode_app.hand)
-
-eggsplode_app.slash_command(
-    name="games",
-    description="View which games you're in.",
-    integration_types={
-        discord.IntegrationType.guild_install,
-        discord.IntegrationType.user_install,
-    },
-)(eggsplode_app.list_user_games)
-
-eggsplode_app.slash_command(
-    name="help",
-    description="Learn how to play Eggsplode and view useful info!",
-    integration_types={
-        discord.IntegrationType.guild_install,
-        discord.IntegrationType.user_install,
-    },
-)(eggsplode_app.show_help)
-
-eggsplode_app.slash_command(
-    name="admincmd",
-    description="Staff only.",
-    integration_types={
-        discord.IntegrationType.guild_install,
-        discord.IntegrationType.user_install,
-    },
-)(
-    discord.option(
-        "command",
-        type=str,
-        description="If you don't know any command, you're not an admin.",
-        required=True,
-    )(eggsplode_app.admincmd)
-)
-
-eggsplode_app.slash_command(
-    name="start",
-    description="Start a new Eggsplode game!",
-    integration_types={
-        discord.IntegrationType.guild_install,
-        discord.IntegrationType.user_install,
-    },
-)(eggsplode_app.start_game)
-
 if __name__ == "__main__":
     if LOG_PATH:
         logger.info("PROGRAM STARTED!")
