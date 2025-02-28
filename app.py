@@ -14,10 +14,6 @@ from strings import DISCORD_TOKEN, LOG_PATH
 if not DISCORD_TOKEN:
     raise TypeError("DISCORD_TOKEN must be set in .env file. ")
 
-eggsplode_app = Eggsplode(
-    activity=discord.Activity(type=discord.ActivityType.watching, name="you")
-)
-
 logger = logging.getLogger("discord")
 if LOG_PATH:
     handler = RotatingFileHandler(
@@ -31,6 +27,10 @@ if LOG_PATH:
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
     sys.excepthook = logger.error
+
+eggsplode_app = Eggsplode(
+    activity=discord.Activity(type=discord.ActivityType.watching, name="you")
+)
 
 if __name__ == "__main__":
     if LOG_PATH:
