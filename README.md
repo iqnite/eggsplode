@@ -2,7 +2,7 @@
 
 Play items, betray your friends, and be the last one to survive in this action-packed Discord game! Inspired by the card game Exploding Kittens, Eggsplode mixes explosions and... eggs.
 
-## Features:
+## Features
 
 - **Start** games with one command, join with one click!
 - **Fast-paced** turn-based system!
@@ -21,7 +21,7 @@ Play items, betray your friends, and be the last one to survive in this action-p
 
 ## Installing (Test version)
 
-1. Set up a bot on the [Discord Dev Portal](https://discord.dev) and copy its Bot Token (can be found on the *Bot* page); Optionally, you can invite it to a Discord server to test it.
+1. Set up a bot on the [Discord Dev Portal](https://discord.dev) and copy its Bot Token (can be found on the *Bot* page); Optionally, you can invite it to a Discord server to test it
 
 2. Clone the GitHub repo:
 ```
@@ -56,9 +56,11 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
   
-7. Copy the `.env.example` file, rename it to `.env`, and replace `YOUR_BOT_TOKEN` with the token you copied earlier
+7. Copy the `.env.example` file and rename it to `.env`
 
-8. Finally, start the bot by running the `app.py` file:
+8. Open the `.env` file in a text editor and replace `YOUR_BOT_TOKEN` with the token you copied earlier
+
+9. Finally, start the bot by running the `app.py` file:
 ```
 python app.py
 ```
