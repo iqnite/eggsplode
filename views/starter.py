@@ -209,7 +209,7 @@ class SettingsModal(discord.ui.Modal):
                 "input": discord.ui.InputText(
                     label="Defuse cards in deck",
                     placeholder="0",
-                    value=self.ctx.game.config.get("deck_eggsplode_cards", None),
+                    value=self.ctx.game.config.get("deck_defuse_cards", None),
                     required=False,
                 ),
             },
