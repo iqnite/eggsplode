@@ -205,6 +205,14 @@ class SettingsModal(discord.ui.Modal):
                 ),
                 "min": 1,
             },
+            "deck_defuse_cards": {
+                "input": discord.ui.InputText(
+                    label="Defuse cards in deck",
+                    placeholder="0",
+                    value=self.ctx.game.config.get("deck_eggsplode_cards", None),
+                    required=False,
+                ),
+            },
             "turn_timeout": {
                 "input": discord.ui.InputText(
                     label="Turn timer (in seconds; 40-600)",
