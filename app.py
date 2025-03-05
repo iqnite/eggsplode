@@ -35,6 +35,5 @@ eggsplode_app = Eggsplode(
 if __name__ == "__main__":
     if LOG_PATH:
         logger.info("PROGRAM STARTED!")
-    else:
-        print("PROGRAM STARTED!")
+    print("PROGRAM STARTED!")
     eggsplode_app.run(DISCORD_TOKEN)
