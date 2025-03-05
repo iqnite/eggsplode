@@ -45,7 +45,9 @@ class Game:
             player: ["defuse"] + [self.deck.pop() for _ in range(7)]
             for player in self.players
         }
-        self.deck += ["eggsplode"] * (len(self.players) - 1)
+        self.deck += ["eggsplode"] * int(self.config.get(
+            "deck_eggsplode_cards", len(self.players) - 1
+        ))
         random.shuffle(self.deck)
 
     @property

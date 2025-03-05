@@ -491,7 +491,7 @@ class TurnView(BaseView):
         if self.timer < 0:
             return
         self.start_timer()
-        while self.timer < 60:
+        while self.timer < int(self.ctx.game.config.get("turn_timeout", 60)):
             await asyncio.sleep(1)
             if self.timer < 0:
                 return

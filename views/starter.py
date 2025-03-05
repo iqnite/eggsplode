@@ -202,11 +202,11 @@ class SettingsModal(discord.ui.Modal):
                 ),
                 "min": 1,
             },
-            "turn_timer": {
+            "turn_timeout": {
                 "input": discord.ui.InputText(
                     label="Turn timer (in seconds; 40-600)",
                     placeholder="60",
-                    value=self.ctx.game.config.get("turn_timer", None),
+                    value=self.ctx.game.config.get("turn_timeout", None),
                     required=False,
                 ),
                 "min": 40,
