@@ -63,6 +63,18 @@ class DefuseView(BaseView):
         self.on_timeout = super().on_timeout
         await self.finish()
 
+    @discord.ui.button(label="Top", style=discord.ButtonStyle.blurple, emoji="🔝")
+    async def top(self, _: discord.ui.Button, interaction: discord.Interaction):
+        """
+        Handles the top button click event.
+
+        Args:
+            _ (discord.ui.Button): The button that was clicked.
+            interaction (discord.Interaction): The interaction object.
+        """
+        self.eggsplode_position = len(self.ctx.game.deck)
+        await self.update_view(interaction)
+
     @discord.ui.button(label="Move up", style=discord.ButtonStyle.blurple, emoji="⬆️")
     async def move_up(self, _: discord.ui.Button, interaction: discord.Interaction):
         """
@@ -72,10 +84,10 @@ class DefuseView(BaseView):
             _ (discord.ui.Button): The button that was clicked.
             interaction (discord.Interaction): The interaction object.
         """
-        if self.eggsplode_position > 0:
-            self.eggsplode_position -= 1
+        if self.eggsplode_position < len(self.ctx.game.deck):
+            self.eggsplode_position += 1
         else:
-            self.eggsplode_position = len(self.ctx.game.deck)
+            self.eggsplode_position = 0
         await self.update_view(interaction)
 
     @discord.ui.button(label="Move down", style=discord.ButtonStyle.blurple, emoji="⬇️")
@@ -87,10 +99,22 @@ class DefuseView(BaseView):
             _ (discord.ui.Button): The button that was clicked.
             interaction (discord.Interaction): The interaction object.
         """
-        if self.eggsplode_position < len(self.ctx.game.deck):
-            self.eggsplode_position += 1
+        if self.eggsplode_position > 0:
+            self.eggsplode_position -= 1
         else:
-            self.eggsplode_position = 0
+            self.eggsplode_position = len(self.ctx.game.deck)
+        await self.update_view(interaction)
+
+    @discord.ui.button(label="Bottom", style=discord.ButtonStyle.blurple, emoji="🔚")
+    async def bottom(self, _: discord.ui.Button, interaction: discord.Interaction):
+        """
+        Handles the bottom button click event.
+
+        Args:
+            _ (discord.ui.Button): The button that was clicked.
+            interaction (discord.Interaction): The interaction object.
+        """
+        self.eggsplode_position = 0
         await self.update_view(interaction)
 
     async def update_view(self, interaction: discord.Interaction):
@@ -103,6 +127,7 @@ class DefuseView(BaseView):
         await interaction.edit(
             content=MESSAGES["defuse_prompt"].format(
                 self.eggsplode_position,
+                len(self.ctx.game.deck),
                 "\n".join(
                     MESSAGES["players_list_item"].format(player)
                     for player in self.ctx.game.players

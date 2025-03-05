@@ -138,6 +138,7 @@ class PlayView(BaseView):
                 await interaction.respond(
                     MESSAGES["defuse_prompt"].format(
                         0,
+                        len(self.ctx.game.deck),
                         "\n".join(
                             MESSAGES["players_list_item"].format(player)
                             for player in self.ctx.game.players
@@ -353,33 +354,40 @@ class PlayView(BaseView):
         if not interaction.user:
             return
         target_hand = self.ctx.game.hands[target_player_id]
-        stolen_card = random.choice(target_hand)
-        self.ctx.game.hands[target_player_id].remove(stolen_card)
-        self.ctx.game.current_player_hand.append(stolen_card)
-        self.create_card_selection()
-        await interaction.edit(
-            content=self.default_message(interaction.user.id),
-            view=self,
-        )
-        await interaction.respond(
-            MESSAGES["stolen_card_public"].format(
-                self.ctx.game.current_player_id, target_player_id
+        if target_hand:
+            stolen_card = random.choice(target_hand)
+            self.ctx.game.hands[target_player_id].remove(stolen_card)
+            self.ctx.game.current_player_hand.append(stolen_card)
+            self.create_card_selection()
+            await interaction.edit(
+                content=self.default_message(interaction.user.id),
+                view=self,
             )
-        )
-        await interaction.respond(
-            MESSAGES["stolen_card_you"].format(
-                CARDS[stolen_card]["emoji"], CARDS[stolen_card]["title"]
-            ),
-            ephemeral=True,
-        )
-        if target_interaction:
-            await target_interaction.respond(
-                MESSAGES["stolen_card_them"].format(
-                    self.ctx.game.current_player_id,
-                    CARDS[stolen_card]["emoji"],
-                    CARDS[stolen_card]["title"],
+            await interaction.respond(
+                MESSAGES["stolen_card_public"].format(
+                    self.ctx.game.current_player_id, target_player_id
+                )
+            )
+            await interaction.respond(
+                MESSAGES["stolen_card_you"].format(
+                    CARDS[stolen_card]["emoji"], CARDS[stolen_card]["title"]
                 ),
                 ephemeral=True,
+            )
+            if target_interaction:
+                await target_interaction.respond(
+                    MESSAGES["stolen_card_them"].format(
+                        self.ctx.game.current_player_id,
+                        CARDS[stolen_card]["emoji"],
+                        CARDS[stolen_card]["title"],
+                    ),
+                    ephemeral=True,
+                )
+        else:
+            await interaction.respond(
+                MESSAGES["no_cards_to_steal"].format(
+                    self.ctx.game.current_player_id, target_player_id
+                )
             )
 
     async def finalize_defuse(self, interaction: discord.Interaction):
