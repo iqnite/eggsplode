@@ -122,6 +122,7 @@ class StartGameView(BaseView):
                 MESSAGES["not_game_creator_edit_settings"], ephemeral=True
             )
             return
+        await interaction.respond(view=SettingsView(self.ctx.copy()), ephemeral=True)
 
     @discord.ui.button(label="Help", style=discord.ButtonStyle.grey, emoji="❓")
     async def help(self, _: discord.ui.Button, interaction: discord.Interaction):
@@ -135,6 +136,126 @@ class StartGameView(BaseView):
         if not (interaction.user and self.message):
             return
         await self.ctx.app.show_help(interaction, ephemeral=True)
+
+
+class SettingsView(BaseView):
+    """
+    A view for the settings command in the game.
+    """
+
+    def __init__(self, ctx: ActionContext):
+        """
+        Initializes the SettingsView.
+        """
+        super().__init__(ctx)
+
+    # @discord.ui.select(
+    #     options=[],
+    #     placeholder="Eggspansions",
+    # )
+    async def expansion_callback(
+        self, select: discord.ui.Select, interaction: discord.Interaction
+    ):
+        """
+        Handles the eggspansion select interaction.
+
+        Args:
+            select (discord.ui.Select): The select interaction.
+            interaction (discord.Interaction): The interaction object.
+        """
+        self.ctx.game.config["expansions"] = select.values
+        await interaction.edit(view=self)
+
+    @discord.ui.button(
+        label="Advanced Settings", style=discord.ButtonStyle.grey, emoji="⚙️"
+    )
+    async def advanced_settings(
+        self, _: discord.ui.Button, interaction: discord.Interaction
+    ):
+        """
+        Handles the advanced settings button click event.
+
+        Args:
+            _ (discord.ui.Button): The button that was clicked.
+            interaction (discord.Interaction): The interaction object.
+        """
+        await interaction.response.send_modal(
+            SettingsModal(ctx=self.ctx, title="Advanced Settings")
+        )
+
+
+class SettingsModal(discord.ui.Modal):
+    """
+    A modal for the Advanced Settings command.
+    """
+
+    def __init__(self, ctx: ActionContext, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.ctx = ctx
+        self.inputs = {
+            "deck_eggsplode_cards": {
+                "input": discord.ui.InputText(
+                    label="Eggsplode cards in deck",
+                    placeholder=str(len(self.ctx.game.players) - 1),
+                    required=False,
+                ),
+                "min": 1,
+            },
+            "turn_timer": {
+                "input": discord.ui.InputText(
+                    label="Turn timer (in seconds; 40-600)",
+                    placeholder="60",
+                    required=False,
+                ),
+                "min": 40,
+                "max": 600,
+            },
+        }
+        for _, i in self.inputs.items():
+            self.add_item(i["input"])
+
+    async def callback(self, interaction: discord.Interaction):
+        if self.ctx.game_id not in self.ctx.games:
+            return
+        response = MESSAGES["settings_updated"]
+        for input_name, item in self.inputs.items():
+            item_input = item["input"]
+            if item_input.value == "":
+                self.ctx.game.config.pop(input_name, None)
+                response += "\n" + MESSAGES["settings_updated_success"].format(
+                    item_input.label, item_input.placeholder
+                )
+                continue
+            if not (
+                validation := self.validate(
+                    item_input.value,
+                    int,
+                    item.get("min", None),
+                    item.get("max", None),
+                )
+            )[0]:
+                response += "\n" + MESSAGES["settings_updated_error"].format(
+                    item_input.label, item_input.value, validation[1]
+                )
+                continue
+            self.ctx.game.config[input_name] = item_input.value
+            response += "\n" + MESSAGES["settings_updated_success"].format(
+                item_input.label, item_input.value
+            )
+        await interaction.respond(response, ephemeral=True)
+
+    @staticmethod
+    def validate(value, required_type=None, min_value=None, max_value=None):
+        if required_type and not isinstance(value, required_type):
+            try:
+                value = required_type(value)
+            except ValueError:
+                return False, f"Must be a {required_type.__name__}."
+        if min_value and value < min_value:
+            return False, f"Must be at least {min_value}."
+        if max_value and value > max_value:
+            return False, f"Must be at most {max_value}."
+        return True, ""
 
 
 class HelpView(discord.ui.View):
