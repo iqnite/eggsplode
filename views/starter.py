@@ -246,6 +246,19 @@ class SettingsModal(discord.ui.Modal):
 
     @staticmethod
     def validate(value, required_type=None, min_value=None, max_value=None):
+        """
+        Validates the given value.
+
+        Args:
+            value: The value to validate.
+            required_type: The required type of the value.
+            min_value: The minimum value of the value.
+            max_value: The maximum value of the value.
+
+        Returns:
+            tuple: A boolean indicating if the value is valid and an error message
+        """
+
         if required_type and not isinstance(value, required_type):
             try:
                 value = required_type(value)
