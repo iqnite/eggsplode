@@ -246,7 +246,7 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
                 while self.games and self.admin_maintenance:
                     await asyncio.sleep(10)
                 if RESTART_CMD and self.admin_maintenance:
-                    print("RESTARING VIA ADMIN COMMAND")
+                    print("RESTARTING VIA ADMIN COMMAND")
                     os.system(RESTART_CMD)
             elif command == ADMIN_LISTGAMES_CODE:
                 await ctx.respond(
