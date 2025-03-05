@@ -122,7 +122,10 @@ class StartGameView(BaseView):
                 MESSAGES["not_game_creator_edit_settings"], ephemeral=True
             )
             return
-        await interaction.respond(view=SettingsView(self.ctx.copy()), ephemeral=True)
+        # await interaction.respond(view=SettingsView(self.ctx.copy()), ephemeral=True)
+        await interaction.response.send_modal(
+            SettingsModal(ctx=self.ctx, title="Advanced Settings")
+        )
 
     @discord.ui.button(label="Help", style=discord.ButtonStyle.grey, emoji="❓")
     async def help(self, _: discord.ui.Button, interaction: discord.Interaction):
