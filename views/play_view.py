@@ -211,7 +211,9 @@ class PlayView(BaseView):
             return
         await interaction.respond(
             MESSAGES["before_attegg"].format(
-                interaction.user.id, self.ctx.game.next_player_id
+                interaction.user.id,
+                self.ctx.game.next_player_id,
+                self.ctx.game.draw_in_turn + 2,
             ),
             view=NopeView(
                 ctx=self.ctx.copy(),
@@ -229,22 +231,16 @@ class PlayView(BaseView):
         """
         if not interaction.user:
             return
+        target_player_id = (
+            self.ctx.game.next_player_id
+            if self.ctx.game.draw_in_turn == 0
+            else interaction.user.id
+        )
         await interaction.respond(
-            MESSAGES["before_skip"].format(
-                interaction.user.id,
-                (
-                    self.ctx.game.next_player_id
-                    if self.ctx.game.draw_in_turn == 0
-                    else interaction.user.id
-                ),
-            ),
+            MESSAGES["before_skip"].format(interaction.user.id, target_player_id),
             view=NopeView(
                 ctx=self.ctx.copy(),
-                target_player_id=(
-                    self.ctx.game.next_player_id
-                    if self.ctx.game.draw_in_turn == 0
-                    else interaction.user.id
-                ),
+                target_player_id=target_player_id,
                 callback_action=lambda _: self.finalize_skip(interaction),
             ),
         )

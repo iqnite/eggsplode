@@ -230,7 +230,7 @@ async def show_help(ctx: discord.ApplicationContext):
         "It's my turn, but it says that it's not valid.",
         "I can't play or draw a card.",
         "A card is not working as expected.",
-        "I can't start a game, even if there are no other games in the current channel.",
+        "I can't start a game, even if there are no games running in the current channel.",
         "Something else (please describe).",
     ],
 )
