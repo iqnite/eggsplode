@@ -19,7 +19,7 @@ class Game:
         Initializes the game with the given players.
 
         Args:
-            players: A list of player IDs.
+            config: The initial configuration for the game.
         """
         self.config = config
         self.players: list[int] = list(config.get("players", []))
