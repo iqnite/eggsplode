@@ -197,6 +197,7 @@ class SettingsModal(discord.ui.Modal):
                 "input": discord.ui.InputText(
                     label="Eggsplode cards in deck",
                     placeholder=str(len(self.ctx.game.players) - 1),
+                    value=self.ctx.game.config.get("deck_eggsplode_cards", None),
                     required=False,
                 ),
                 "min": 1,
@@ -205,6 +206,7 @@ class SettingsModal(discord.ui.Modal):
                 "input": discord.ui.InputText(
                     label="Turn timer (in seconds; 40-600)",
                     placeholder="60",
+                    value=self.ctx.game.config.get("turn_timer", None),
                     required=False,
                 ),
                 "min": 40,
