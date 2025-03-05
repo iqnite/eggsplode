@@ -157,9 +157,8 @@ class PlayView(BaseView):
             case "gameover":
                 await interaction.respond(
                     MESSAGES["eggsploded"].format(interaction.user.id)
-                )
-                await interaction.respond(
-                    MESSAGES["game_over"].format(self.ctx.game.players[0])
+                    + "\n"
+                    + MESSAGES["game_over"].format(self.ctx.game.players[0])
                 )
                 self.on_game_over()
                 del self.ctx.games[self.ctx.game_id]
@@ -522,51 +521,43 @@ class TurnView(BaseView):
         turn_player: int = self.ctx.game.current_player_id
         card: str = self.ctx.game.draw_card(turn_player)
         caught = None
+        response = MESSAGES["timeout"]
+        match card:
+            case "defuse":
+                self.ctx.game.deck.insert(
+                    random.randint(0, len(self.ctx.game.deck)), "eggsplode"
+                )
+                response += MESSAGES["defused"].format(turn_player)
+            case "eggsplode":
+                response += MESSAGES["eggsploded"].format(turn_player)
+            case "gameover":
+                await self.parent_interaction.respond(
+                    MESSAGES["timeout"]
+                    + MESSAGES["eggsploded"].format(turn_player)
+                    + "\n"
+                    + MESSAGES["game_over"].format(self.ctx.game.players[0])
+                )
+                del self.ctx.games[self.ctx.game_id]
+                return
+            case _:
+                response += MESSAGES["user_drew_card"].format(turn_player)
+        response += "\n" + MESSAGES["next_turn"].format(self.ctx.game.current_player_id)
         for _ in range(5):
-            try:
-                match card:
-                    case "defuse":
-                        self.ctx.game.deck.insert(
-                            random.randint(0, len(self.ctx.game.deck)), "eggsplode"
-                        )
-                        await self.parent_interaction.respond(
-                            MESSAGES["timeout"]
-                            + MESSAGES["defused"].format(turn_player)
-                        )
-                    case "eggsplode":
-                        await self.parent_interaction.respond(
-                            MESSAGES["timeout"]
-                            + MESSAGES["eggsploded"].format(turn_player)
-                        )
-                    case "gameover":
-                        await self.parent_interaction.respond(
-                            MESSAGES["timeout"]
-                            + MESSAGES["eggsploded"].format(turn_player)
-                        )
-                        await self.parent_interaction.respond(
-                            MESSAGES["game_over"].format(self.ctx.game.players[0])
-                        )
-                        del self.ctx.games[self.ctx.game_id]
-                        return
-                    case _:
-                        await self.parent_interaction.respond(
-                            MESSAGES["timeout"]
-                            + MESSAGES["user_drew_card"].format(turn_player)
-                        )
-                async with TurnView(
-                    self.ctx.copy(),
-                    parent_interaction=self.parent_interaction,
-                    inactivity_count=self.inactivity_count + 1,
-                ) as view:
+            async with TurnView(
+                self.ctx.copy(),
+                parent_interaction=self.parent_interaction,
+                inactivity_count=self.inactivity_count + 1,
+            ) as view:
+                try:
                     await self.parent_interaction.respond(
-                        MESSAGES["next_turn"].format(self.ctx.game.current_player_id),
+                        response,
                         view=view,
                     )
-            except (discord.errors.NotFound, AttributeError) as e:
-                caught = e
-                continue
-            else:
-                break
+                except (discord.errors.NotFound, AttributeError) as e:
+                    caught = e
+                    continue
+                else:
+                    break
         else:
             if caught:
                 raise caught
