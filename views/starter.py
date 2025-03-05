@@ -26,6 +26,12 @@ class StartGameView(BaseView):
         """
         super().__init__(ctx, timeout=600)
 
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        if self.message is None:
+            del self.ctx.games[self.ctx.game_id]
+            self.on_timeout = super().on_timeout
+            self.disable_all_items()
+
     async def on_timeout(self):
         """
         Handles the timeout event by deleting the game from the context.

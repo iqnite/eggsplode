@@ -115,12 +115,13 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
                     "players": [ctx.interaction.user.id],
                 }
             )
-            await ctx.respond(
-                MESSAGES["start"].format(
-                    ctx.interaction.user.id, ctx.interaction.user.id
-                ),
-                view=StartGameView(ActionContext(app=self, game_id=game_id)),
-            )
+            async with StartGameView(ActionContext(app=self, game_id=game_id)) as view:
+                view.message = await ctx.respond(
+                    MESSAGES["start"].format(
+                        ctx.interaction.user.id, ctx.interaction.user.id
+                    ),
+                    view=view,
+                )
 
         @self.slash_command(
             name="hand",

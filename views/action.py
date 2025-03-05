@@ -520,7 +520,6 @@ class TurnView(BaseView):
             return
         turn_player: int = self.ctx.game.current_player_id
         card: str = self.ctx.game.draw_card(turn_player)
-        caught = None
         response = MESSAGES["timeout"]
         match card:
             case "defuse":
@@ -542,25 +541,12 @@ class TurnView(BaseView):
             case _:
                 response += MESSAGES["user_drew_card"].format(turn_player)
         response += "\n" + MESSAGES["next_turn"].format(self.ctx.game.current_player_id)
-        for _ in range(5):
-            async with TurnView(
-                self.ctx.copy(),
-                parent_interaction=self.parent_interaction,
-                inactivity_count=self.inactivity_count + 1,
-            ) as view:
-                try:
-                    await self.parent_interaction.respond(
-                        response,
-                        view=view,
-                    )
-                except (discord.errors.NotFound, AttributeError) as e:
-                    caught = e
-                    continue
-                else:
-                    break
-        else:
-            if caught:
-                raise caught
+        async with TurnView(
+            self.ctx.copy(),
+            parent_interaction=self.parent_interaction,
+            inactivity_count=self.inactivity_count + 1,
+        ) as view:
+            await self.parent_interaction.respond(response, view=view)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """
