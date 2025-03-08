@@ -46,16 +46,7 @@ class PlayView(BaseView):
         self.on_valid_interaction = on_valid_interaction
         self.end_turn = end_turn
         self.on_game_over = on_game_over
-
-    async def __aenter__(self):
-        """
-        Enter the context manager.
-
-        Returns:
-            PlayView: The PlayView object.
-        """
         self.create_card_selection()
-        return self
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """
@@ -266,8 +257,8 @@ class PlayView(BaseView):
         """
         if not interaction.user:
             return
-        next_cards = "".join(
-            MESSAGES["next_cards_list"].format(
+        next_cards = "\n".join(
+            MESSAGES["bold_list_item"].format(
                 CARDS[card]["emoji"], CARDS[card]["title"]
             )
             for card in self.ctx.game.deck[-1:-4:-1]
@@ -276,7 +267,7 @@ class PlayView(BaseView):
             MESSAGES["predicted"].format(interaction.user.id),
         )
         await interaction.respond(
-            MESSAGES["next_cards"].format(next_cards),
+            "\n".join((MESSAGES["next_cards"], next_cards)),
             ephemeral=True,
         )
 

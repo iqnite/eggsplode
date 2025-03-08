@@ -6,12 +6,14 @@ import os
 import json
 from dotenv import load_dotenv
 
-VERSION = "1.0-pre"
+VERSION = "1.1-pre"
 
 with open("messages.json", encoding="utf-8") as f:
     MESSAGES = json.load(f)
 with open("cardtypes.json", encoding="utf-8") as f:
     CARDS = json.load(f)
+with open("expansions.json", encoding="utf-8") as f:
+    EXPANSIONS = json.load(f)
 
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")

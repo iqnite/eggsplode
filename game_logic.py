@@ -38,19 +38,30 @@ class Game:
         self.last_activity = datetime.now()
         self.deck = []
         for card in CARDS:
-            self.deck += [card] * CARDS[card]["count"]
+            self.deck += (
+                [card]
+                * CARDS[card]["count"]
+                * (
+                    CARDS[card].get("expansion", "base")
+                    in self.config.get("expansions", []) + ["base"]
+                )
+            )
         self.deck = self.deck * (1 + len(self.players) // 5)
         random.shuffle(self.deck)
         self.hands = {
             player: ["defuse"] + [self.deck.pop() for _ in range(7)]
             for player in self.players
         }
+        self.deck += ["radioeggtive"] * (
+            "radioeggtive" in self.config.get("expansions", [])
+        )
         self.deck += ["eggsplode"] * int(
-            self.config.get("deck_eggsplode_cards", len(self.players) - 1)
+            self.config.get(
+                "deck_eggsplode_cards",
+                len(self.players) - 1,
+            )
         )
-        self.deck += ["defuse"] * int(
-            self.config.get("deck_defuse_cards", 0)
-        )
+        self.deck += ["defuse"] * int(self.config.get("deck_defuse_cards", 0))
         random.shuffle(self.deck)
 
     @property
