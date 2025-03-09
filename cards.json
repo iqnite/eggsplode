@@ -95,5 +95,13 @@
     "count": 0,
     "usable": false,
     "expansion": "radioeggtive"
+  },
+  "draw_from_bottom": {
+    "title": "Draw from the bottom",
+    "description": "End your turn by drawing from the bottom instead of the top.",
+    "emoji": "🔽",
+    "count": 4,
+    "usable": true,
+    "expansion": "radioeggtive" 
   }
 }

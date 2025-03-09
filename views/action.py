@@ -597,9 +597,35 @@ class PlayView(BaseView):
         self.ctx.game.next_turn()
         await self.end_turn(interaction)
 
+    async def draw_from_bottom(self, interaction: discord.Interaction):
+        """
+        Handle the 'draw from bottom' action.
+
+        Args:
+            interaction (discord.Interaction): The interaction that triggered the action.
+        """
+        if not interaction.user:
+            return
+        target_player_id = (
+            self.ctx.game.next_player_id
+            if self.ctx.game.draw_in_turn == 0
+            else interaction.user.id
+        )
+        await interaction.respond(
+            MESSAGES["before_draw_from_bottom"].format(
+                interaction.user.id, target_player_id
+            ),
+            view=NopeView(
+                ctx=self.ctx.copy(),
+                target_player_id=target_player_id,
+                callback_action=lambda _: self.draw_card(interaction, index=0),
+            ),
+        )
+
     CARD_ACTIONS = {
         "attegg": attegg,
         "skip": skip,
         "shuffle": shuffle,
         "predict": predict,
+        "draw_from_bottom": draw_from_bottom,
     }

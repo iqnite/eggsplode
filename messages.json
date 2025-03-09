@@ -3,6 +3,7 @@
   "already_in_game": "❌ You are already in the game!",
   "awaiting_prompt": "❌ There's a prompt waiting for response.",
   "before_attegg": "⚡ <@{}> wants to skip and force <@{}> to draw **{}** times. Accept?",
+  "before_draw_from_bottom": "⏬ <@{}> wants to draw from the bottom of the deck! Next up: <@{}>. Accept?",
   "before_skip": "⏩ <@{}> wants to skip their turn and not draw a card! Next up: <@{}>. Accept?",
   "before_steal": "{} <@{}> wants to steal a card from <@{}>! Accept?",
   "bold_list_item": "- **{} {}**",
