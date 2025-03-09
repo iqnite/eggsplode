@@ -170,7 +170,7 @@ class DefuseView(BaseView):
         self.on_timeout = super().on_timeout
         await self.finish()
 
-    @discord.ui.button(label="Top", style=discord.ButtonStyle.blurple, emoji="🔝")
+    @discord.ui.button(label="Top", style=discord.ButtonStyle.blurple, emoji="⏫")
     async def top(self, _: discord.ui.Button, interaction: discord.Interaction):
         """
         Handles the top button click event.
@@ -212,7 +212,7 @@ class DefuseView(BaseView):
             self.eggsplode_position = len(self.ctx.game.deck)
         await self.update_view(interaction)
 
-    @discord.ui.button(label="Bottom", style=discord.ButtonStyle.blurple, emoji="🔚")
+    @discord.ui.button(label="Bottom", style=discord.ButtonStyle.blurple, emoji="⏬")
     async def bottom(self, _: discord.ui.Button, interaction: discord.Interaction):
         """
         Handles the bottom button click event.
