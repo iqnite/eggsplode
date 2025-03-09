@@ -123,10 +123,15 @@ class DefuseView(BaseView):
     Attributes:
         ctx (ActionContext): The context of the current action.
         callback_action (callable): The function to execute after finishing the interaction.
-        eggsplode_position (int): The position of the "eggsplode" card in the deck.
+        card_position (int): The position of the card in the deck.
     """
 
-    def __init__(self, ctx: ActionContext, callback_action: Callable[[], Coroutine]):
+    def __init__(
+        self,
+        ctx: ActionContext,
+        callback_action: Callable[[], Coroutine],
+        card: str = "eggsplode",
+    ):
         """
         Initializes the DefuseView with the given context and callback action.
 
@@ -137,13 +142,14 @@ class DefuseView(BaseView):
         super().__init__(ctx, timeout=10)
         self.ctx.game.awaiting_prompt = True
         self.callback_action = callback_action
-        self.eggsplode_position = 0
+        self.card = card
+        self.card_position = 0
 
     async def finish(self):
         """
-        Inserts the "eggsplode" card back into the deck and disables all interaction items.
+        Inserts a card back into the deck and disables all interaction items.
         """
-        self.ctx.game.deck.insert(self.eggsplode_position, "eggsplode")
+        self.ctx.game.deck.insert(self.card_position, self.card)
         self.ctx.game.awaiting_prompt = False
         await self.callback_action()
 
@@ -179,7 +185,7 @@ class DefuseView(BaseView):
             _ (discord.ui.Button): The button that was clicked.
             interaction (discord.Interaction): The interaction object.
         """
-        self.eggsplode_position = len(self.ctx.game.deck)
+        self.card_position = len(self.ctx.game.deck)
         await self.update_view(interaction)
 
     @discord.ui.button(label="Move up", style=discord.ButtonStyle.blurple, emoji="⬆️")
@@ -191,10 +197,10 @@ class DefuseView(BaseView):
             _ (discord.ui.Button): The button that was clicked.
             interaction (discord.Interaction): The interaction object.
         """
-        if self.eggsplode_position < len(self.ctx.game.deck):
-            self.eggsplode_position += 1
+        if self.card_position < len(self.ctx.game.deck):
+            self.card_position += 1
         else:
-            self.eggsplode_position = 0
+            self.card_position = 0
         await self.update_view(interaction)
 
     @discord.ui.button(label="Move down", style=discord.ButtonStyle.blurple, emoji="⬇️")
@@ -206,10 +212,10 @@ class DefuseView(BaseView):
             _ (discord.ui.Button): The button that was clicked.
             interaction (discord.Interaction): The interaction object.
         """
-        if self.eggsplode_position > 0:
-            self.eggsplode_position -= 1
+        if self.card_position > 0:
+            self.card_position -= 1
         else:
-            self.eggsplode_position = len(self.ctx.game.deck)
+            self.card_position = len(self.ctx.game.deck)
         await self.update_view(interaction)
 
     @discord.ui.button(label="Bottom", style=discord.ButtonStyle.blurple, emoji="⏬")
@@ -221,7 +227,7 @@ class DefuseView(BaseView):
             _ (discord.ui.Button): The button that was clicked.
             interaction (discord.Interaction): The interaction object.
         """
-        self.eggsplode_position = 0
+        self.card_position = 0
         await self.update_view(interaction)
 
     async def update_view(self, interaction: discord.Interaction):
@@ -233,7 +239,7 @@ class DefuseView(BaseView):
         """
         await interaction.edit(
             content=MESSAGES["defuse_prompt"].format(
-                self.eggsplode_position,
+                self.card_position,
                 len(self.ctx.game.deck),
                 "\n".join(
                     MESSAGES["players_list_item"].format(player)
