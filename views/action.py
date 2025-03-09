@@ -111,18 +111,19 @@ class PlayView(BaseView):
         """Callback for the draw button."""
         await self.draw_card(interaction)
 
-    async def draw_card(self, interaction: discord.Interaction):
+    async def draw_card(self, interaction: discord.Interaction, index=-1):
         """
         Draw a card from the deck.
 
         Args:
             interaction (discord.Interaction): The interaction that triggered the draw.
+            index (int): The index of the card to draw.
         """
         if not interaction.user:
             return
         self.disable_all_items()
         await interaction.edit(view=self)
-        card: str = self.ctx.game.draw_card(interaction.user.id)
+        card: str = self.ctx.game.draw_card(interaction.user.id, index)
         match card:
             case "defuse":
                 await interaction.respond(

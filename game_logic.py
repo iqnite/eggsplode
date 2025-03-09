@@ -144,7 +144,7 @@ class Game:
             result[card] = player_cards.count(card)
         return result
 
-    def draw_card(self, user_id: int) -> str:
+    def draw_card(self, user_id: int, index: int = -1) -> str:
         """
         Draws a card for the specified player.
 
@@ -154,7 +154,7 @@ class Game:
         Returns:
             str: The drawn card.
         """
-        card = self.deck.pop()
+        card = self.deck.pop(index)
         if card == "eggsplode":
             if "defuse" in self.hands[user_id]:
                 self.hands[user_id].remove("defuse")
