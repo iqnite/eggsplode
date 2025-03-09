@@ -10,7 +10,7 @@ VERSION = "1.1-pre"
 
 with open("messages.json", encoding="utf-8") as f:
     MESSAGES = json.load(f)
-with open("cardtypes.json", encoding="utf-8") as f:
+with open("cards.json", encoding="utf-8") as f:
     CARDS = json.load(f)
 with open("expansions.json", encoding="utf-8") as f:
     EXPANSIONS = json.load(f)
