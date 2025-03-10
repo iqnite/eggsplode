@@ -205,7 +205,6 @@ class PlayView(BaseView):
         else:
             self.ctx.game.current_player_hand.remove(selected)
             await self.CARD_ACTIONS[selected](self, interaction)
-        self.remove_item(self.play_card_select)
         self.create_card_selection()
         await interaction.edit(
             content=self.create_play_prompt_message(interaction.user.id),
