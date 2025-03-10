@@ -239,10 +239,26 @@ class PlayView(BaseView):
         Returns:
             str: The formatted message to be displayed.
         """
+        radioeggtive_countdown = self.ctx.game.card_comes_in("radioeggtive_face_up")
         return MESSAGES["play_prompt"].format(
             self.ctx.game.cards_help(user_id, template=MESSAGES["hand_list"]),
             len(self.ctx.game.deck),
             self.ctx.game.deck.count("eggsplode"),
+        ) + (
+            "\n"
+            + (
+                MESSAGES["play_prompt_radioeggtive"].format(radioeggtive_countdown)
+                if radioeggtive_countdown > 1
+                else (
+                    MESSAGES["play_prompt_radioeggtive_next"]
+                    if radioeggtive_countdown == 1
+                    else (
+                        MESSAGES["play_prompt_radioeggtive_now"]
+                        if radioeggtive_countdown == 0
+                        else ""
+                    )
+                )
+            )
         )
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:

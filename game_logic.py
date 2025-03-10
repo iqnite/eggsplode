@@ -202,6 +202,21 @@ class Game:
         eligible_players.remove(self.current_player_id)
         return any(self.hands[player] for player in eligible_players)
 
+    def card_comes_in(self, card):
+        """
+        Shows the remaining turns until a card is drawn.
+
+        Args:
+            card (str): The card to be drawn
+
+        Returns:
+            int: The number of turns until the card is drawn, or -1 if the card is not in the deck
+        """
+        for i in range(len(self.deck) - 1, 0, -1):
+            if self.deck[i] == card:
+                return len(self.deck) - 1 - i
+        return -1
+
     def cards_help(self, user_id: int, template: str = "") -> str:
         """
         Provides help information for the cards in a player's hand.
