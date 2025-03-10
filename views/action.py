@@ -46,16 +46,23 @@ class PlayView(BaseView):
         self.on_valid_interaction = on_valid_interaction
         self.end_turn = end_turn
         self.on_game_over = on_game_over
+        self.create_card_selection()
 
-    async def __aenter__(self):
+    def create_play_prompt_message(self, user_id: int) -> str:
         """
-        Enter the context manager.
+        Generates the default message to be displayed to the user.
+
+        Args:
+            user_id (int): The ID of the user.
 
         Returns:
-            PlayView: The PlayView object.
+            str: The formatted message to be displayed.
         """
-        self.create_card_selection()
-        return self
+        return MESSAGES["play_prompt"].format(
+            self.ctx.game.cards_help(user_id, template=MESSAGES["hand_list"]),
+            len(self.ctx.game.deck),
+            self.ctx.game.deck.count("eggsplode"),
+        )
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """
@@ -86,7 +93,9 @@ class PlayView(BaseView):
         return True
 
     def create_card_selection(self):
-        """Create the card selection menu."""
+        """
+        Create the card selection menu.
+        """
         if self.play_card_select:
             self.remove_item(self.play_card_select)
         user_cards: dict = self.ctx.game.group_hand(
@@ -117,7 +126,9 @@ class PlayView(BaseView):
     async def draw_callback(
         self, _: discord.ui.Button, interaction: discord.Interaction
     ):
-        """Callback for the draw button."""
+        """
+        Callback for the draw button.
+        """
         await self.draw_card(interaction)
 
     async def draw_card(self, interaction: discord.Interaction):
@@ -196,7 +207,10 @@ class PlayView(BaseView):
             await self.CARD_ACTIONS[selected](self, interaction)
         self.remove_item(self.play_card_select)
         self.create_card_selection()
-        await interaction.edit(view=self)
+        await interaction.edit(
+            content=self.create_play_prompt_message(interaction.user.id),
+            view=self,
+        )
 
     async def attegg(self, interaction: discord.Interaction):
         """
@@ -293,12 +307,9 @@ class PlayView(BaseView):
         if not self.ctx.game.any_player_has_cards():
             await interaction.respond(MESSAGES["no_players_have_cards"])
         else:
+            assert self.ctx.game.current_player_hand.count(selected) >= 2
             self.ctx.game.current_player_hand.remove(selected)
             self.ctx.game.current_player_hand.remove(selected)
-            await interaction.edit(
-                content=self.default_message(interaction.user.id),
-                view=self,
-            )
             async with ChoosePlayerView(
                 self.ctx.copy(),
                 lambda target_player_id: self.begin_steal(
@@ -358,7 +369,7 @@ class PlayView(BaseView):
             self.ctx.game.current_player_hand.append(stolen_card)
             self.create_card_selection()
             await interaction.edit(
-                content=self.default_message(interaction.user.id),
+                content=self.create_play_prompt_message(interaction.user.id),
                 view=self,
             )
             await interaction.respond(
@@ -594,7 +605,7 @@ class TurnView(BaseView):
             on_game_over=self.deactivate,
         ) as view:
             await interaction.respond(
-                self.default_message(interaction.user.id),
+                view.create_play_prompt_message(interaction.user.id),
                 view=view,
                 ephemeral=True,
             )
