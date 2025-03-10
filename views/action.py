@@ -111,6 +111,13 @@ class TurnView(BaseView):
                 )
                 del self.ctx.games[self.ctx.game_id]
                 return
+            case "radioeggtive":
+                self.ctx.game.deck.insert(
+                    random.randint(0, len(self.ctx.game.deck)), "radioeggtive_face_up"
+                )
+                response += MESSAGES["radioeggtive"].format(turn_player)
+            case "radioeggtive_face_up":
+                response += MESSAGES["radioeggtive_face_up"].format(turn_player)
             case _:
                 response += MESSAGES["user_drew_card"].format(turn_player)
         response += "\n" + MESSAGES["next_turn"].format(self.ctx.game.current_player_id)
@@ -300,21 +307,16 @@ class PlayView(BaseView):
         card: str = self.ctx.game.draw_card(interaction.user.id, index)
         match card:
             case "defuse":
-                await interaction.respond(
-                    MESSAGES["defuse_prompt"].format(
-                        0,
-                        len(self.ctx.game.deck),
-                        "\n".join(
-                            MESSAGES["players_list_item"].format(player)
-                            for player in self.ctx.game.players
-                        ),
-                    ),
-                    view=DefuseView(
-                        self.ctx.copy(),
-                        lambda: self.finalize_defuse(interaction),
-                    ),
-                    ephemeral=True,
-                )
+                async with DefuseView(
+                    self.ctx.copy(),
+                    lambda: self.finalize_defuse(interaction),
+                    card="eggsplode",
+                ) as view:
+                    await interaction.respond(
+                        view.generate_move_prompt(),
+                        view=view,
+                        ephemeral=True,
+                    )
                 return
             case "eggsplode":
                 await interaction.respond(
@@ -329,6 +331,23 @@ class PlayView(BaseView):
                 self.on_game_over()
                 del self.ctx.games[self.ctx.game_id]
                 return
+            case "radioeggtive":
+                async with DefuseView(
+                    self.ctx.copy(),
+                    lambda: self.finalize_radioeggtive(interaction),
+                    card="radioeggtive_face_up",
+                    prev_card="radioeggtive",
+                ) as view:
+                    await interaction.respond(
+                        view.generate_move_prompt(),
+                        view=view,
+                        ephemeral=True,
+                    )
+                return
+            case "radioeggtive_face_up":
+                await interaction.respond(
+                    MESSAGES["radioeggtive_face_up"].format(interaction.user.id)
+                )
             case _:
                 await interaction.respond(
                     MESSAGES["user_drew_card"].format(interaction.user.id)
@@ -564,6 +583,18 @@ class PlayView(BaseView):
         if not interaction.user:
             raise TypeError("interaction.user is None")
         await interaction.respond(MESSAGES["defused"].format(interaction.user.id))
+        await self.end_turn(interaction)
+
+    async def finalize_radioeggtive(self, interaction: discord.Interaction):
+        """
+        Finalize the 'radioeggtive' action.
+
+        Args:
+            interaction (discord.Interaction): The interaction that triggered the action.
+        """
+        if not interaction.user:
+            raise TypeError("interaction.user is None")
+        await interaction.respond(MESSAGES["radioeggtive"].format(interaction.user.id))
         await self.end_turn(interaction)
 
     async def finalize_attegg(self, interaction: discord.Interaction):

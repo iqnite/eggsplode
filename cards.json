@@ -2,7 +2,7 @@
   "eggsplode": {
     "title": "Eggsplode",
     "description": "If you draw this card and don't have a Defuse, you lose the game.",
-    "emoji": "💥",
+    "emoji": "💣",
     "count": 0,
     "usable": false
   },
@@ -90,8 +90,16 @@
   },
   "radioeggtive": {
     "title": "Radioeggtive",
-    "description": "If you draw this card face down, put it back into the deck face up. If you draw it face up, you lose the game.",
+    "description": "Put this card back into the deck face up.",
     "emoji": "☢️",
+    "count": 0,
+    "usable": false,
+    "expansion": "radioeggtive"
+  },
+  "radioeggtive_face_up": {
+    "title": "Radioeggtive (Face up)!",
+    "description": "You lose the game. No escape.",
+    "emoji": "💥",
     "count": 0,
     "usable": false,
     "expansion": "radioeggtive"

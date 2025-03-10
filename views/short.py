@@ -4,7 +4,7 @@ Contains the views for the short interactions in the game, such as "Nope" and "D
 
 from collections.abc import Callable, Coroutine
 import discord
-from strings import MESSAGES
+from strings import CARDS, MESSAGES
 from game_logic import ActionContext
 from .base import BaseView
 
@@ -130,7 +130,8 @@ class DefuseView(BaseView):
         self,
         ctx: ActionContext,
         callback_action: Callable[[], Coroutine],
-        card: str = "eggsplode",
+        card="eggsplode",
+        prev_card=None,
     ):
         """
         Initializes the DefuseView with the given context and callback action.
@@ -143,7 +144,9 @@ class DefuseView(BaseView):
         self.ctx.game.awaiting_prompt = True
         self.callback_action = callback_action
         self.card = card
+        self.prev_card = prev_card if prev_card else card
         self.card_position = 0
+        self.generate_move_prompt()
 
     async def finish(self):
         """
@@ -238,15 +241,19 @@ class DefuseView(BaseView):
             interaction (discord.Interaction): The interaction object.
         """
         await interaction.edit(
-            content=MESSAGES["defuse_prompt"].format(
-                self.card_position,
-                len(self.ctx.game.deck),
-                "\n".join(
-                    MESSAGES["players_list_item"].format(player)
-                    for player in self.ctx.game.players
-                ),
-            ),
+            content=self.generate_move_prompt(),
             view=self,
+        )
+
+    def generate_move_prompt(self):
+        return MESSAGES["move_prompt"].format(
+            CARDS[self.prev_card]["title"],
+            self.card_position,
+            len(self.ctx.game.deck),
+            "\n".join(
+                MESSAGES["players_list_item"].format(player)
+                for player in self.ctx.game.players
+            ),
         )
 
 
