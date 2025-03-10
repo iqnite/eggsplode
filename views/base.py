@@ -3,7 +3,6 @@ Contains the BaseView class which is used to create a Discord UI view for the ga
 """
 
 import discord
-from strings import MESSAGES
 from game_logic import ActionContext
 
 
@@ -41,19 +40,3 @@ class BaseView(discord.ui.View):
             exc_value: The instance of the exception that was raised
             traceback: The traceback of the exception
         """
-
-    def default_message(self, user_id: int) -> str:
-        """
-        Generates the default message to be displayed to the user.
-
-        Args:
-            user_id (int): The ID of the user.
-
-        Returns:
-            str: The formatted message to be displayed.
-        """
-        return MESSAGES["play_prompt"].format(
-            self.ctx.game.cards_help(user_id, template=MESSAGES["hand_list"]),
-            len(self.ctx.game.deck),
-            self.ctx.game.deck.count("eggsplode"),
-        )
