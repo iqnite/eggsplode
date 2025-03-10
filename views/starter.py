@@ -3,7 +3,7 @@ Contains the StartGameView class which handles the start game view in the Discor
 """
 
 import discord
-from strings import MESSAGES
+from strings import EXPANSIONS, MESSAGES
 from game_logic import ActionContext
 from .base import BaseView
 from .action import TurnView
@@ -27,6 +27,9 @@ class StartGameView(BaseView):
         super().__init__(ctx, timeout=600)
 
     async def __aexit__(self, exc_type, exc_value, traceback):
+        """
+        Exits the context manager.
+        """
         if self.message is None:
             del self.ctx.games[self.ctx.game_id]
             self.on_timeout = super().on_timeout
@@ -72,13 +75,42 @@ class StartGameView(BaseView):
             )
             return
         self.ctx.game.players.append(interaction.user.id)
-        if not (interaction.message and interaction.message.content):
-            return
         await interaction.edit(
-            content=interaction.message.content
-            + "\n"
-            + MESSAGES["players_list_item"].format(interaction.user.id),
+            content=self.generate_game_start_message(),
             view=self,
+        )
+
+    def generate_game_start_message(self):
+        """
+        Generates the game start message.
+        """
+        return "\n".join(
+            (
+                MESSAGES["start"].format(self.ctx.game.players[0]),
+                MESSAGES["players"],
+                *(
+                    MESSAGES["players_list_item"].format(player)
+                    for player in self.ctx.game.players
+                ),
+                *(
+                    (
+                        (
+                            MESSAGES["expansions"],
+                            *(
+                                MESSAGES["bold_list_item"].format(
+                                    EXPANSIONS[expansion]["emoji"],
+                                    EXPANSIONS[expansion]["name"],
+                                )
+                                for expansion in self.ctx.game.config.get(
+                                    "expansions", []
+                                )
+                            ),
+                        )
+                    )
+                    if self.ctx.game.config.get("expansions", [])
+                    else ()
+                ),
+            )
         )
 
     @discord.ui.button(label="Start Game", style=discord.ButtonStyle.green, emoji="🚀")
@@ -128,9 +160,8 @@ class StartGameView(BaseView):
                 MESSAGES["not_game_creator_edit_settings"], ephemeral=True
             )
             return
-        # await interaction.respond(view=SettingsView(self.ctx.copy()), ephemeral=True)
-        await interaction.response.send_modal(
-            SettingsModal(ctx=self.ctx, title="Advanced Settings")
+        await interaction.respond(
+            view=SettingsView(self.ctx.copy(), self), ephemeral=True
         )
 
     @discord.ui.button(label="Help", style=discord.ButtonStyle.grey, emoji="❓")
@@ -152,28 +183,48 @@ class SettingsView(BaseView):
     A view for the settings command in the game.
     """
 
-    def __init__(self, ctx: ActionContext):
+    def __init__(
+        self,
+        ctx: ActionContext,
+        parent_view: StartGameView,
+    ):
         """
         Initializes the SettingsView.
         """
         super().__init__(ctx)
+        self.parent_view = parent_view
+        self.expansion_select = discord.ui.Select(
+            options=[
+                discord.SelectOption(
+                    value=name,
+                    label=expansion["name"],
+                    emoji=expansion["emoji"],
+                    default=name in self.ctx.game.config.get("expansions", []),
+                )
+                for name, expansion in EXPANSIONS.items()
+            ],
+            placeholder="Eggspansions",
+            min_values=0,
+            max_values=len(EXPANSIONS),
+        )
+        self.expansion_select.callback = self.expansion_callback
+        self.add_item(self.expansion_select)
 
-    # @discord.ui.select(
-    #     options=[],
-    #     placeholder="Eggspansions",
-    # )
-    async def expansion_callback(
-        self, select: discord.ui.Select, interaction: discord.Interaction
-    ):
+    async def expansion_callback(self, interaction: discord.Interaction):
         """
-        Handles the eggspansion select interaction.
+        Handles the expansion select interaction.
 
         Args:
             select (discord.ui.Select): The select interaction.
             interaction (discord.Interaction): The interaction object.
         """
-        self.ctx.game.config["expansions"] = select.values
-        await interaction.edit(view=self)
+        self.ctx.game.config["expansions"] = self.expansion_select.values
+        await interaction.respond(MESSAGES["expansions_updated"], ephemeral=True)
+        assert self.parent_view.message
+        await self.parent_view.message.edit(
+            content=self.parent_view.generate_game_start_message(),
+            view=self.parent_view,
+        )
 
     @discord.ui.button(
         label="Advanced Settings", style=discord.ButtonStyle.grey, emoji="⚙️"

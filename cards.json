@@ -1,8 +1,8 @@
 {
   "eggsplode": {
     "title": "Eggsplode",
-    "description": "If you draw this card and don't have an Defuse, you lose the game.",
-    "emoji": "💥",
+    "description": "If you draw this card and don't have a Defuse, you lose the game.",
+    "emoji": "💣",
     "count": 0,
     "usable": false
   },
@@ -87,5 +87,29 @@
     "count": 4,
     "usable": true,
     "combo": 1
+  },
+  "radioeggtive": {
+    "title": "Radioeggtive",
+    "description": "Put this card back into the deck face up.",
+    "emoji": "☢️",
+    "count": 0,
+    "usable": false,
+    "expansion": "radioeggtive"
+  },
+  "radioeggtive_face_up": {
+    "title": "Radioeggtive (Face up)!",
+    "description": "You lose the game. No escape.",
+    "emoji": "💥",
+    "count": 0,
+    "usable": false,
+    "expansion": "radioeggtive"
+  },
+  "draw_from_bottom": {
+    "title": "Draw from the bottom",
+    "description": "End your turn by drawing from the bottom instead of the top.",
+    "emoji": "🔽",
+    "count": 4,
+    "usable": true,
+    "expansion": "radioeggtive" 
   }
 }

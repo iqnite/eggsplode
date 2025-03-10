@@ -38,19 +38,30 @@ class Game:
         self.last_activity = datetime.now()
         self.deck = []
         for card in CARDS:
-            self.deck += [card] * CARDS[card]["count"]
+            self.deck += (
+                [card]
+                * CARDS[card]["count"]
+                * (
+                    CARDS[card].get("expansion", "base")
+                    in self.config.get("expansions", []) + ["base"]
+                )
+            )
         self.deck = self.deck * (1 + len(self.players) // 5)
         random.shuffle(self.deck)
         self.hands = {
             player: ["defuse"] + [self.deck.pop() for _ in range(7)]
             for player in self.players
         }
+        self.deck += ["radioeggtive"] * (
+            "radioeggtive" in self.config.get("expansions", [])
+        )
         self.deck += ["eggsplode"] * int(
-            self.config.get("deck_eggsplode_cards", len(self.players) - 1)
+            self.config.get(
+                "deck_eggsplode_cards",
+                len(self.players) - 1,
+            )
         )
-        self.deck += ["defuse"] * int(
-            self.config.get("deck_defuse_cards", 0)
-        )
+        self.deck += ["defuse"] * int(self.config.get("deck_defuse_cards", 0))
         random.shuffle(self.deck)
 
     @property
@@ -133,7 +144,7 @@ class Game:
             result[card] = player_cards.count(card)
         return result
 
-    def draw_card(self, user_id: int) -> str:
+    def draw_card(self, user_id: int, index: int = -1) -> str:
         """
         Draws a card for the specified player.
 
@@ -143,7 +154,7 @@ class Game:
         Returns:
             str: The drawn card.
         """
-        card = self.deck.pop()
+        card = self.deck.pop(index)
         if card == "eggsplode":
             if "defuse" in self.hands[user_id]:
                 self.hands[user_id].remove("defuse")
@@ -154,6 +165,15 @@ class Game:
             if len(self.players) == 1:
                 return "gameover"
             return "eggsplode"
+        elif card == "radioeggtive":
+            self.next_turn()
+            return "radioeggtive"
+        elif card == "radioeggtive_face_up":
+            self.remove_player(user_id)
+            self.draw_in_turn = 0
+            if len(self.players) == 1:
+                return "gameover"
+            return "radioeggtive_face_up"
         self.hands[user_id].append(card)
         self.next_turn()
         return card
@@ -181,6 +201,21 @@ class Game:
         eligible_players = self.players.copy()
         eligible_players.remove(self.current_player_id)
         return any(self.hands[player] for player in eligible_players)
+
+    def card_comes_in(self, card):
+        """
+        Shows the remaining turns until a card is drawn.
+
+        Args:
+            card (str): The card to be drawn
+
+        Returns:
+            int: The number of turns until the card is drawn, or -1 if the card is not in the deck
+        """
+        for i in range(len(self.deck) - 1, 0, -1):
+            if self.deck[i] == card:
+                return len(self.deck) - 1 - i
+        return -1
 
     def cards_help(self, user_id: int, template: str = "") -> str:
         """
