@@ -21,48 +21,53 @@ Play items, betray your friends, and be the last one to survive in this action-p
 
 ## Installing (Test version)
 
-1. Set up a bot on the [Discord Dev Portal](https://discord.dev) and copy its Bot Token (can be found on the *Bot* page); Optionally, you can invite it to a Discord server to test it
+### 1. Bot Setup
 
-2. Clone the GitHub repo:
-```
+First, we need to create a Bot on Discord's side.
+
+1. On the [Discord Dev Portal](https://discord.com/developers/applications), click on *New Application*. Customize the title, icon, description, etc.
+2. In the *Installation* page, select `application.commands` in both *User Install* and *Guild Install*. Also select `bot` in *Guild Install*. Under *Permissions*, select the following:
+    - Send Messages
+    - Send Messages in Threads
+    - Attach Files
+    - Embed Links
+3. Under *Install Link*, make sure *Discord Provided Link* is selected. Copy the install link and open it to install your bot. For now, you should only install it to a test server.
+4. In the *Bot* page, click on *Reset Token*. Copy the new token (we'll need it later).
+
+### 2. Project Setup
+
+Clone the Git repo and go to the folder you cloned the repo into.
+
+I strongly recommend to look into Git and version control before contributing to Eggsplode, as it's knowledge that you'll often need. There are easy-to-understand tutorials about Git on YouTube, which is why I will not explain it here.
+
+```bash
 git clone https://github.com/iqnite/eggsplode
-```
-
-3. Go to the folder you cloned the repo into:
-```
 cd eggsplode
 ```
 
-4. (Optional) Create a virtual environment:
-```
-python -m venv .venv
-```
+Remember that Bot Token you copied earlier? We need it now. If you don't have it anymore, simply repeat step 4 in the [Bot Setup](#1-bot-setup) section.
 
-5. (Optional) Activate the venv:
+1. Copy the `.env.example` file and rename it to `.env`.
+2. Open the new `.env` file in a text editor and replace `YOUR_BOT_TOKEN` with... your Bot Token
+3. Save the file and close the text editor
 
-**Windows:**
-```
-.venv\Scripts\activate.bat
-```
+### 3. Installation
 
-**Linux/macOS:**
-```
-source .venv/bin/activate
-```
+Time to install the dependencies!
 
-6. Install the dependencies:
-```
-python -m pip install --upgrade pip
+Although it is best practice to create a virtual environment, it is not strictly necessary. If your operating system enforces it, please google "python virtual environment" and go by a tutorial.
+
+Python's package manager (pip) will automatically detect the required libraries if you run the following commands.
+
+```bash
+python3 -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
   
-7. Copy the `.env.example` file and rename it to `.env`
+### 4. Start the bot
 
-8. Open the `.env` file in a text editor and replace `YOUR_BOT_TOKEN` with the token you copied earlier
+You're all set! Now you can start the bot and it should appear online on your test server!
 
-9. Finally, start the bot by running the `app.py` file:
-```
-python app.py
-```
+*If you don't know how to start a Python program, you **really** shouldn't be contributing to Eggsplode. 😊*
 
-That's it! Your bot should now be online.
+Note that your bot will go offline as soon as the Python program stops. For information on how to host a Discord bot, check out [this page](https://guide.pycord.dev/getting-started/hosting-your-bot).
