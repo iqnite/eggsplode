@@ -71,10 +71,15 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
             ctx (discord.ApplicationContext): The context of the command.
         """
         await ctx.respond(
-            "\n".join(MESSAGES["help"]).format(
-                self.latency * 1000,
-                VERSION,
-                MESSAGES["maintenance"] if self.admin_maintenance else "",
+            "\n".join(
+                (
+                    *MESSAGES["help"][0],
+                    MESSAGES["status"].format(
+                        self.latency * 1000,
+                        VERSION,
+                        MESSAGES["maintenance"] if self.admin_maintenance else "",
+                    ),
+                )
             ),
             view=HelpView(),
             ephemeral=ephemeral,
