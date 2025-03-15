@@ -10,7 +10,7 @@ VERSION = "1.0-pre.1"
 
 with open("messages.json", encoding="utf-8") as f:
     MESSAGES = json.load(f)
-with open("cardtypes.json", encoding="utf-8") as f:
+with open("cards.json", encoding="utf-8") as f:
     CARDS = json.load(f)
 
 load_dotenv()
