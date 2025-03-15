@@ -286,6 +286,8 @@ class PlayView(BaseView):
             return False
         self.ctx.game.action_id += 1
         self.ctx.action_id += 1
+        for view in self.ctx.game.active_nope_views:
+            view.finish()
         self.on_valid_interaction(interaction)
         return True
 
@@ -430,18 +432,19 @@ class PlayView(BaseView):
         """
         if not interaction.user:
             return
-        await interaction.respond(
-            MESSAGES["before_attegg"].format(
-                interaction.user.id,
-                self.ctx.game.next_player_id,
-                self.ctx.game.draw_in_turn + 2,
-            ),
-            view=BlockingNopeView(
-                ctx=self.ctx.copy(),
-                target_player_id=self.ctx.game.next_player_id,
-                ok_callback_action=lambda _: self.attegg_finish(interaction),
-            ),
-        )
+        async with BlockingNopeView(
+            ctx=self.ctx.copy(),
+            target_player_id=self.ctx.game.next_player_id,
+            ok_callback_action=lambda _: self.attegg_finish(interaction),
+        ) as view:
+            await interaction.respond(
+                MESSAGES["before_attegg"].format(
+                    interaction.user.id,
+                    self.ctx.game.next_player_id,
+                    self.ctx.game.draw_in_turn + 2,
+                ),
+                view=view,
+            )
 
     async def skip(self, interaction: discord.Interaction):
         """
@@ -457,14 +460,15 @@ class PlayView(BaseView):
             if self.ctx.game.draw_in_turn == 0
             else interaction.user.id
         )
-        await interaction.respond(
-            MESSAGES["before_skip"].format(interaction.user.id, target_player_id),
-            view=BlockingNopeView(
-                ctx=self.ctx.copy(),
-                target_player_id=target_player_id,
-                ok_callback_action=lambda _: self.skip_finish(interaction),
-            ),
-        )
+        async with BlockingNopeView(
+            ctx=self.ctx.copy(),
+            target_player_id=target_player_id,
+            ok_callback_action=lambda _: self.skip_finish(interaction),
+        ) as view:
+            await interaction.respond(
+                MESSAGES["before_skip"].format(interaction.user.id, target_player_id),
+                view=view,
+            )
 
     async def shuffle(self, interaction: discord.Interaction):
         """
@@ -477,13 +481,14 @@ class PlayView(BaseView):
         random.shuffle(self.ctx.game.deck)
         if not interaction.user:
             return
-        await interaction.respond(
-            MESSAGES["shuffled"].format(interaction.user.id),
-            view=NopeView(
-                ctx=self.ctx.copy(),
-                nope_callback_action=lambda: self.undo_shuffle(prev_deck),
-            ),
-        )
+        async with NopeView(
+            ctx=self.ctx.copy(),
+            nope_callback_action=lambda: self.undo_shuffle(prev_deck),
+        ) as view:
+            await interaction.respond(
+                MESSAGES["shuffled"].format(interaction.user.id),
+                view=view,
+            )
 
     def undo_shuffle(self, prev_deck):
         """
@@ -553,18 +558,19 @@ class PlayView(BaseView):
         """
         if not interaction.user:
             return
-        await interaction.respond(
-            MESSAGES["before_steal"].format(
-                CARDS[food_card]["emoji"], interaction.user.id, target_player_id
+        async with BlockingNopeView(
+            ctx=self.ctx.copy(),
+            target_player_id=target_player_id,
+            ok_callback_action=lambda target_interaction: self.food_combo_finish(
+                interaction, target_interaction, target_player_id
             ),
-            view=BlockingNopeView(
-                ctx=self.ctx.copy(),
-                target_player_id=target_player_id,
-                ok_callback_action=lambda target_interaction: self.food_combo_finish(
-                    interaction, target_interaction, target_player_id
+        ) as view:
+            await interaction.respond(
+                MESSAGES["before_steal"].format(
+                    CARDS[food_card]["emoji"], interaction.user.id, target_player_id
                 ),
-            ),
-        )
+                view=view,
+            )
 
     async def food_combo_finish(
         self,
@@ -692,16 +698,17 @@ class PlayView(BaseView):
             if self.ctx.game.draw_in_turn == 0
             else interaction.user.id
         )
-        await interaction.respond(
-            MESSAGES["before_draw_from_bottom"].format(
-                interaction.user.id, target_player_id
-            ),
-            view=BlockingNopeView(
-                ctx=self.ctx.copy(),
-                target_player_id=target_player_id,
-                ok_callback_action=lambda _: self.draw_card(interaction, index=0),
-            ),
-        )
+        async with BlockingNopeView(
+            ctx=self.ctx.copy(),
+            target_player_id=target_player_id,
+            ok_callback_action=lambda _: self.draw_card(interaction, index=0),
+        ) as view:
+            await interaction.respond(
+                MESSAGES["before_draw_from_bottom"].format(
+                    interaction.user.id, target_player_id
+                ),
+                view=view,
+            )
 
     async def targeted_attegg(self, interaction: discord.Interaction):
         """
@@ -733,20 +740,21 @@ class PlayView(BaseView):
         """
         if not interaction.user:
             return
-        await interaction.respond(
-            MESSAGES["before_targeted_attegg"].format(
-                interaction.user.id,
-                target_player_id,
-                self.ctx.game.draw_in_turn + 2,
+        async with BlockingNopeView(
+            ctx=self.ctx.copy(),
+            target_player_id=target_player_id,
+            ok_callback_action=lambda _: self.attegg_finish(
+                interaction, target_player_id
             ),
-            view=BlockingNopeView(
-                ctx=self.ctx.copy(),
-                target_player_id=target_player_id,
-                ok_callback_action=lambda _: self.attegg_finish(
-                    interaction, target_player_id
+        ) as view:
+            await interaction.respond(
+                MESSAGES["before_targeted_attegg"].format(
+                    interaction.user.id,
+                    target_player_id,
+                    self.ctx.game.draw_in_turn + 2,
                 ),
-            ),
-        )
+                view=view,
+            )
 
     CARD_ACTIONS = {
         "attegg": attegg,

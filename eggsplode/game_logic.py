@@ -29,6 +29,7 @@ class Game:
         self.action_id: int = 0
         self.draw_in_turn: int = 0
         self.awaiting_prompt: bool = False
+        self.active_nope_views: list = []
         self.last_activity = datetime.now()
 
     def start(self):

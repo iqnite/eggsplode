@@ -36,17 +36,22 @@ class NopeView(BaseView):
         super().__init__(ctx, timeout=10)
         self.nope_callback_action = nope_callback_action
         self.nopes = 0
+        self.ctx.game.active_nope_views.append(self)
 
     async def on_timeout(self):
         try:
             await super().on_timeout()
         finally:
-            self.finish()
+            await self.finish()
 
-    def finish(self):
+    async def finish(self):
         self.on_timeout = super().on_timeout
-        if self.nope_callback_action and self.nopes % 2:
-            self.nope_callback_action()
+        self.ctx.game.active_nope_views.remove(self)
+        try:
+            await super().on_timeout()
+        finally:
+            if self.nope_callback_action and self.nopes % 2:
+                self.nope_callback_action()
 
     @discord.ui.button(label="Nope!", style=discord.ButtonStyle.red, emoji="🛑")
     async def nope_callback(
