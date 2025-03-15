@@ -4,7 +4,7 @@ Contains the game logic for the Eggsplode game.
 
 from datetime import datetime
 import random
-from strings import CARDS
+from .strings import CARDS
 
 
 class Game:

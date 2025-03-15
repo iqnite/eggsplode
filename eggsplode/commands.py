@@ -7,15 +7,15 @@ from datetime import datetime
 import os
 import discord
 from discord.ext import commands
-from game_logic import ActionContext, Game
-from strings import (
+from .game_logic import ActionContext, Game
+from .strings import (
     ADMIN_LISTGAMES_CODE,
     ADMIN_MAINTENANCE_CODE,
     MESSAGES,
     RESTART_CMD,
     VERSION,
 )
-from views.starter import StartGameView, HelpView
+from .views.starter import StartGameView, HelpView
 
 
 class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
