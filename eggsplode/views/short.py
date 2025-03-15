@@ -11,7 +11,7 @@ from .base import BaseView
 
 class NopeView(BaseView):
     """
-    A view that handles the "Nope" and "OK" button interactions in the game.
+    A view that handles the "Nope" button interactions in the game.
 
     Attributes:
         ctx (ActionContext): The context of the current action.
@@ -24,7 +24,9 @@ class NopeView(BaseView):
         self,
         ctx: ActionContext,
         target_player_id: int,
-        callback_action: Callable[[discord.Interaction | None], Coroutine],
+        nope_callback_action: (
+            Callable[[discord.Interaction | None], Coroutine] | None
+        ) = None,
     ):
         """
         Initializes the NopeView with the given context, target player ID, and callback action.
@@ -35,45 +37,20 @@ class NopeView(BaseView):
             callback_action (function): The callback function to be called after the interaction.
         """
         super().__init__(ctx, timeout=10)
-        self.ctx.game.awaiting_prompt = True
         self.target_player = target_player_id
-        self.callback_action = callback_action
+        self.nope_callback_action = nope_callback_action
         self.nopes = 0
 
     async def on_timeout(self):
-        """
-        Handles the timeout event for the view.
-        """
         try:
             await super().on_timeout()
         finally:
-            if self.ctx.action_id == self.ctx.game.action_id:
-                self.ctx.game.awaiting_prompt = False
-                if not self.nopes % 2:
-                    await self.callback_action(None)
+            await self.finish()
 
-    @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
-    async def ok_callback(self, _: discord.ui.Button, interaction: discord.Interaction):
-        """
-        Handles the "OK" button interaction.
-
-        Args:
-            _ (discord.ui.Button): The button that was clicked.
-            interaction (discord.Interaction): The interaction object.
-        """
-        if not interaction.user:
-            return
-        if interaction.user.id != self.target_player:
-            await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
-            return
-        if self.nopes % 2:
-            await interaction.respond(MESSAGES["action_noped"], ephemeral=True)
-            return
+    async def finish(self):
         self.on_timeout = super().on_timeout
-        self.disable_all_items()
-        await interaction.edit(view=self)
-        self.ctx.game.awaiting_prompt = False
-        await self.callback_action(interaction)
+        if self.nope_callback_action and self.nopes % 2:
+            await self.nope_callback_action(None)
 
     @discord.ui.button(label="Nope!", style=discord.ButtonStyle.red, emoji="🛑")
     async def nope_callback(
@@ -114,6 +91,71 @@ class NopeView(BaseView):
             else MESSAGES["message_edit_on_yup"].format(interaction.user.id)
         )
         await interaction.edit(content=new_message_content, view=self)
+
+
+class BlockingNopeView(NopeView):
+    """
+    A view that handles the "Nope" and "OK" button interactions in the game.
+
+    Attributes:
+        ctx (ActionContext): The context of the current action.
+        target_player_id (int): The ID of the target player.
+        callback_action (function): The callback function to be called after the interaction.
+        nopes (int): The count of "Nope" interactions.
+    """
+
+    def __init__(
+        self,
+        ctx: ActionContext,
+        target_player_id: int,
+        ok_callback_action: Callable[[discord.Interaction | None], Coroutine],
+    ):
+        """
+        Initializes the NopeView with the given context, target player ID, and callback action.
+
+        Args:
+            ctx (ActionContext): The context of the current action.
+            target_player_id (int): The ID of the target player.
+            callback_action (function): The callback function to be called after the interaction.
+        """
+        super().__init__(ctx, target_player_id)
+        self.ctx.game.awaiting_prompt = True
+        self.ok_callback_action = ok_callback_action
+
+    async def on_timeout(self):
+        """
+        Handles the timeout event for the view.
+        """
+        try:
+            await super().on_timeout()
+        finally:
+            if self.ctx.action_id == self.ctx.game.action_id:
+                self.ctx.game.awaiting_prompt = False
+                if not self.nopes % 2:
+                    await self.ok_callback_action(None)
+
+    @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
+    async def ok_callback(self, _: discord.ui.Button, interaction: discord.Interaction):
+        """
+        Handles the "OK" button interaction.
+
+        Args:
+            _ (discord.ui.Button): The button that was clicked.
+            interaction (discord.Interaction): The interaction object.
+        """
+        if not interaction.user:
+            return
+        if interaction.user.id != self.target_player:
+            await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
+            return
+        if self.nopes % 2:
+            await interaction.respond(MESSAGES["action_noped"], ephemeral=True)
+            return
+        self.on_timeout = super().on_timeout
+        self.disable_all_items()
+        await interaction.edit(view=self)
+        self.ctx.game.awaiting_prompt = False
+        await self.ok_callback_action(interaction)
 
 
 class DefuseView(BaseView):

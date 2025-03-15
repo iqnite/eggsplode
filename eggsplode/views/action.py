@@ -8,7 +8,7 @@ import random
 import discord
 from ..game_logic import ActionContext
 from ..strings import CARDS, MESSAGES
-from .short import ChoosePlayerView, DefuseView, NopeView
+from .short import ChoosePlayerView, DefuseView, BlockingNopeView
 from .base import BaseView
 
 
@@ -436,10 +436,10 @@ class PlayView(BaseView):
                 self.ctx.game.next_player_id,
                 self.ctx.game.draw_in_turn + 2,
             ),
-            view=NopeView(
+            view=BlockingNopeView(
                 ctx=self.ctx.copy(),
                 target_player_id=self.ctx.game.next_player_id,
-                callback_action=lambda _: self.attegg_finish(interaction),
+                ok_callback_action=lambda _: self.attegg_finish(interaction),
             ),
         )
 
@@ -459,10 +459,10 @@ class PlayView(BaseView):
         )
         await interaction.respond(
             MESSAGES["before_skip"].format(interaction.user.id, target_player_id),
-            view=NopeView(
+            view=BlockingNopeView(
                 ctx=self.ctx.copy(),
                 target_player_id=target_player_id,
-                callback_action=lambda _: self.skip_finish(interaction),
+                ok_callback_action=lambda _: self.skip_finish(interaction),
             ),
         )
 
@@ -546,10 +546,10 @@ class PlayView(BaseView):
             MESSAGES["before_steal"].format(
                 CARDS[food_card]["emoji"], interaction.user.id, target_player_id
             ),
-            view=NopeView(
+            view=BlockingNopeView(
                 ctx=self.ctx.copy(),
                 target_player_id=target_player_id,
-                callback_action=lambda target_interaction: self.food_combo_finish(
+                ok_callback_action=lambda target_interaction: self.food_combo_finish(
                     interaction, target_interaction, target_player_id
                 ),
             ),
@@ -685,10 +685,10 @@ class PlayView(BaseView):
             MESSAGES["before_draw_from_bottom"].format(
                 interaction.user.id, target_player_id
             ),
-            view=NopeView(
+            view=BlockingNopeView(
                 ctx=self.ctx.copy(),
                 target_player_id=target_player_id,
-                callback_action=lambda _: self.draw_card(interaction, index=0),
+                ok_callback_action=lambda _: self.draw_card(interaction, index=0),
             ),
         )
 
@@ -728,10 +728,10 @@ class PlayView(BaseView):
                 target_player_id,
                 self.ctx.game.draw_in_turn + 2,
             ),
-            view=NopeView(
+            view=BlockingNopeView(
                 ctx=self.ctx.copy(),
                 target_player_id=target_player_id,
-                callback_action=lambda _: self.attegg_finish(
+                ok_callback_action=lambda _: self.attegg_finish(
                     interaction, target_player_id
                 ),
             ),
