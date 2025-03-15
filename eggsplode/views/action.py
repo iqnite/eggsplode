@@ -6,8 +6,8 @@ import asyncio
 from collections.abc import Callable, Coroutine
 import random
 import discord
-from game_logic import ActionContext
-from strings import CARDS, MESSAGES
+from ..game_logic import ActionContext
+from ..strings import CARDS, MESSAGES
 from .short import ChoosePlayerView, DefuseView, NopeView
 from .base import BaseView
 

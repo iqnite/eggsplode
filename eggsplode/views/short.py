@@ -4,8 +4,8 @@ Contains the views for the short interactions in the game, such as "Nope" and "D
 
 from collections.abc import Callable, Coroutine
 import discord
-from strings import CARDS, MESSAGES
-from game_logic import ActionContext
+from ..strings import CARDS, MESSAGES
+from ..game_logic import ActionContext
 from .base import BaseView
 
 

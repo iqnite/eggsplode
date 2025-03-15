@@ -3,8 +3,8 @@ Contains the StartGameView class which handles the start game view in the Discor
 """
 
 import discord
-from strings import EXPANSIONS, MESSAGES
-from game_logic import ActionContext
+from ..strings import EXPANSIONS, MESSAGES
+from ..game_logic import ActionContext
 from .base import BaseView
 from .action import TurnView
 
@@ -382,4 +382,29 @@ class HelpView(discord.ui.View):
                 style=discord.ButtonStyle.link,
                 emoji="🤖",
             )
+        )
+
+    @discord.ui.select(
+        placeholder="Section",
+        options=[
+            discord.SelectOption(label="Getting started", emoji="🚀", value="0"),
+            discord.SelectOption(label="Cards", emoji="🎴", value="1"),
+            discord.SelectOption(label="Credits", emoji="👏", value="2"),
+        ],
+        max_values=1,
+        min_values=1,
+    )
+    async def section_callback(
+        self, select: discord.ui.Select, interaction: discord.Interaction
+    ):
+        """
+        Handles the section select interaction.
+
+        Args:
+            select (discord.ui.Select): The select interaction.
+            interaction (discord.Interaction): The interaction object.
+        """
+        assert isinstance(select.values[0], str)
+        await interaction.edit(
+            content="\n".join(MESSAGES["help"][int(select.values[0])])
         )

@@ -3,8 +3,7 @@ Contains the BaseView class which is used to create a Discord UI view for the ga
 """
 
 import discord
-from strings import MESSAGES
-from game_logic import ActionContext
+from ..game_logic import ActionContext
 
 
 class BaseView(discord.ui.View):
