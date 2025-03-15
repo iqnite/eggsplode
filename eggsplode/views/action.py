@@ -8,7 +8,13 @@ import random
 import discord
 from ..game_logic import ActionContext
 from ..strings import CARDS, MESSAGES
-from .short import ChoosePlayerView, DefuseView, BlockingNopeView, NopeView
+from .short import (
+    AlterFutureView,
+    ChoosePlayerView,
+    DefuseView,
+    BlockingNopeView,
+    NopeView,
+)
 from .base import BaseView
 
 
@@ -760,6 +766,43 @@ class PlayView(BaseView):
                 view=view,
             )
 
+    async def alter_future(self, interaction: discord.Interaction):
+        """
+        Handle the 'alter future' action.
+
+        Args:
+            interaction (discord.Interaction): The interaction that triggered the action.
+        """
+        if not interaction.user:
+            return
+        prev_deck = self.ctx.game.deck.copy()
+        async with AlterFutureView(
+            self.ctx.copy(), lambda: self.alter_future_finish(interaction, prev_deck), 3
+        ) as view:
+            await interaction.respond(view=view, ephemeral=True)
+
+    async def alter_future_finish(self, interaction: discord.Interaction, prev_deck):
+        """
+        Finalize the 'alter future' action.
+
+        Args:
+            interaction (discord.Interaction): The interaction that triggered the action.
+            prev_deck (list): The previous deck.
+        """
+        if not interaction.user:
+            return
+        async with NopeView(self.ctx.copy(), lambda: self.undo_alter_future(prev_deck)) as view:
+            await interaction.respond(
+                MESSAGES["altered_future"].format(interaction.user.id),
+                view=view,
+            )
+
+    def undo_alter_future(self, prev_deck):
+        """
+        Undo the 'alter future' action.
+        """
+        self.ctx.game.deck = prev_deck
+
     CARD_ACTIONS = {
         "attegg": attegg,
         "skip": skip,
@@ -767,4 +810,5 @@ class PlayView(BaseView):
         "predict": predict,
         "draw_from_bottom": draw_from_bottom,
         "targeted_attegg": targeted_attegg,
+        "alter_future": alter_future,
     }

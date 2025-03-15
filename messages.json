@@ -1,6 +1,7 @@
 {
     "action_noped": "🛑 This action has been noped!",
     "already_in_game": "❌ You are already in the game!",
+    "altered_future": "🪄 <@{}> rearranged the next 3 cards on the deck!",
     "awaiting_prompt": "❌ There's a prompt waiting for response.",
     "before_attegg": "⚡ <@{}> wants to skip and force <@{}> to take **{}** turns in a row. Accept?",
     "before_draw_from_bottom": "⏬ <@{}> wants to draw from the bottom of the deck! Next up: <@{}>. Accept?",
@@ -93,6 +94,10 @@
             "### 🎯 Targeted Attegg",
             "End your turn without drawing and force a player of your choice (including yourself) to take 2 turns in a row.",
             "If you play this while under the effect of another (Targeted) Attegg, the amount of turns will stack up for the targeted player. (e.g. 2 Atteggs => 4 draws)",
+            "-# Can be played during your turn.",
+            "-# Deck Count: 4 (multiplied when there are more than 5 players)",
+            "### 🪄 Alter the Future",
+            "Look at the next 3 cards on the deck and rearrange them in any or you want.",
             "-# Can be played during your turn.",
             "-# Deck Count: 4 (multiplied when there are more than 5 players)"
         ],

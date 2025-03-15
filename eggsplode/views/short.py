@@ -389,3 +389,100 @@ class ChoosePlayerView(BaseView):
         if not isinstance(self.user_select.values[0], str):
             raise TypeError("user_select.values[0] is not a str")
         await self.callback_action(int(self.user_select.values[0]))
+
+
+class AlterFutureView(BaseView):
+    """
+    Allows reordering the next cards on the deck.
+    """
+
+    def __init__(
+        self,
+        ctx: ActionContext,
+        callback_action: Callable[[], Coroutine],
+        amount_of_cards: int,
+    ):
+        """
+        Initializes the AlterFutureView with the given context.
+
+        Args:
+            ctx (ActionContext): The context of the current action.
+            callback_action (function): The callback function to execute after the cards are reordered.
+            amount_of_cards (int): The number of cards to reorder.
+        """
+        super().__init__(ctx, timeout=10)
+        self.ctx.game.awaiting_prompt = True
+        self.amount_of_cards = min(amount_of_cards, len(self.ctx.game.deck))
+        self.callback_action = callback_action
+        self.card_options = [
+            discord.SelectOption(
+                value=card,
+                label=CARDS[card]["title"],
+                description=CARDS[card]["description"],
+                emoji=CARDS[card]["emoji"],
+            )
+            for card in self.ctx.game.deck[-1 : -self.amount_of_cards - 1 : -1]
+        ]
+        self.create_selections()
+
+    def create_selections(self):
+        """
+        Creates the select menus for reordering the deck.
+        """
+        self.selects: list[discord.ui.Select] = []
+        for i in range(self.amount_of_cards):
+            select = discord.ui.Select(
+                placeholder=f"{i + 1}. card: {CARDS[self.ctx.game.deck[-i - 1]]['title']}",
+                min_values=1,
+                max_values=1,
+                options=self.card_options,
+            )
+            select.callback = self.selection_callback
+            self.add_item(select)
+            self.selects.append(select)
+
+    async def finish(self):
+        """
+        Inserts a card back into the deck and disables all interaction items.
+        """
+        self.ctx.game.awaiting_prompt = False
+        await self.callback_action()
+
+    async def on_timeout(self):
+        """
+        Handles the timeout event by finishing the interaction.
+        """
+        try:
+            await super().on_timeout()
+        finally:
+            await self.finish()
+
+    @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green, emoji="✅")
+    async def confirm(self, _: discord.ui.Button, interaction: discord.Interaction):
+        """
+        Handles the confirm button click event.
+
+        Args:
+            _ (discord.ui.Button): The button that was clicked.
+            interaction (discord.Interaction): The interaction object.
+        """
+        self.disable_all_items()
+        await interaction.edit(view=self)
+        self.on_timeout = super().on_timeout
+        await self.finish()
+
+    async def selection_callback(self, interaction: discord.Interaction):
+        """
+        Handles the selection of a card from the select menu.
+
+        Args:
+            interaction (Interaction): The interaction object representing the user's action.
+        """
+        if not interaction:
+            return
+        for i, select in enumerate(self.selects):
+            if not isinstance(select.values[0], str):
+                raise TypeError("select.values[0] is not a str")
+            self.ctx.game.deck[-i - 1] = select.values[0]
+        self.create_selections()
+        await interaction.edit(view=self)

@@ -119,5 +119,13 @@
         "count": 4,
         "usable": true,
         "expansion": "radioeggtive"
+    },
+    "alter_future": {
+        "title": "Alter the future",
+        "description": "Look at the next 3 cards on the deck and rearrange them in any order.",
+        "emoji": "🪄",
+        "count": 4,
+        "usable": true,
+        "expansion": "radioeggtive"
     }
 }
