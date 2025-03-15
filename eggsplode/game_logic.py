@@ -22,7 +22,7 @@ class Game:
             config: The initial configuration for the game.
         """
         self.config = config
-        self.players: list[int] = list(config.get("players", []))
+        self.players: list[int] = []
         self.hands: dict[int, list[str]] = {}
         self.deck: list[str] = []
         self.current_player: int = 0
@@ -37,6 +37,7 @@ class Game:
         """
         self.last_activity = datetime.now()
         self.deck = []
+        self.players = list(self.config["players"])
         for card in CARDS:
             self.deck += (
                 [card]
@@ -144,7 +145,7 @@ class Game:
             result[card] = player_cards.count(card)
         return result
 
-    def draw_card(self, user_id: int, index: int = -1) -> str:
+    def draw_card(self, index: int = -1) -> str:
         """
         Draws a card for the specified player.
 
@@ -156,23 +157,23 @@ class Game:
         """
         card = self.deck.pop(index)
         if card == "eggsplode":
-            if "defuse" in self.hands[user_id]:
-                self.hands[user_id].remove("defuse")
+            if "defuse" in self.hands[self.current_player_id]:
+                self.hands[self.current_player_id].remove("defuse")
                 self.next_turn()
             else:
-                self.remove_player(user_id)
+                self.remove_player(self.current_player_id)
                 self.draw_in_turn = 0
                 if len(self.players) == 1:
                     return "gameover"
         elif card == "radioeggtive":
             self.next_turn()
         elif card == "radioeggtive_face_up":
-            self.remove_player(user_id)
+            self.remove_player(self.current_player_id)
             self.draw_in_turn = 0
             if len(self.players) == 1:
                 return "gameover"
         else:
-            self.hands[user_id].append(card)
+            self.hands[self.current_player_id].append(card)
             self.next_turn()
         return card
 
@@ -200,7 +201,7 @@ class Game:
         eligible_players.remove(self.current_player_id)
         return any(self.hands[player] for player in eligible_players)
 
-    def card_comes_in(self, card):
+    def card_comes_in(self, card) -> int | None:
         """
         Shows the remaining turns until a card is drawn.
 
