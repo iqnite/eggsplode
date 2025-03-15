@@ -345,7 +345,7 @@ class PlayView(BaseView):
             case "defuse":
                 async with DefuseView(
                     self.ctx.copy(),
-                    lambda: self.finalize_defuse(interaction),
+                    lambda: self.defuse_finish(interaction),
                     card="eggsplode",
                 ) as view:
                     await interaction.respond(
@@ -370,7 +370,7 @@ class PlayView(BaseView):
             case "radioeggtive":
                 async with DefuseView(
                     self.ctx.copy(),
-                    lambda: self.finalize_radioeggtive(interaction),
+                    lambda: self.radioeggtive_finish(interaction),
                     card="radioeggtive_face_up",
                     prev_card="radioeggtive",
                 ) as view:
@@ -439,7 +439,7 @@ class PlayView(BaseView):
             view=NopeView(
                 ctx=self.ctx.copy(),
                 target_player_id=self.ctx.game.next_player_id,
-                callback_action=lambda _: self.finalize_attegg(interaction),
+                callback_action=lambda _: self.attegg_finish(interaction),
             ),
         )
 
@@ -462,7 +462,7 @@ class PlayView(BaseView):
             view=NopeView(
                 ctx=self.ctx.copy(),
                 target_player_id=target_player_id,
-                callback_action=lambda _: self.finalize_skip(interaction),
+                callback_action=lambda _: self.skip_finish(interaction),
             ),
         )
 
@@ -515,21 +515,21 @@ class PlayView(BaseView):
             return
         if not self.ctx.game.any_player_has_cards():
             await interaction.respond(MESSAGES["no_players_have_cards"])
-        else:
-            assert self.ctx.game.current_player_hand.count(selected) >= 2
-            self.ctx.game.current_player_hand.remove(selected)
-            self.ctx.game.current_player_hand.remove(selected)
-            async with ChoosePlayerView(
-                self.ctx.copy(),
-                lambda target_player_id: self.begin_steal(
-                    interaction, target_player_id, selected
-                ),
-            ) as view:
-                await interaction.respond(
-                    MESSAGES["steal_prompt"], view=view, ephemeral=True
-                )
+            return
+        assert self.ctx.game.current_player_hand.count(selected) >= 2
+        self.ctx.game.current_player_hand.remove(selected)
+        self.ctx.game.current_player_hand.remove(selected)
+        async with ChoosePlayerView(
+            self.ctx.copy(),
+            lambda target_player_id: self.food_combo_begin(
+                interaction, target_player_id, selected
+            ),
+        ) as view:
+            await interaction.respond(
+                MESSAGES["steal_prompt"], view=view, ephemeral=True
+            )
 
-    async def begin_steal(
+    async def food_combo_begin(
         self, interaction: discord.Interaction, target_player_id: int, food_card: str
     ):
         """
@@ -549,13 +549,13 @@ class PlayView(BaseView):
             view=NopeView(
                 ctx=self.ctx.copy(),
                 target_player_id=target_player_id,
-                callback_action=lambda target_interaction: self.finalize_steal(
+                callback_action=lambda target_interaction: self.food_combo_finish(
                     interaction, target_interaction, target_player_id
                 ),
             ),
         )
 
-    async def finalize_steal(
+    async def food_combo_finish(
         self,
         interaction: discord.Interaction,
         target_interaction: discord.Interaction | None,
@@ -608,7 +608,7 @@ class PlayView(BaseView):
                 )
             )
 
-    async def finalize_defuse(self, interaction: discord.Interaction):
+    async def defuse_finish(self, interaction: discord.Interaction):
         """
         Finalize the 'defuse' action.
 
@@ -620,7 +620,7 @@ class PlayView(BaseView):
         await interaction.respond(MESSAGES["defused"].format(interaction.user.id))
         await self.end_turn(interaction)
 
-    async def finalize_radioeggtive(self, interaction: discord.Interaction):
+    async def radioeggtive_finish(self, interaction: discord.Interaction):
         """
         Finalize the 'radioeggtive' action.
 
@@ -632,7 +632,7 @@ class PlayView(BaseView):
         await interaction.respond(MESSAGES["radioeggtive"].format(interaction.user.id))
         await self.end_turn(interaction)
 
-    async def finalize_attegg(self, interaction: discord.Interaction):
+    async def attegg_finish(self, interaction: discord.Interaction):
         """
         Finalize the 'attegg' action.
 
@@ -649,7 +649,7 @@ class PlayView(BaseView):
         self.ctx.game.draw_in_turn = prev_to_draw_in_turn + 2
         await self.end_turn(interaction)
 
-    async def finalize_skip(self, interaction: discord.Interaction):
+    async def skip_finish(self, interaction: discord.Interaction):
         """
         Finalize the 'skip' action.
 
@@ -688,10 +688,78 @@ class PlayView(BaseView):
             ),
         )
 
+    async def targeted_attegg(self, interaction: discord.Interaction):
+        """
+        Handle the 'targeted attegg' action.
+
+        Args:
+            interaction (discord.Interaction): The interaction that triggered the action.
+        """
+        if not interaction.user:
+            return
+        async with ChoosePlayerView(
+            self.ctx.copy(),
+            lambda target_player_id: self.targeted_attegg_begin(
+                interaction, target_player_id
+            ),
+        ) as view:
+            await interaction.respond(
+                MESSAGES["targeted_attegg_prompt"], view=view, ephemeral=True
+            )
+
+    async def targeted_attegg_begin(
+        self, interaction: discord.Interaction, target_player_id: int
+    ):
+        """
+        Begin the 'targeted attegg' action.
+
+        Args:
+            interaction (discord.Interaction): The interaction that triggered the action.
+        """
+        if not interaction.user:
+            return
+        await interaction.respond(
+            MESSAGES["before_targeted_attegg"].format(
+                interaction.user.id,
+                target_player_id,
+                self.ctx.game.draw_in_turn + 2,
+            ),
+            view=NopeView(
+                ctx=self.ctx.copy(),
+                target_player_id=target_player_id,
+                callback_action=lambda _: self.targeted_attegg_finish(
+                    interaction, target_player_id
+                ),
+            ),
+        )
+
+    async def targeted_attegg_finish(
+        self, interaction: discord.Interaction, target_player_id: int
+    ):
+        """
+        Begin the 'targeted attegg' action.
+
+        Args:
+            interaction (discord.Interaction): The interaction that triggered the action.
+            target_player_id (int): The ID of the target player.
+        """
+        if not interaction.user:
+            return
+        self.disable_all_items()
+        await interaction.edit(view=self)
+        prev_to_draw_in_turn = self.ctx.game.draw_in_turn
+        self.ctx.game.draw_in_turn = 0
+        self.ctx.game.next_turn()
+        self.ctx.game.draw_in_turn = prev_to_draw_in_turn + 2
+        while self.ctx.game.current_player_id != target_player_id:
+            self.ctx.game.next_turn()
+        await self.end_turn(interaction)
+
     CARD_ACTIONS = {
         "attegg": attegg,
         "skip": skip,
         "shuffle": shuffle,
         "predict": predict,
         "draw_from_bottom": draw_from_bottom,
+        "targeted_attegg": targeted_attegg,
     }
