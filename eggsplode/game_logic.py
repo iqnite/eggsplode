@@ -210,7 +210,7 @@ class Game:
         Returns:
             int: The number of turns until the card is drawn, or -1 if the card is not in the deck
         """
-        for i in range(len(self.deck) - 1, 0, -1):
+        for i in range(len(self.deck) - 1, -1, -1):
             if self.deck[i] == card:
                 return len(self.deck) - 1 - i
         return -1
