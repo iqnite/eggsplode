@@ -69,6 +69,7 @@
     [
       "# Credits",
       "This app was created by [Phorb](https://iqnite.github.io/).",
+      "The project is based on the [PyCord](https://pycord.dev/) library.",
       "The game concept is based on the card game [Exploding Kittens](https://explodingkittens.com/).",
       "Thanks to all the early testers for their feedback and patience!",
       "And of course, thank you for playing!"
