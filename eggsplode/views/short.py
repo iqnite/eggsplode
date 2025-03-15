@@ -246,6 +246,9 @@ class DefuseView(BaseView):
         )
 
     def generate_move_prompt(self):
+        """
+        Generates the prompt message for the defuse interaction.
+        """
         return MESSAGES["move_prompt"].format(
             CARDS[self.prev_card]["title"],
             self.card_position,

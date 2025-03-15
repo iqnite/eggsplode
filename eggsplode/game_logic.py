@@ -159,23 +159,21 @@ class Game:
             if "defuse" in self.hands[user_id]:
                 self.hands[user_id].remove("defuse")
                 self.next_turn()
-                return "defuse"
-            self.remove_player(user_id)
-            self.draw_in_turn = 0
-            if len(self.players) == 1:
-                return "gameover"
-            return "eggsplode"
+            else:
+                self.remove_player(user_id)
+                self.draw_in_turn = 0
+                if len(self.players) == 1:
+                    return "gameover"
         elif card == "radioeggtive":
             self.next_turn()
-            return "radioeggtive"
         elif card == "radioeggtive_face_up":
             self.remove_player(user_id)
             self.draw_in_turn = 0
             if len(self.players) == 1:
                 return "gameover"
-            return "radioeggtive_face_up"
-        self.hands[user_id].append(card)
-        self.next_turn()
+        else:
+            self.hands[user_id].append(card)
+            self.next_turn()
         return card
 
     def remove_player(self, user_id: int):
