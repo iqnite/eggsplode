@@ -199,7 +199,7 @@ class TestGame(unittest.TestCase):
         self.game.deck[0] = "food1"
         self.game.deck[1] = "food2"
         self.assertEqual(self.game.card_comes_in("eggsplode"), 0)
-        self.assertEqual(self.game.card_comes_in("does_not_exist"), -1)
+        self.assertEqual(self.game.card_comes_in("does_not_exist"), None)
         self.assertEqual(self.game.card_comes_in("food1"), 40)
         self.assertEqual(self.game.card_comes_in("food2"), 39)
 
