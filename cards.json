@@ -22,7 +22,7 @@
     },
     "attegg": {
         "title": "Attegg",
-        "description": "End your turn without drawing and force the next player to draw twice.",
+        "description": "End your turn without drawing and force the next player to take 2 turns in a row.",
         "emoji": "⚡",
         "count": 4,
         "usable": true
@@ -114,7 +114,7 @@
     },
     "targeted_attegg": {
         "title": "Targeted Attegg",
-        "description": "End your turn without drawing and force a player of your choice to draw twice.",
+        "description": "End your turn without drawing and force a player of your choice to take 2 turns in a row.",
         "emoji": "🎯",
         "count": 4,
         "usable": true,

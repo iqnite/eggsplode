@@ -161,6 +161,7 @@ class Game:
             if "defuse" in self.hands[self.current_player_id]:
                 self.hands[self.current_player_id].remove("defuse")
                 self.next_turn()
+                return "defused"
             else:
                 self.remove_player(self.current_player_id)
                 self.draw_in_turn = 0

@@ -134,7 +134,7 @@ class TestGame(unittest.TestCase):
         self.game.start()
         self.game.deck[-1] = "eggsplode"
         self.game.hands[1] = ["defuse"]
-        self.game.draw_card()
+        self.assertEqual(self.game.draw_card(), "defused")
         self.assertEqual(self.game.hands[1], [])
         self.assertEqual(len(self.game.hands), 7)
         self.assertEqual(len(self.game.deck), 40)

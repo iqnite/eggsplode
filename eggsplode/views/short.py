@@ -153,9 +153,7 @@ class BlockingNopeView(NopeView):
         if self.nopes % 2:
             await interaction.respond(MESSAGES["action_noped"], ephemeral=True)
             return
-        self.on_timeout = super().on_timeout
-        self.disable_all_items()
-        await interaction.edit(view=self)
+        await super().on_timeout()
         self.ctx.game.awaiting_prompt = False
         await self.ok_callback_action(interaction)
 
@@ -315,7 +313,12 @@ class ChoosePlayerView(BaseView):
         user_select (discord.ui.Select): The select menu for choosing a player.
     """
 
-    def __init__(self, ctx: ActionContext, callback_action: Callable[[int], Coroutine]):
+    def __init__(
+        self,
+        ctx: ActionContext,
+        callback_action: Callable[[int], Coroutine],
+        condition: Callable[[int], bool] = lambda _: True,
+    ):
         """
         Initializes the ChoosePlayerView with the given context and callback action.
 
@@ -325,8 +328,9 @@ class ChoosePlayerView(BaseView):
         """
         super().__init__(ctx, timeout=10)
         self.ctx.game.awaiting_prompt = True
-        self.eligible_players = self.ctx.game.players.copy()
-        self.eligible_players.remove(self.ctx.game.current_player_id)
+        self.eligible_players = [
+            user_id for user_id in self.ctx.game.players if condition(user_id)
+        ]
         self.callback_action = callback_action
         self.user_select = None
 
@@ -360,7 +364,6 @@ class ChoosePlayerView(BaseView):
             )
             for user_id in self.eligible_players
             if (user := await self.ctx.app.get_or_fetch_user(user_id))
-            and self.ctx.game.hands[user_id]
         ]
         self.user_select = discord.ui.Select(
             placeholder="Select another player",

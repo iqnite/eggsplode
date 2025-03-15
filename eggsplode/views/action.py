@@ -91,11 +91,13 @@ class TurnView(BaseView):
             await self.parent_interaction.respond(MESSAGES["game_timeout"])
             del self.ctx.games[self.ctx.game_id]
             return
+        for view in self.ctx.game.active_nope_views:
+            await view.finish()
         turn_player: int = self.ctx.game.current_player_id
         card: str = self.ctx.game.draw_card()
         response = MESSAGES["timeout"]
         match card:
-            case "defuse":
+            case "defused":
                 self.ctx.game.deck.insert(
                     random.randint(0, len(self.ctx.game.deck)), "eggsplode"
                 )
@@ -250,7 +252,9 @@ class PlayView(BaseView):
                 ""
                 if radioeggtive_countdown is None
                 else (
-                    MESSAGES["play_prompt_radioeggtive"].format(radioeggtive_countdown)
+                    MESSAGES["play_prompt_radioeggtive"].format(
+                        radioeggtive_countdown + 1
+                    )
                     if radioeggtive_countdown > 1
                     else (
                         MESSAGES["play_prompt_radioeggtive_next"]
@@ -280,14 +284,12 @@ class PlayView(BaseView):
             await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
             return False
         if self.ctx.action_id != self.ctx.game.action_id:
-            self.disable_all_items()
-            await interaction.edit(view=self)
             await interaction.respond(MESSAGES["invalid_turn"], ephemeral=True)
             return False
+        for view in self.ctx.game.active_nope_views:
+            await view.finish()
         self.ctx.game.action_id += 1
         self.ctx.action_id += 1
-        for view in self.ctx.game.active_nope_views:
-            view.finish()
         self.on_valid_interaction(interaction)
         return True
 
@@ -344,7 +346,7 @@ class PlayView(BaseView):
         await interaction.edit(view=self)
         card: str = self.ctx.game.draw_card(index)
         match card:
-            case "defuse":
+            case "defused":
                 async with DefuseView(
                     self.ctx.copy(),
                     lambda: self.defuse_finish(interaction),
@@ -540,6 +542,8 @@ class PlayView(BaseView):
             lambda target_player_id: self.food_combo_begin(
                 interaction, target_player_id, selected
             ),
+            condition=lambda user_id: user_id != self.ctx.game.current_player_id
+            and len(self.ctx.game.hands[user_id]) > 0,
         ) as view:
             await interaction.respond(
                 MESSAGES["steal_prompt"], view=view, ephemeral=True
