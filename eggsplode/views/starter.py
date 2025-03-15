@@ -54,11 +54,11 @@ class StartGameView(BaseView):
         if not interaction.user:
             return
         game_cancelled = False
-        if interaction.user.id in self.ctx.game.players:
-            self.ctx.game.players.remove(interaction.user.id)
+        if interaction.user.id in self.ctx.game.config["players"]:
+            self.ctx.game.config["players"].remove(interaction.user.id)
             if not (interaction.message and interaction.message.content):
                 return
-            if not self.ctx.game.players:
+            if not self.ctx.game.config["players"]:
                 game_cancelled = True
                 del self.ctx.games[self.ctx.game_id]
                 self.on_timeout = super().on_timeout
@@ -74,7 +74,7 @@ class StartGameView(BaseView):
                 view=self,
             )
             return
-        self.ctx.game.players.append(interaction.user.id)
+        self.ctx.game.config["players"].append(interaction.user.id)
         await interaction.edit(
             content=self.generate_game_start_message(),
             view=self,
@@ -86,11 +86,11 @@ class StartGameView(BaseView):
         """
         return "\n".join(
             (
-                MESSAGES["start"].format(self.ctx.game.players[0]),
+                MESSAGES["start"].format(self.ctx.game.config["players"][0]),
                 MESSAGES["players"],
                 *(
                     MESSAGES["players_list_item"].format(player)
-                    for player in self.ctx.game.players
+                    for player in self.ctx.game.config["players"]
                 ),
                 *(
                     (
@@ -124,12 +124,12 @@ class StartGameView(BaseView):
         """
         if not (interaction.user and self.message):
             return
-        if interaction.user.id != self.ctx.game.players[0]:
+        if interaction.user.id != self.ctx.game.config["players"][0]:
             await interaction.respond(
                 MESSAGES["not_game_creator_start"], ephemeral=True
             )
             return
-        if len(self.ctx.game.players) < 2:
+        if len(self.ctx.game.config["players"]) < 2:
             await interaction.respond(
                 MESSAGES["not_enough_players_to_start"], ephemeral=True
             )
@@ -155,7 +155,7 @@ class StartGameView(BaseView):
         """
         if not (interaction.user and self.message):
             return
-        if interaction.user.id != self.ctx.game.players[0]:
+        if interaction.user.id != self.ctx.game.config["players"][0]:
             await interaction.respond(
                 MESSAGES["not_game_creator_edit_settings"], ephemeral=True
             )
@@ -256,7 +256,7 @@ class SettingsModal(discord.ui.Modal):
             "deck_eggsplode_cards": {
                 "input": discord.ui.InputText(
                     label="Eggsplode cards in deck",
-                    placeholder=str(len(self.ctx.game.players) - 1),
+                    placeholder=str(len(self.ctx.game.config["players"]) - 1),
                     value=self.ctx.game.config.get("deck_eggsplode_cards", None),
                     required=False,
                 ),
