@@ -517,8 +517,8 @@ class PlayView(BaseView):
             await interaction.respond(MESSAGES["no_players_have_cards"])
             return
         assert self.ctx.game.current_player_hand.count(selected) >= 2
-        self.ctx.game.current_player_hand.remove(selected)
-        self.ctx.game.current_player_hand.remove(selected)
+        for _ in range(2):
+            self.ctx.game.current_player_hand.remove(selected)
         async with ChoosePlayerView(
             self.ctx.copy(),
             lambda target_player_id: self.food_combo_begin(
@@ -572,40 +572,40 @@ class PlayView(BaseView):
         if not interaction.user:
             return
         target_hand = self.ctx.game.hands[target_player_id]
-        if target_hand:
-            stolen_card = random.choice(target_hand)
-            self.ctx.game.hands[target_player_id].remove(stolen_card)
-            self.ctx.game.current_player_hand.append(stolen_card)
-            self.create_card_selection()
-            await interaction.edit(
-                content=self.create_play_prompt_message(interaction.user.id),
-                view=self,
-            )
-            await interaction.respond(
-                MESSAGES["stolen_card_public"].format(
-                    self.ctx.game.current_player_id, target_player_id
-                )
-            )
-            await interaction.respond(
-                MESSAGES["stolen_card_you"].format(
-                    CARDS[stolen_card]["emoji"], CARDS[stolen_card]["title"]
-                ),
-                ephemeral=True,
-            )
-            if target_interaction:
-                await target_interaction.respond(
-                    MESSAGES["stolen_card_them"].format(
-                        self.ctx.game.current_player_id,
-                        CARDS[stolen_card]["emoji"],
-                        CARDS[stolen_card]["title"],
-                    ),
-                    ephemeral=True,
-                )
-        else:
+        if not target_hand:
             await interaction.respond(
                 MESSAGES["no_cards_to_steal"].format(
                     self.ctx.game.current_player_id, target_player_id
                 )
+            )
+            return
+        stolen_card = random.choice(target_hand)
+        self.ctx.game.hands[target_player_id].remove(stolen_card)
+        self.ctx.game.current_player_hand.append(stolen_card)
+        self.create_card_selection()
+        await interaction.edit(
+            content=self.create_play_prompt_message(interaction.user.id),
+            view=self,
+        )
+        await interaction.respond(
+            MESSAGES["stolen_card_public"].format(
+                self.ctx.game.current_player_id, target_player_id
+            )
+        )
+        await interaction.respond(
+            MESSAGES["stolen_card_you"].format(
+                CARDS[stolen_card]["emoji"], CARDS[stolen_card]["title"]
+            ),
+            ephemeral=True,
+        )
+        if target_interaction:
+            await target_interaction.respond(
+                MESSAGES["stolen_card_them"].format(
+                    self.ctx.game.current_player_id,
+                    CARDS[stolen_card]["emoji"],
+                    CARDS[stolen_card]["title"],
+                ),
+                ephemeral=True,
             )
 
     async def defuse_finish(self, interaction: discord.Interaction):
@@ -632,20 +632,24 @@ class PlayView(BaseView):
         await interaction.respond(MESSAGES["radioeggtive"].format(interaction.user.id))
         await self.end_turn(interaction)
 
-    async def attegg_finish(self, interaction: discord.Interaction):
+    async def attegg_finish(
+        self, interaction: discord.Interaction, target_player_id=None
+    ):
         """
         Finalize the 'attegg' action.
 
         Args:
             interaction (discord.Interaction): The interaction that triggered the action.
         """
+        target_player_id = target_player_id or self.ctx.game.next_player_id
         if not interaction.message:
             return
         self.disable_all_items()
         await interaction.edit(view=self)
         prev_to_draw_in_turn = self.ctx.game.draw_in_turn
         self.ctx.game.draw_in_turn = 0
-        self.ctx.game.next_turn()
+        while self.ctx.game.current_player_id != target_player_id:
+            self.ctx.game.next_turn()
         self.ctx.game.draw_in_turn = prev_to_draw_in_turn + 2
         await self.end_turn(interaction)
 
@@ -727,33 +731,11 @@ class PlayView(BaseView):
             view=NopeView(
                 ctx=self.ctx.copy(),
                 target_player_id=target_player_id,
-                callback_action=lambda _: self.targeted_attegg_finish(
+                callback_action=lambda _: self.attegg_finish(
                     interaction, target_player_id
                 ),
             ),
         )
-
-    async def targeted_attegg_finish(
-        self, interaction: discord.Interaction, target_player_id: int
-    ):
-        """
-        Begin the 'targeted attegg' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-            target_player_id (int): The ID of the target player.
-        """
-        if not interaction.user:
-            return
-        self.disable_all_items()
-        await interaction.edit(view=self)
-        prev_to_draw_in_turn = self.ctx.game.draw_in_turn
-        self.ctx.game.draw_in_turn = 0
-        self.ctx.game.next_turn()
-        self.ctx.game.draw_in_turn = prev_to_draw_in_turn + 2
-        while self.ctx.game.current_player_id != target_player_id:
-            self.ctx.game.next_turn()
-        await self.end_turn(interaction)
 
     CARD_ACTIONS = {
         "attegg": attegg,
