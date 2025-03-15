@@ -388,8 +388,10 @@ class HelpView(discord.ui.View):
         placeholder="Section",
         options=[
             discord.SelectOption(label="Getting started", emoji="🚀", value="0"),
-            discord.SelectOption(label="Cards", emoji="🎴", value="1"),
-            discord.SelectOption(label="Credits", emoji="👏", value="2"),
+            discord.SelectOption(label="Cards (1)", emoji="🎴", value="1"),
+            discord.SelectOption(label="Cards (2)", emoji="🎴", value="2"),
+            discord.SelectOption(label="Eggspansions", emoji="🧩", value="3"),
+            discord.SelectOption(label="Credits", emoji="👏", value="4"),
         ],
         max_values=1,
         min_values=1,
