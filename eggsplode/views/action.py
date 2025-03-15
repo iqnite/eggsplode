@@ -92,7 +92,7 @@ class TurnView(BaseView):
             del self.ctx.games[self.ctx.game_id]
             return
         turn_player: int = self.ctx.game.current_player_id
-        card: str = self.ctx.game.draw_card(turn_player)
+        card: str = self.ctx.game.draw_card()
         response = MESSAGES["timeout"]
         match card:
             case "defuse":
@@ -247,15 +247,15 @@ class PlayView(BaseView):
         ) + (
             "\n"
             + (
-                MESSAGES["play_prompt_radioeggtive"].format(radioeggtive_countdown)
-                if radioeggtive_countdown > 1
+                ""
+                if radioeggtive_countdown is None
                 else (
-                    MESSAGES["play_prompt_radioeggtive_next"]
-                    if radioeggtive_countdown == 1
+                    MESSAGES["play_prompt_radioeggtive"].format(radioeggtive_countdown)
+                    if radioeggtive_countdown > 1
                     else (
-                        MESSAGES["play_prompt_radioeggtive_now"]
-                        if radioeggtive_countdown == 0
-                        else ""
+                        MESSAGES["play_prompt_radioeggtive_next"]
+                        if radioeggtive_countdown == 1
+                        else (MESSAGES["play_prompt_radioeggtive_now"])
                     )
                 )
             )
@@ -340,7 +340,7 @@ class PlayView(BaseView):
             return
         self.disable_all_items()
         await interaction.edit(view=self)
-        card: str = self.ctx.game.draw_card(interaction.user.id, index)
+        card: str = self.ctx.game.draw_card(index)
         match card:
             case "defuse":
                 async with DefuseView(

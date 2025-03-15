@@ -214,7 +214,6 @@ class Game:
         for i in range(len(self.deck) - 1, -1, -1):
             if self.deck[i] == card:
                 return len(self.deck) - 1 - i
-        return -1
 
     def cards_help(self, user_id: int, template: str = "") -> str:
         """
