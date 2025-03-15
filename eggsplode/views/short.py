@@ -23,10 +23,7 @@ class NopeView(BaseView):
     def __init__(
         self,
         ctx: ActionContext,
-        target_player_id: int,
-        nope_callback_action: (
-            Callable[[discord.Interaction | None], Coroutine] | None
-        ) = None,
+        nope_callback_action: Callable[[], None] | None = None,
     ):
         """
         Initializes the NopeView with the given context, target player ID, and callback action.
@@ -37,7 +34,6 @@ class NopeView(BaseView):
             callback_action (function): The callback function to be called after the interaction.
         """
         super().__init__(ctx, timeout=10)
-        self.target_player = target_player_id
         self.nope_callback_action = nope_callback_action
         self.nopes = 0
 
@@ -45,12 +41,12 @@ class NopeView(BaseView):
         try:
             await super().on_timeout()
         finally:
-            await self.finish()
+            self.finish()
 
-    async def finish(self):
+    def finish(self):
         self.on_timeout = super().on_timeout
         if self.nope_callback_action and self.nopes % 2:
-            await self.nope_callback_action(None)
+            self.nope_callback_action()
 
     @discord.ui.button(label="Nope!", style=discord.ButtonStyle.red, emoji="🛑")
     async def nope_callback(
@@ -118,8 +114,9 @@ class BlockingNopeView(NopeView):
             target_player_id (int): The ID of the target player.
             callback_action (function): The callback function to be called after the interaction.
         """
-        super().__init__(ctx, target_player_id)
+        super().__init__(ctx)
         self.ctx.game.awaiting_prompt = True
+        self.target_player_id = target_player_id
         self.ok_callback_action = ok_callback_action
 
     async def on_timeout(self):
@@ -145,7 +142,7 @@ class BlockingNopeView(NopeView):
         """
         if not interaction.user:
             return
-        if interaction.user.id != self.target_player:
+        if interaction.user.id != self.target_player_id:
             await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
             return
         if self.nopes % 2:

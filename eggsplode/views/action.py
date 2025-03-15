@@ -8,7 +8,7 @@ import random
 import discord
 from ..game_logic import ActionContext
 from ..strings import CARDS, MESSAGES
-from .short import ChoosePlayerView, DefuseView, BlockingNopeView
+from .short import ChoosePlayerView, DefuseView, BlockingNopeView, NopeView
 from .base import BaseView
 
 
@@ -473,12 +473,23 @@ class PlayView(BaseView):
         Args:
             interaction (discord.Interaction): The interaction that triggered the action.
         """
+        prev_deck = self.ctx.game.deck.copy()
         random.shuffle(self.ctx.game.deck)
         if not interaction.user:
             return
         await interaction.respond(
             MESSAGES["shuffled"].format(interaction.user.id),
+            view=NopeView(
+                ctx=self.ctx.copy(),
+                nope_callback_action=lambda: self.undo_shuffle(prev_deck),
+            ),
         )
+
+    def undo_shuffle(self, prev_deck):
+        """
+        Undoes the 'shuffle' action.
+        """
+        self.ctx.game.deck = prev_deck
 
     async def predict(self, interaction: discord.Interaction):
         """
