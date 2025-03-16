@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "editorconfig.editorconfig",
+        "mikestead.dotenv",
+        "ms-python.black-formatter",
+        "ms-python.debugpy",
+        "ms-python.isort",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "richie5um2.vscode-sort-json"
+    ]
+}
