@@ -41,7 +41,7 @@ class TestGame(unittest.TestCase):
         self.config["expansions"] = ["radioeggtive"]
         self.game = Game(self.config)
         self.game.start()
-        self.assertEqual(len(self.game.deck), 66)
+        self.assertEqual(len(self.game.deck), 74)
         self.assertEqual(self.game.deck.count("eggsplode"), 6)
         self.assertEqual(self.game.deck.count("radioeggtive"), 1)
 
