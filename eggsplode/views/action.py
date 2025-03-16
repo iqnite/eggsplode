@@ -803,6 +803,32 @@ class PlayView(BaseView):
         """
         self.ctx.game.deck = prev_deck
 
+    async def reverse(self, interaction: discord.Interaction):
+        """
+        Handle the 'reverse' action.
+
+        Args:
+            interaction (discord.Interaction): The interaction that triggered the action.
+        """
+        if not interaction.user:
+            return
+        self.ctx.game.reverse()
+        target_player_id = (
+            self.ctx.game.next_player_id
+            if self.ctx.game.draw_in_turn == 0
+            else interaction.user.id
+        )
+        async with BlockingNopeView(
+            ctx=self.ctx.copy(),
+            target_player_id=target_player_id,
+            nope_callback_action=lambda: self.ctx.game.reverse(),
+            ok_callback_action=lambda _: self.skip_finish(interaction),
+        ) as view:
+            await interaction.respond(
+                MESSAGES["before_reverse"].format(interaction.user.id, target_player_id),
+                view=view,
+            )
+
     CARD_ACTIONS = {
         "attegg": attegg,
         "skip": skip,
@@ -811,4 +837,5 @@ class PlayView(BaseView):
         "draw_from_bottom": draw_from_bottom,
         "targeted_attegg": targeted_attegg,
         "alter_future": alter_future,
+        "reverse": reverse
     }

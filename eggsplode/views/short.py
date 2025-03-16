@@ -110,6 +110,7 @@ class BlockingNopeView(NopeView):
         ctx: ActionContext,
         target_player_id: int,
         ok_callback_action: Callable[[discord.Interaction | None], Coroutine],
+        nope_callback_action: Callable[[], None] | None = None,
     ):
         """
         Initializes the NopeView with the given context, target player ID, and callback action.
@@ -119,7 +120,7 @@ class BlockingNopeView(NopeView):
             target_player_id (int): The ID of the target player.
             callback_action (function): The callback function to be called after the interaction.
         """
-        super().__init__(ctx)
+        super().__init__(ctx, nope_callback_action=nope_callback_action)
         self.ctx.game.awaiting_prompt = True
         self.target_player_id = target_player_id
         self.ok_callback_action = ok_callback_action

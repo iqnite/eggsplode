@@ -214,6 +214,14 @@ class TestGame(unittest.TestCase):
         self.game.current_player = 6
         self.assertEqual(self.game.next_player_id, 1)
 
+    def test_reverse(self):
+        self.game.start()
+        self.game.current_player = 1
+        self.game.reverse()
+        self.assertEqual(self.game.current_player_id, 2)
+        self.assertEqual(self.game.next_player_id, 1)
+        self.assertEqual(self.game.players, [7, 6, 5, 4, 3, 2, 1])
+
 
 if __name__ == "__main__":
     unittest.main()

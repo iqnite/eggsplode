@@ -217,6 +217,13 @@ class Game:
             if self.deck[i] == card:
                 return len(self.deck) - 1 - i
 
+    def reverse(self):
+        """
+        Reverses the order of the players.
+        """
+        self.players = self.players[::-1]
+        self.current_player = len(self.players) - self.current_player - 1
+
     def cards_help(self, user_id: int, template: str = "") -> str:
         """
         Provides help information for the cards in a player's hand.

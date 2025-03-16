@@ -127,5 +127,13 @@
         "count": 4,
         "usable": true,
         "expansion": "radioeggtive"
+    },
+    "reverse": {
+        "title": "Reverse",
+        "description": "End your turn without drawing and reverse the order of play.",
+        "emoji": "🔄",
+        "count": 4,
+        "usable": true,
+        "expansion": "radioeggtive"
     }
 }
