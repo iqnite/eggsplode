@@ -151,7 +151,7 @@ class Game:
         Draws a card for the specified player.
 
         Args:
-            user_id (int): The ID of the player.
+            index (int): The deck index where the card is drawn from (0 = bottom).
 
         Returns:
             str: The drawn card.
@@ -211,7 +211,7 @@ class Game:
             card (str): The card to be drawn
 
         Returns:
-            int: The number of turns until the card is drawn, or -1 if the card is not in the deck
+            int: The number of turns until the card is drawn, or None if the card is not in the deck
         """
         for i in range(len(self.deck) - 1, -1, -1):
             if self.deck[i] == card:
