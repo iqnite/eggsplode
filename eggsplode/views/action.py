@@ -443,7 +443,7 @@ class PlayView(BaseView):
         async with BlockingNopeView(
             ctx=self.ctx.copy(),
             target_player_id=self.ctx.game.next_player_id,
-            ok_callback_action=lambda _: self.attegg_finish(interaction),
+            callback_action=lambda _: self.attegg_finish(interaction),
         ) as view:
             await interaction.respond(
                 MESSAGES["before_attegg"].format(
@@ -471,7 +471,7 @@ class PlayView(BaseView):
         async with BlockingNopeView(
             ctx=self.ctx.copy(),
             target_player_id=target_player_id,
-            ok_callback_action=lambda _: self.skip_finish(interaction),
+            callback_action=lambda _: self.skip_finish(interaction),
         ) as view:
             await interaction.respond(
                 MESSAGES["before_skip"].format(interaction.user.id, target_player_id),
@@ -571,7 +571,7 @@ class PlayView(BaseView):
         async with BlockingNopeView(
             ctx=self.ctx.copy(),
             target_player_id=target_player_id,
-            ok_callback_action=lambda target_interaction: self.food_combo_finish(
+            callback_action=lambda target_interaction: self.food_combo_finish(
                 interaction, target_interaction, target_player_id
             ),
         ) as view:
@@ -711,7 +711,7 @@ class PlayView(BaseView):
         async with BlockingNopeView(
             ctx=self.ctx.copy(),
             target_player_id=target_player_id,
-            ok_callback_action=lambda _: self.draw_card(interaction, index=0),
+            callback_action=lambda _: self.draw_card(interaction, index=0),
         ) as view:
             await interaction.respond(
                 MESSAGES["before_draw_from_bottom"].format(
@@ -753,9 +753,7 @@ class PlayView(BaseView):
         async with BlockingNopeView(
             ctx=self.ctx.copy(),
             target_player_id=target_player_id,
-            ok_callback_action=lambda _: self.attegg_finish(
-                interaction, target_player_id
-            ),
+            callback_action=lambda _: self.attegg_finish(interaction, target_player_id),
         ) as view:
             await interaction.respond(
                 MESSAGES["before_targeted_attegg"].format(
@@ -791,7 +789,9 @@ class PlayView(BaseView):
         """
         if not interaction.user:
             return
-        async with NopeView(self.ctx.copy(), lambda: self.undo_alter_future(prev_deck)) as view:
+        async with NopeView(
+            self.ctx.copy(), lambda: self.undo_alter_future(prev_deck)
+        ) as view:
             await interaction.respond(
                 MESSAGES["altered_future"].format(interaction.user.id),
                 view=view,
@@ -822,10 +822,12 @@ class PlayView(BaseView):
             ctx=self.ctx.copy(),
             target_player_id=target_player_id,
             nope_callback_action=self.ctx.game.reverse,
-            ok_callback_action=lambda _: self.skip_finish(interaction),
+            callback_action=lambda _: self.skip_finish(interaction),
         ) as view:
             await interaction.respond(
-                MESSAGES["before_reverse"].format(interaction.user.id, target_player_id),
+                MESSAGES["before_reverse"].format(
+                    interaction.user.id, target_player_id
+                ),
                 view=view,
             )
 
@@ -837,5 +839,126 @@ class PlayView(BaseView):
         "draw_from_bottom": draw_from_bottom,
         "targeted_attegg": targeted_attegg,
         "alter_future": alter_future,
-        "reverse": reverse
+        "reverse": reverse,
     }
+
+
+class TurnAction:
+    def __init__(self, ctx: ActionContext, interaction: discord.Interaction):
+        self.ctx = ctx
+        self._interaction = interaction
+        self._actions = {}
+        self._i: int
+
+    async def send(self):
+        self._i = 0
+        await self._actions[0]()
+
+    async def respond(self, response: str, view=None):
+        await self._interaction.respond(response, view)
+        self._i += 1
+        await self._actions[self._i]()
+
+    async def edit(self, content: str):
+        await self._interaction.edit(content=content)
+        self._i += 1
+        await self._actions[self._i]()
+
+    async def respond_with_nope_view(self, response: str):
+        async with NopeView(
+            self.ctx.copy(), nope_callback_action=self._actions[self._i + 0.1]
+        ) as view:
+            await self.respond(response, view=view)
+
+    async def respond_with_blocking_nope_view(self, response: str):
+        async with BlockingNopeView(
+            ctx=self.ctx.copy(),
+            target_player_id=self._actions[self._i + 0.2],
+            nope_callback_action=self._actions.get(self._i + 0.1, None),
+            callback_action=self._actions[self._i + 1],
+        ) as view:
+            await self._interaction.respond(response, view=view)
+
+    async def respond_with_defuse_view(self, response: str):
+        async with DefuseView(
+            ctx=self.ctx.copy(),
+            callback_action=self._actions[self._i + 1],
+            card=self._actions.get(self._i + 0.3, "eggsplode"),
+            prev_card=self._actions.get(self._i + 0.4, None),
+        ) as view:
+            await self._interaction.respond(response, view=view)
+
+    async def respond_with_choose_player_view(self, response: str):
+        async with ChoosePlayerView(
+            self.ctx.copy(),
+            callback_action=self._actions[self._i + 1],
+            condition=self._actions.get(self._i + 0.5, lambda _: True),
+        ) as view:
+            await self._interaction.respond(response, view=view)
+
+    async def respond_with_alter_future_view(self, response: str):
+        async with AlterFutureView(
+            self.ctx.copy(),
+            callback_action=self._actions[self._i + 1],
+            amount_of_cards=self._actions[self._i + 0.6],
+        ) as view:
+            await self._interaction.respond(response, view=view)
+
+    def then_respond(self, response: str):
+        self._actions[len(self._actions)] = lambda: self.respond(response)
+        return self
+
+    def then_edit(self, content: str):
+        self._actions[len(self._actions)] = lambda: self.edit(content)
+        return self
+
+    def then_respond_with_nope_view(self, response: str):
+        self._actions[len(self._actions)] = lambda: self.respond_with_nope_view(
+            response
+        )
+        return self
+
+    def then_respond_with_blocking_nope_view(self, response: str):
+        self._actions[len(self._actions)] = (
+            lambda: self.respond_with_blocking_nope_view(response)
+        )
+        return self
+
+    def then_respond_with_defuse_view(self, response: str):
+        self._actions[len(self._actions)] = lambda: self.respond_with_defuse_view(
+            response
+        )
+        return self
+
+    def then_respond_with_choose_player_view(self, response: str):
+        self._actions[len(self._actions)] = (
+            lambda: self.respond_with_choose_player_view(response)
+        )
+        return self
+
+    def then_respond_with_alter_future_view(self, response: str):
+        self._actions[len(self._actions)] = lambda: self.respond_with_alter_future_view(
+            response
+        )
+
+    def add_info(self, i, info):
+        self._actions[len(self._actions) + i] = info
+        return self
+
+    def with_nope_callback(self, callback):
+        return self.add_info(0.1, callback)
+
+    def with_target_player_id(self, target_player_id):
+        return self.add_info(0.2, target_player_id)
+
+    def with_card(self, card):
+        return self.add_info(0.3, card)
+
+    def with_prev_card(self, prev_card):
+        return self.add_info(0.4, prev_card)
+
+    def where(self, condition):
+        return self.add_info(0.5, condition)
+
+    def with_amount_of_cards(self, amount):
+        return self.add_info(0.6, amount)
