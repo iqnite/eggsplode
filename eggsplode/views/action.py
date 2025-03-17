@@ -821,7 +821,7 @@ class PlayView(BaseView):
         async with BlockingNopeView(
             ctx=self.ctx.copy(),
             target_player_id=target_player_id,
-            nope_callback_action=lambda: self.ctx.game.reverse(),
+            nope_callback_action=self.ctx.game.reverse,
             ok_callback_action=lambda _: self.skip_finish(interaction),
         ) as view:
             await interaction.respond(

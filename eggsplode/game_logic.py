@@ -216,6 +216,7 @@ class Game:
         for i in range(len(self.deck) - 1, -1, -1):
             if self.deck[i] == card:
                 return len(self.deck) - 1 - i
+        return None
 
     def reverse(self):
         """
