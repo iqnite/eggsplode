@@ -109,7 +109,7 @@ class BlockingNopeView(NopeView):
         self,
         ctx: ActionContext,
         target_player_id: int,
-        callback_action: Callable[[discord.Interaction | None], Coroutine],
+        ok_callback_action: Callable[[discord.Interaction | None], Coroutine],
         nope_callback_action: Callable[[], None] | None = None,
     ):
         """
@@ -123,7 +123,7 @@ class BlockingNopeView(NopeView):
         super().__init__(ctx, nope_callback_action=nope_callback_action)
         self.ctx.game.awaiting_prompt = True
         self.target_player_id = target_player_id
-        self.callback_action = callback_action
+        self.ok_callback_action = ok_callback_action
 
     async def on_timeout(self):
         """
@@ -135,7 +135,7 @@ class BlockingNopeView(NopeView):
             if self.ctx.action_id == self.ctx.game.action_id:
                 self.ctx.game.awaiting_prompt = False
                 if not self.nopes % 2:
-                    await self.callback_action(None)
+                    await self.ok_callback_action(None)
 
     @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
     async def ok_callback(self, _: discord.ui.Button, interaction: discord.Interaction):
@@ -156,7 +156,7 @@ class BlockingNopeView(NopeView):
             return
         await super().on_timeout()
         self.ctx.game.awaiting_prompt = False
-        await self.callback_action(interaction)
+        await self.ok_callback_action(interaction)
 
 
 class DefuseView(BaseView):
