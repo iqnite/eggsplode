@@ -4,7 +4,7 @@ Contains the StartGameView class which handles the start game view in the Discor
 
 import discord
 from ..strings import EXPANSIONS, MESSAGES
-from ..game_logic import ActionContext
+from ..ctx import ActionContext
 from .base import BaseView
 from .action import TurnView
 

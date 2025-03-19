@@ -6,15 +6,10 @@ import asyncio
 from collections.abc import Callable, Coroutine
 import random
 import discord
-from ..game_logic import ActionContext
+
+from .. import cards
+from ..ctx import ActionContext, PlayActionContext
 from ..strings import CARDS, MESSAGES
-from .short import (
-    AlterFutureView,
-    ChoosePlayerView,
-    DefuseView,
-    BlockingNopeView,
-    NopeView,
-)
 from .base import BaseView
 
 
@@ -231,11 +226,37 @@ class PlayView(BaseView):
             on_game_over (function): Callback for when the game is over.
         """
         super().__init__(ctx)
+        self.ctx = PlayActionContext.from_ctx(
+            ctx=ctx,
+            disable_view=self.deactivate,
+            update_view=self.update,
+            end_turn=end_turn,
+            on_game_over=on_game_over,
+        )
         self.play_card_select = None
         self.on_valid_interaction = on_valid_interaction
         self.end_turn = end_turn
         self.on_game_over = on_game_over
         self.create_card_selection()
+
+    async def deactivate(self, interaction: discord.Interaction):
+        """
+        Deactivates the view.
+        """
+        self.disable_all_items()
+        await interaction.edit(view=self)
+
+    async def update(self, interaction: discord.Interaction):
+        """
+        Updates the view.
+        """
+        if not interaction.user:
+            return
+        self.create_card_selection()
+        await interaction.edit(
+            content=self.create_play_prompt_message(interaction.user.id),
+            view=self,
+        )
 
     def create_play_prompt_message(self, user_id: int) -> str:
         """
@@ -336,75 +357,7 @@ class PlayView(BaseView):
         """
         Callback for the draw button.
         """
-        await self.draw_card(interaction)
-
-    async def draw_card(self, interaction: discord.Interaction, index=-1):
-        """
-        Draw a card from the deck.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the draw.
-            index (int): The index of the card to draw.
-        """
-        if not interaction.user:
-            return
-        self.disable_all_items()
-        await interaction.edit(view=self)
-        card: str = self.ctx.game.draw_card(index)
-        match card:
-            case "defused":
-                async with DefuseView(
-                    self.ctx.copy(),
-                    lambda: self.defuse_finish(interaction),
-                    card="eggsplode",
-                ) as view:
-                    await interaction.respond(
-                        view.generate_move_prompt(),
-                        view=view,
-                        ephemeral=True,
-                    )
-                return
-            case "eggsplode":
-                await interaction.respond(
-                    MESSAGES["eggsploded"].format(interaction.user.id)
-                )
-            case "gameover":
-                await interaction.respond(
-                    MESSAGES["eggsploded"].format(interaction.user.id)
-                    + "\n"
-                    + MESSAGES["game_over"].format(self.ctx.game.players[0])
-                )
-                self.on_game_over()
-                del self.ctx.games[self.ctx.game_id]
-                return
-            case "radioeggtive":
-                async with DefuseView(
-                    self.ctx.copy(),
-                    lambda: self.radioeggtive_finish(interaction),
-                    card="radioeggtive_face_up",
-                    prev_card="radioeggtive",
-                ) as view:
-                    await interaction.respond(
-                        view.generate_move_prompt(),
-                        view=view,
-                        ephemeral=True,
-                    )
-                return
-            case "radioeggtive_face_up":
-                await interaction.respond(
-                    MESSAGES["radioeggtive_face_up"].format(interaction.user.id)
-                )
-            case _:
-                await interaction.respond(
-                    MESSAGES["user_drew_card"].format(interaction.user.id)
-                )
-                await interaction.respond(
-                    MESSAGES["you_drew_card"].format(
-                        CARDS[card]["emoji"], CARDS[card]["title"]
-                    ),
-                    ephemeral=True,
-                )
-        await self.end_turn(interaction)
+        await cards.draw_card(self.ctx, interaction)
 
     async def play_card(self, _, interaction: discord.Interaction):
         """
@@ -421,421 +374,23 @@ class PlayView(BaseView):
             raise TypeError("selected is not a str")
         await interaction.edit(view=self)
         if CARDS[selected].get("combo", 0) == 1:
-            await self.food_combo(interaction, selected)
+            await cards.food_combo(self.ctx.copy(view=self), interaction, selected)
         else:
             self.ctx.game.current_player_hand.remove(selected)
-            await self.CARD_ACTIONS[selected](self, interaction)
+            await self.CARD_ACTIONS[selected](self.ctx.copy(view=self), interaction)
         self.create_card_selection()
         await interaction.edit(
             content=self.create_play_prompt_message(interaction.user.id),
             view=self,
         )
-
-    async def attegg(self, interaction: discord.Interaction):
-        """
-        Handle the 'attegg' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-        """
-        if not interaction.user:
-            return
-        async with BlockingNopeView(
-            ctx=self.ctx.copy(),
-            target_player_id=self.ctx.game.next_player_id,
-            ok_callback_action=lambda _: self.attegg_finish(interaction),
-        ) as view:
-            await interaction.respond(
-                MESSAGES["before_attegg"].format(
-                    interaction.user.id,
-                    self.ctx.game.next_player_id,
-                    self.ctx.game.draw_in_turn + 2,
-                ),
-                view=view,
-            )
-
-    async def skip(self, interaction: discord.Interaction):
-        """
-        Handle the 'skip' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-        """
-        if not interaction.user:
-            return
-        target_player_id = (
-            self.ctx.game.next_player_id
-            if self.ctx.game.draw_in_turn == 0
-            else interaction.user.id
-        )
-        async with BlockingNopeView(
-            ctx=self.ctx.copy(),
-            target_player_id=target_player_id,
-            ok_callback_action=lambda _: self.skip_finish(interaction),
-        ) as view:
-            await interaction.respond(
-                MESSAGES["before_skip"].format(interaction.user.id, target_player_id),
-                view=view,
-            )
-
-    async def shuffle(self, interaction: discord.Interaction):
-        """
-        Handle the 'shuffle' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-        """
-        prev_deck = self.ctx.game.deck.copy()
-        random.shuffle(self.ctx.game.deck)
-        if not interaction.user:
-            return
-        async with NopeView(
-            ctx=self.ctx.copy(),
-            nope_callback_action=lambda: self.undo_shuffle(prev_deck),
-        ) as view:
-            await interaction.respond(
-                MESSAGES["shuffled"].format(interaction.user.id),
-                view=view,
-            )
-
-    def undo_shuffle(self, prev_deck):
-        """
-        Undoes the 'shuffle' action.
-        """
-        self.ctx.game.deck = prev_deck
-
-    async def predict(self, interaction: discord.Interaction):
-        """
-        Handle the 'predict' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-        """
-        if not interaction.user:
-            return
-        next_cards = "\n".join(
-            MESSAGES["bold_list_item"].format(
-                CARDS[card]["emoji"], CARDS[card]["title"]
-            )
-            for card in self.ctx.game.deck[-1:-4:-1]
-        )
-        await interaction.respond(
-            MESSAGES["predicted"].format(interaction.user.id),
-        )
-        await interaction.respond(
-            "\n".join((MESSAGES["next_cards"], next_cards)),
-            ephemeral=True,
-        )
-
-    async def food_combo(self, interaction: discord.Interaction, selected: str):
-        """
-        Handle the 'food combo' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-            selected (str): The selected card.
-        """
-        if not interaction.user:
-            return
-        if not self.ctx.game.any_player_has_cards():
-            await interaction.respond(MESSAGES["no_players_have_cards"])
-            return
-        assert self.ctx.game.current_player_hand.count(selected) >= 2
-        for _ in range(2):
-            self.ctx.game.current_player_hand.remove(selected)
-        async with ChoosePlayerView(
-            self.ctx.copy(),
-            lambda target_player_id: self.food_combo_begin(
-                interaction, target_player_id, selected
-            ),
-            condition=lambda user_id: user_id != self.ctx.game.current_player_id
-            and len(self.ctx.game.hands[user_id]) > 0,
-        ) as view:
-            await interaction.respond(
-                MESSAGES["steal_prompt"], view=view, ephemeral=True
-            )
-
-    async def food_combo_begin(
-        self, interaction: discord.Interaction, target_player_id: int, food_card: str
-    ):
-        """
-        Begin the 'steal' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-            target_player_id (int): The ID of the target player.
-            food_card (str): The food card used for stealing.
-        """
-        if not interaction.user:
-            return
-        async with BlockingNopeView(
-            ctx=self.ctx.copy(),
-            target_player_id=target_player_id,
-            ok_callback_action=lambda target_interaction: self.food_combo_finish(
-                interaction, target_interaction, target_player_id
-            ),
-        ) as view:
-            await interaction.respond(
-                MESSAGES["before_steal"].format(
-                    CARDS[food_card]["emoji"], interaction.user.id, target_player_id
-                ),
-                view=view,
-            )
-
-    async def food_combo_finish(
-        self,
-        interaction: discord.Interaction,
-        target_interaction: discord.Interaction | None,
-        target_player_id: int,
-    ):
-        """
-        Finalize the 'steal' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-            target_interaction (discord.Interaction | None): The interaction of the target player.
-            target_player_id (int): The ID of the target player.
-        """
-        if not interaction.user:
-            return
-        target_hand = self.ctx.game.hands[target_player_id]
-        if not target_hand:
-            await interaction.respond(
-                MESSAGES["no_cards_to_steal"].format(
-                    self.ctx.game.current_player_id, target_player_id
-                )
-            )
-            return
-        stolen_card = random.choice(target_hand)
-        self.ctx.game.hands[target_player_id].remove(stolen_card)
-        self.ctx.game.current_player_hand.append(stolen_card)
-        self.create_card_selection()
-        await interaction.edit(
-            content=self.create_play_prompt_message(interaction.user.id),
-            view=self,
-        )
-        await interaction.respond(
-            MESSAGES["stolen_card_public"].format(
-                self.ctx.game.current_player_id, target_player_id
-            )
-        )
-        await interaction.respond(
-            MESSAGES["stolen_card_you"].format(
-                CARDS[stolen_card]["emoji"], CARDS[stolen_card]["title"]
-            ),
-            ephemeral=True,
-        )
-        if target_interaction:
-            await target_interaction.respond(
-                MESSAGES["stolen_card_them"].format(
-                    self.ctx.game.current_player_id,
-                    CARDS[stolen_card]["emoji"],
-                    CARDS[stolen_card]["title"],
-                ),
-                ephemeral=True,
-            )
-
-    async def defuse_finish(self, interaction: discord.Interaction):
-        """
-        Finalize the 'defuse' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-        """
-        if not interaction.user:
-            raise TypeError("interaction.user is None")
-        await interaction.respond(MESSAGES["defused"].format(interaction.user.id))
-        await self.end_turn(interaction)
-
-    async def radioeggtive_finish(self, interaction: discord.Interaction):
-        """
-        Finalize the 'radioeggtive' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-        """
-        if not interaction.user:
-            raise TypeError("interaction.user is None")
-        await interaction.respond(MESSAGES["radioeggtive"].format(interaction.user.id))
-        await self.end_turn(interaction)
-
-    async def attegg_finish(
-        self, interaction: discord.Interaction, target_player_id=None
-    ):
-        """
-        Finalize the 'attegg' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-        """
-        target_player_id = target_player_id or self.ctx.game.next_player_id
-        if not interaction.message:
-            return
-        self.disable_all_items()
-        await interaction.edit(view=self)
-        prev_to_draw_in_turn = self.ctx.game.draw_in_turn
-        self.ctx.game.draw_in_turn = 0
-        while self.ctx.game.current_player_id != target_player_id:
-            self.ctx.game.next_turn()
-        self.ctx.game.draw_in_turn = prev_to_draw_in_turn + 2
-        await self.end_turn(interaction)
-
-    async def skip_finish(self, interaction: discord.Interaction):
-        """
-        Finalize the 'skip' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-        """
-        if not interaction.message:
-            return
-        self.disable_all_items()
-        await interaction.edit(view=self)
-        self.ctx.game.next_turn()
-        await self.end_turn(interaction)
-
-    async def draw_from_bottom(self, interaction: discord.Interaction):
-        """
-        Handle the 'draw from bottom' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-        """
-        if not interaction.user:
-            return
-        target_player_id = (
-            self.ctx.game.next_player_id
-            if self.ctx.game.draw_in_turn == 0
-            else interaction.user.id
-        )
-        async with BlockingNopeView(
-            ctx=self.ctx.copy(),
-            target_player_id=target_player_id,
-            ok_callback_action=lambda _: self.draw_card(interaction, index=0),
-        ) as view:
-            await interaction.respond(
-                MESSAGES["before_draw_from_bottom"].format(
-                    interaction.user.id, target_player_id
-                ),
-                view=view,
-            )
-
-    async def targeted_attegg(self, interaction: discord.Interaction):
-        """
-        Handle the 'targeted attegg' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-        """
-        if not interaction.user:
-            return
-        async with ChoosePlayerView(
-            self.ctx.copy(),
-            lambda target_player_id: self.targeted_attegg_begin(
-                interaction, target_player_id
-            ),
-        ) as view:
-            await interaction.respond(
-                MESSAGES["targeted_attegg_prompt"], view=view, ephemeral=True
-            )
-
-    async def targeted_attegg_begin(
-        self, interaction: discord.Interaction, target_player_id: int
-    ):
-        """
-        Begin the 'targeted attegg' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-        """
-        if not interaction.user:
-            return
-        async with BlockingNopeView(
-            ctx=self.ctx.copy(),
-            target_player_id=target_player_id,
-            ok_callback_action=lambda _: self.attegg_finish(
-                interaction, target_player_id
-            ),
-        ) as view:
-            await interaction.respond(
-                MESSAGES["before_targeted_attegg"].format(
-                    interaction.user.id,
-                    target_player_id,
-                    self.ctx.game.draw_in_turn + 2,
-                ),
-                view=view,
-            )
-
-    async def alter_future(self, interaction: discord.Interaction):
-        """
-        Handle the 'alter future' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-        """
-        if not interaction.user:
-            return
-        prev_deck = self.ctx.game.deck.copy()
-        async with AlterFutureView(
-            self.ctx.copy(), lambda: self.alter_future_finish(interaction, prev_deck), 3
-        ) as view:
-            await interaction.respond(view=view, ephemeral=True)
-
-    async def alter_future_finish(self, interaction: discord.Interaction, prev_deck):
-        """
-        Finalize the 'alter future' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-            prev_deck (list): The previous deck.
-        """
-        if not interaction.user:
-            return
-        async with NopeView(self.ctx.copy(), lambda: self.undo_alter_future(prev_deck)) as view:
-            await interaction.respond(
-                MESSAGES["altered_future"].format(interaction.user.id),
-                view=view,
-            )
-
-    def undo_alter_future(self, prev_deck):
-        """
-        Undo the 'alter future' action.
-        """
-        self.ctx.game.deck = prev_deck
-
-    async def reverse(self, interaction: discord.Interaction):
-        """
-        Handle the 'reverse' action.
-
-        Args:
-            interaction (discord.Interaction): The interaction that triggered the action.
-        """
-        if not interaction.user:
-            return
-        self.ctx.game.reverse()
-        target_player_id = (
-            self.ctx.game.next_player_id
-            if self.ctx.game.draw_in_turn == 0
-            else interaction.user.id
-        )
-        async with BlockingNopeView(
-            ctx=self.ctx.copy(),
-            target_player_id=target_player_id,
-            nope_callback_action=self.ctx.game.reverse,
-            ok_callback_action=lambda _: self.skip_finish(interaction),
-        ) as view:
-            await interaction.respond(
-                MESSAGES["before_reverse"].format(interaction.user.id, target_player_id),
-                view=view,
-            )
 
     CARD_ACTIONS = {
-        "attegg": attegg,
-        "skip": skip,
-        "shuffle": shuffle,
-        "predict": predict,
-        "draw_from_bottom": draw_from_bottom,
-        "targeted_attegg": targeted_attegg,
-        "alter_future": alter_future,
-        "reverse": reverse
+        "attegg": cards.attegg,
+        "skip": cards.skip,
+        "shuffle": cards.shuffle,
+        "predict": cards.predict,
+        "draw_from_bottom": cards.draw_from_bottom,
+        "targeted_attegg": cards.targeted_attegg,
+        "alter_future": cards.alter_future,
+        "reverse": cards.reverse,
     }

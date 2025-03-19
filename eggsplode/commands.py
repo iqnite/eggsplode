@@ -7,7 +7,9 @@ from datetime import datetime
 import os
 import discord
 from discord.ext import commands
-from .game_logic import ActionContext, Game
+
+from .ctx import ActionContext
+from .game_logic import Game
 from .strings import (
     ADMIN_LISTGAMES_CODE,
     ADMIN_MAINTENANCE_CODE,

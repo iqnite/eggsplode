@@ -162,11 +162,10 @@ class Game:
                 self.hands[self.current_player_id].remove("defuse")
                 self.next_turn()
                 return "defused"
-            else:
-                self.remove_player(self.current_player_id)
-                self.draw_in_turn = 0
-                if len(self.players) == 1:
-                    return "gameover"
+            self.remove_player(self.current_player_id)
+            self.draw_in_turn = 0
+            if len(self.players) == 1:
+                return "gameover"
         elif card == "radioeggtive":
             self.next_turn()
         elif card == "radioeggtive_face_up":
@@ -245,50 +244,4 @@ class Game:
                 CARDS[card]["description"],
             )
             for card, count in grouped_hand.items()
-        )
-
-
-class ActionContext:  # pylint: disable=too-few-public-methods
-    """
-    Represents the context for an action in the game.
-    """
-
-    def __init__(  # pylint: disable=too-many-arguments
-        self,
-        *,
-        app,
-        game_id: int,
-        action_id: int | None = None,
-    ):
-        """
-        Initializes the action context.
-
-        Args:
-            app: The application instance.
-            game_id (int): The ID of the game.
-            action_id (int, optional): The ID of the action.
-        """
-        self.app = app
-        self.games: dict[int, Game] = self.app.games
-        self.game_id: int = game_id
-        self.game: Game = self.games[game_id]
-        if action_id is not None:
-            self.action_id: int = action_id
-        elif self.game:
-            self.action_id: int = self.game.action_id
-
-    def copy(self, **kwargs):
-        """
-        Creates a copy of the action context with optional overrides.
-
-        Args:
-            **kwargs: Optional overrides for the context attributes.
-
-        Returns:
-            ActionContext: A new action context with the specified overrides.
-        """
-        return self.__class__(
-            app=kwargs.get("app", self.app),
-            game_id=kwargs.get("game_id", self.game_id),
-            action_id=kwargs.get("action_id", self.action_id),
         )

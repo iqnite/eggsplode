@@ -5,7 +5,7 @@ Contains the views for the short interactions in the game, such as "Nope" and "D
 from collections.abc import Callable, Coroutine
 import discord
 from ..strings import CARDS, MESSAGES
-from ..game_logic import ActionContext
+from ..ctx import ActionContext
 from .base import BaseView
 
 
@@ -408,7 +408,7 @@ class AlterFutureView(BaseView):
 
         Args:
             ctx (ActionContext): The context of the current action.
-            callback_action (function): The callback function to execute after the cards are reordered.
+            callback_action (function): The callback to execute after the cards are reordered.
             amount_of_cards (int): The number of cards to reorder.
         """
         super().__init__(ctx, timeout=10)

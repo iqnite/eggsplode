@@ -3,9 +3,8 @@ Contains tests for the game logic of the Eggsplode game.
 """
 
 import unittest
-from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timedelta
-from eggsplode.game_logic import ActionContext, Game
+from eggsplode.game_logic import Game
 
 
 class TestGame(unittest.TestCase):
