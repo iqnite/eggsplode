@@ -35,7 +35,7 @@ class NopeView(BaseView):
         """
         super().__init__(ctx, timeout=10)
         self.nope_callback_action = nope_callback_action
-        self.nopes = 0
+        self.nope_count = 0
         self.ctx.game.active_nope_views.append(self)
 
     async def on_timeout(self):
@@ -50,7 +50,7 @@ class NopeView(BaseView):
         try:
             await super().on_timeout()
         finally:
-            if self.nope_callback_action and self.nopes % 2:
+            if self.nope_callback_action and self.nope_count % 2:
                 self.nope_callback_action()
 
     @discord.ui.button(label="Nope!", style=discord.ButtonStyle.red, emoji="🛑")
@@ -67,7 +67,7 @@ class NopeView(BaseView):
         if not interaction.user:
             return
         if (
-            not self.nopes % 2
+            not self.nope_count % 2
             and self.ctx.game.current_player_id == interaction.user.id
         ):
             await interaction.respond(MESSAGES["no_self_nope"], ephemeral=True)
@@ -82,13 +82,13 @@ class NopeView(BaseView):
             return
         if not interaction.message:
             return
-        self.nopes += 1
+        self.nope_count += 1
         new_message_content = "".join(
             (line.strip("~~") + "\n" if line.startswith("~~") else "~~" + line + "~~\n")
             for line in interaction.message.content.split("\n")
         ) + (
             MESSAGES["message_edit_on_nope"].format(interaction.user.id)
-            if self.nopes % 2
+            if self.nope_count % 2
             else MESSAGES["message_edit_on_yup"].format(interaction.user.id)
         )
         await interaction.edit(content=new_message_content, view=self)
@@ -134,7 +134,7 @@ class BlockingNopeView(NopeView):
         finally:
             if self.ctx.action_id == self.ctx.game.action_id:
                 self.ctx.game.awaiting_prompt = False
-                if not self.nopes % 2:
+                if not self.nope_count % 2:
                     await self.ok_callback_action(None)
 
     @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
@@ -151,7 +151,7 @@ class BlockingNopeView(NopeView):
         if interaction.user.id != self.target_player_id:
             await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
             return
-        if self.nopes % 2:
+        if self.nope_count % 2:
             await interaction.respond(MESSAGES["action_noped"], ephemeral=True)
             return
         await super().on_timeout()
@@ -415,32 +415,37 @@ class AlterFutureView(BaseView):
         self.ctx.game.awaiting_prompt = True
         self.amount_of_cards = min(amount_of_cards, len(self.ctx.game.deck))
         self.callback_action = callback_action
-        self.card_options = [
-            discord.SelectOption(
-                value=card,
-                label=CARDS[card]["title"],
-                description=CARDS[card]["description"],
-                emoji=CARDS[card]["emoji"],
-            )
-            for card in self.ctx.game.deck[-1 : -self.amount_of_cards - 1 : -1]
-        ]
+        self.selects: list[discord.ui.Select] = []
         self.create_selections()
 
     def create_selections(self):
         """
         Creates the select menus for reordering the deck.
         """
-        self.selects: list[discord.ui.Select] = []
+        card_options = [
+            discord.SelectOption(
+                value=f"{i}:{card}",
+                label=CARDS[card]["title"],
+                description=CARDS[card]["description"],
+                emoji=CARDS[card]["emoji"],
+            )
+            for i, card in enumerate(
+                self.ctx.game.deck[-1 : -self.amount_of_cards - 1 : -1]
+            )
+        ]
+        for select in self.selects:
+            self.remove_item(select)
+        self.selects = []
         for i in range(self.amount_of_cards):
             select = discord.ui.Select(
                 placeholder=f"{i + 1}. card: {CARDS[self.ctx.game.deck[-i - 1]]['title']}",
                 min_values=1,
                 max_values=1,
-                options=self.card_options,
+                options=card_options,
             )
             select.callback = self.selection_callback
-            self.add_item(select)
             self.selects.append(select)
+            self.add_item(select)
 
     async def finish(self):
         """
@@ -482,8 +487,16 @@ class AlterFutureView(BaseView):
         if not interaction:
             return
         for i, select in enumerate(self.selects):
+            if select.values is None:
+                continue
             if not isinstance(select.values[0], str):
                 raise TypeError("select.values[0] is not a str")
-            self.ctx.game.deck[-i - 1] = select.values[0]
+            prev_card_position = -i - 1
+            new_card_position = -int(select.values[0].partition(":")[0]) - 1
+            prev_card = self.ctx.game.deck[prev_card_position]
+            new_card = select.values[0].partition(":")[2]
+            self.ctx.game.deck[prev_card_position] = new_card
+            self.ctx.game.deck[new_card_position] = prev_card
+            break
         self.create_selections()
         await interaction.edit(view=self)
