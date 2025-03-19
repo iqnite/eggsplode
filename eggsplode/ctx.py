@@ -85,3 +85,14 @@ class PlayActionContext(ActionContext):
             end_turn=end_turn,
             on_game_over=on_game_over,
         )
+
+    def copy(self, **kwargs):
+        return self.__class__(
+            app=kwargs.get("app", self.app),
+            game_id=kwargs.get("game_id", self.game_id),
+            action_id=kwargs.get("action_id", self.action_id),
+            disable_view=kwargs.get("disable_view", self.disable_view),
+            update_view=kwargs.get("update_view", self.update_view),
+            end_turn=kwargs.get("end_turn", self.end_turn),
+            on_game_over=kwargs.get("on_game_over", self.on_game_over),
+        )
