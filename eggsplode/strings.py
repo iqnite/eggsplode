@@ -14,6 +14,11 @@ with open("cards.json", encoding="utf-8") as f:
     CARDS = json.load(f)
 with open("expansions.json", encoding="utf-8") as f:
     EXPANSIONS = json.load(f)
+try:
+    with open("emojis.json", encoding="utf-8") as f:
+        EMOJIS = json.load(f)
+except FileNotFoundError:
+    EMOJIS = {}
 
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")

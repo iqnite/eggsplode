@@ -3,7 +3,7 @@ Contains the StartGameView class which handles the start game view in the Discor
 """
 
 import discord
-from ..strings import EXPANSIONS, MESSAGES
+from ..strings import EMOJIS, EXPANSIONS, MESSAGES
 from ..ctx import ActionContext
 from .base import BaseView
 from .action import TurnView
@@ -94,21 +94,23 @@ class StartGameView(BaseView):
                 ),
                 *(
                     (
-                        (
-                            MESSAGES["expansions"],
-                            *(
-                                MESSAGES["bold_list_item"].format(
-                                    EXPANSIONS[expansion]["emoji"],
-                                    EXPANSIONS[expansion]["name"],
-                                )
-                                for expansion in self.ctx.game.config.get(
-                                    "expansions", []
-                                )
-                            ),
-                        )
+                        MESSAGES["expansions"]
+                        + " "
+                        + EMOJIS.get("new1", "🆕")
+                        + EMOJIS.get("new2", ""),
+                        *(
+                            MESSAGES["bold_list_item"].format(
+                                EXPANSIONS[expansion]["emoji"],
+                                EXPANSIONS[expansion]["name"],
+                            )
+                            for expansion in self.ctx.game.config.get("expansions", [])
+                        ),
                     )
+                ),
+                (
+                    ""
                     if self.ctx.game.config.get("expansions", [])
-                    else ()
+                    else MESSAGES["no_expansions"]
                 ),
             )
         )

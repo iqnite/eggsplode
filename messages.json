@@ -128,6 +128,7 @@
     "next_cards": "### Next 3 cards on the deck:",
     "next_turn": "### ⌛ <@{}>'s turn!",
     "no_cards_to_steal": "🎭 {} wanted to steal a card from {}, but they had no cards left. Better luck next time!",
+    "no_expansions": "- *No eggspansions selected. You can add them using the **Settings** button.*",
     "no_nope_cards": "❌ You have no **Nope** cards to play!",
     "no_players_have_cards": "❌ No players have cards!",
     "no_self_nope": "❌ You can't Nope yourself!",

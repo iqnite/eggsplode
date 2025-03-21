@@ -124,15 +124,7 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
             )
             async with StartGameView(ActionContext(app=self, game_id=game_id)) as view:
                 view.message = await ctx.respond(
-                    "\n".join(
-                        (
-                            MESSAGES["start"].format(ctx.interaction.user.id),
-                            MESSAGES["players"],
-                            MESSAGES["players_list_item"].format(
-                                ctx.interaction.user.id
-                            ),
-                        )
-                    ),
+                    view.generate_game_start_message(),
                     view=view,
                 )
 

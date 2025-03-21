@@ -3,3 +3,4 @@
 *.pyc
 logs/
 .coverage
+emojis.json
