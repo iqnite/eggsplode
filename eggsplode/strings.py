@@ -6,7 +6,7 @@ import os
 import json
 from dotenv import load_dotenv
 
-VERSION = "1.1-pre"
+VERSION = "1.0"
 
 with open("messages.json", encoding="utf-8") as f:
     MESSAGES = json.load(f)
