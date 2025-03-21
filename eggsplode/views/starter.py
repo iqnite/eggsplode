@@ -385,6 +385,14 @@ class HelpView(discord.ui.View):
                 emoji="🤖",
             )
         )
+        self.add_item(
+            discord.ui.Button(
+                label="Vote on top.gg",
+                url="https://top.gg/bot/1325443178622484590/vote",
+                style=discord.ButtonStyle.link,
+                emoji="🎉",
+            )
+        )
 
     @discord.ui.select(
         placeholder="Section",
