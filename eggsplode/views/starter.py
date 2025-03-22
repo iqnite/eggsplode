@@ -358,7 +358,7 @@ class HelpView(discord.ui.View):
                 label="Website",
                 url="https://iqnite.github.io/eggsplode",
                 style=discord.ButtonStyle.link,
-                emoji="🌐",
+                emoji=EMOJIS.get("iqbit", "🌐"),
             )
         )
         self.add_item(
@@ -366,7 +366,7 @@ class HelpView(discord.ui.View):
                 label="Support & Community server",
                 url="https://discord.gg/UGm36FkGDF",
                 style=discord.ButtonStyle.link,
-                emoji="💬",
+                emoji=EMOJIS.get("discord", "💬")
             )
         )
         self.add_item(
@@ -374,7 +374,7 @@ class HelpView(discord.ui.View):
                 label="GitHub",
                 url="https://github.com/iqnite/eggsplode",
                 style=discord.ButtonStyle.link,
-                emoji="🐙",
+                emoji=EMOJIS.get("github", "🐙"),
             )
         )
         self.add_item(
