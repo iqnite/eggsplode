@@ -143,7 +143,7 @@ class StartGameView(BaseView):
         await interaction.respond(MESSAGES["game_started"], ephemeral=True)
         async with TurnView(self.ctx.copy(), parent_interaction=interaction) as view:
             view.message = await interaction.respond(
-                MESSAGES["next_turn"].format(self.ctx.game.current_player_id), view=view
+                view.create_turn_prompt_message(), view=view
             )
 
     @discord.ui.button(label="Settings", style=discord.ButtonStyle.grey, emoji="⚙️")
@@ -366,7 +366,7 @@ class HelpView(discord.ui.View):
                 label="Support & Community server",
                 url="https://discord.gg/UGm36FkGDF",
                 style=discord.ButtonStyle.link,
-                emoji=EMOJIS.get("discord", "💬")
+                emoji=EMOJIS.get("discord", "💬"),
             )
         )
         self.add_item(

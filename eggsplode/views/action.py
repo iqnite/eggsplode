@@ -123,13 +123,45 @@ class TurnView(BaseView):
                 response += MESSAGES["radioeggtive_face_up"].format(turn_player)
             case _:
                 response += MESSAGES["user_drew_card"].format(turn_player)
-        response += "\n" + MESSAGES["next_turn"].format(self.ctx.game.current_player_id)
+        response += "\n" + self.create_turn_prompt_message()
+
         async with TurnView(
             self.ctx.copy(),
             parent_interaction=self.parent_interaction,
             inactivity_count=self.inactivity_count + 1,
         ) as view:
             await self.parent_interaction.respond(response, view=view)
+
+    def create_turn_prompt_message(self) -> str:
+        """
+        Generates the default message to be displayed to the user.
+
+        Returns:
+            str: The formatted message to be displayed.
+        """
+        radioeggtive_countdown = self.ctx.game.card_comes_in("radioeggtive_face_up")
+        return MESSAGES["next_turn"].format(
+            self.ctx.game.current_player_id,
+            len(self.ctx.game.deck),
+            self.ctx.game.deck.count("eggsplode"),
+        ) + (
+            "\n"
+            + (
+                ""
+                if radioeggtive_countdown is None
+                else (
+                    MESSAGES["play_prompt_radioeggtive"].format(
+                        radioeggtive_countdown + 1
+                    )
+                    if radioeggtive_countdown > 1
+                    else (
+                        MESSAGES["play_prompt_radioeggtive_next"]
+                        if radioeggtive_countdown == 1
+                        else (MESSAGES["play_prompt_radioeggtive_now"])
+                    )
+                )
+            )
+        )
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """
@@ -191,9 +223,7 @@ class TurnView(BaseView):
         """
         self.deactivate()
         async with TurnView(self.ctx.copy(), parent_interaction=interaction) as view:
-            await interaction.respond(
-                MESSAGES["next_turn"].format(self.ctx.game.current_player_id), view=view
-            )
+            await interaction.respond(view.create_turn_prompt_message(), view=view)
 
 
 class PlayView(BaseView):
@@ -268,28 +298,8 @@ class PlayView(BaseView):
         Returns:
             str: The formatted message to be displayed.
         """
-        radioeggtive_countdown = self.ctx.game.card_comes_in("radioeggtive_face_up")
         return MESSAGES["play_prompt"].format(
-            self.ctx.game.cards_help(user_id, template=MESSAGES["hand_list"]),
-            len(self.ctx.game.deck),
-            self.ctx.game.deck.count("eggsplode"),
-        ) + (
-            "\n"
-            + (
-                ""
-                if radioeggtive_countdown is None
-                else (
-                    MESSAGES["play_prompt_radioeggtive"].format(
-                        radioeggtive_countdown + 1
-                    )
-                    if radioeggtive_countdown > 1
-                    else (
-                        MESSAGES["play_prompt_radioeggtive_next"]
-                        if radioeggtive_countdown == 1
-                        else (MESSAGES["play_prompt_radioeggtive_now"])
-                    )
-                )
-            )
+            self.ctx.game.cards_help(user_id, template=MESSAGES["hand_list"])
         )
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
