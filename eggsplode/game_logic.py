@@ -8,19 +8,7 @@ from .strings import CARDS
 
 
 class Game:
-    """
-    Represents the game logic for the Eggsplode game.
-    """
-
-    # pylint: disable=too-many-instance-attributes
-
     def __init__(self, config: dict):
-        """
-        Initializes the game with the given players.
-
-        Args:
-            config: The initial configuration for the game.
-        """
         self.config = config
         self.players: list[int] = []
         self.hands: dict[int, list[str]] = {}
@@ -33,9 +21,6 @@ class Game:
         self.last_activity = datetime.now()
 
     def start(self):
-        """
-        Starts the game by initializing the deck and dealing cards to players.
-        """
         self.last_activity = datetime.now()
         self.deck = []
         self.players = list(self.config["players"])
@@ -68,32 +53,14 @@ class Game:
 
     @property
     def current_player_id(self) -> int:
-        """
-        Returns the ID of the current player.
-
-        Returns:
-            int: The ID of the current player.
-        """
         return self.players[self.current_player]
 
     @property
     def current_player_hand(self) -> list[str]:
-        """
-        Returns the hand of the current player.
-
-        Returns:
-            list[str]: The hand of the current player.
-        """
         return self.hands[self.current_player_id]
 
     @property
     def next_player(self) -> int:
-        """
-        Returns the index of the next player.
-
-        Returns:
-            int: The index of the next player.
-        """
         return (
             0
             if self.current_player >= len(self.players) - 1
@@ -102,18 +69,9 @@ class Game:
 
     @property
     def next_player_id(self) -> int:
-        """
-        Returns the ID of the next player.
-
-        Returns:
-            int: The ID of the next player.
-        """
         return self.players[self.next_player]
 
     def next_turn(self):
-        """
-        Advances the game to the next player's turn.
-        """
         self.last_activity = datetime.now()
         if self.draw_in_turn > 1:
             self.draw_in_turn -= 1
@@ -123,16 +81,6 @@ class Game:
         self.current_player = self.next_player
 
     def group_hand(self, user_id: int, usable_only: bool = False) -> dict:
-        """
-        Groups the cards in a player's hand.
-
-        Args:
-            user_id (int): The ID of the player.
-            usable_only (bool): Whether to include only usable cards.
-
-        Returns:
-            dict: A dictionary of card counts.
-        """
         player_cards = self.hands[user_id]
         result = {}
         for card in player_cards:
@@ -147,15 +95,6 @@ class Game:
         return result
 
     def draw_card(self, index: int = -1) -> str:
-        """
-        Draws a card for the specified player.
-
-        Args:
-            index (int): The deck index where the card is drawn from (0 = bottom).
-
-        Returns:
-            str: The drawn card.
-        """
         card = self.deck.pop(index)
         if card == "eggsplode":
             if "defuse" in self.hands[self.current_player_id]:
@@ -179,12 +118,6 @@ class Game:
         return card
 
     def remove_player(self, user_id: int):
-        """
-        Removes a player from the game.
-
-        Args:
-            user_id (int): The ID of the player to remove.
-        """
         del self.players[self.players.index(user_id)]
         del self.hands[user_id]
         self.current_player -= 1
@@ -192,49 +125,21 @@ class Game:
         self.next_turn()
 
     def any_player_has_cards(self) -> bool:
-        """
-        Checks if any player has cards left.
-
-        Returns:
-            bool: True if any player has cards, False otherwise.
-        """
         eligible_players = self.players.copy()
         eligible_players.remove(self.current_player_id)
         return any(self.hands[player] for player in eligible_players)
 
     def card_comes_in(self, card) -> int | None:
-        """
-        Shows the remaining turns until a card is drawn.
-
-        Args:
-            card (str): The card to be drawn
-
-        Returns:
-            int: The number of turns until the card is drawn, or None if the card is not in the deck
-        """
         for i in range(len(self.deck) - 1, -1, -1):
             if self.deck[i] == card:
                 return len(self.deck) - 1 - i
         return None
 
     def reverse(self):
-        """
-        Reverses the order of the players.
-        """
         self.players = self.players[::-1]
         self.current_player = len(self.players) - self.current_player - 1
 
     def cards_help(self, user_id: int, template: str = "") -> str:
-        """
-        Provides help information for the cards in a player's hand.
-
-        Args:
-            user_id (int): The ID of the player.
-            template (str): The template for formatting the help information.
-
-        Returns:
-            str: The formatted help information.
-        """
         grouped_hand = self.group_hand(user_id)
         return "\n".join(
             template.format(

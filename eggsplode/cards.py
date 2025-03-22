@@ -17,13 +17,6 @@ from .strings import CARDS, MESSAGES
 
 
 async def draw_card(ctx: PlayActionContext, interaction: discord.Interaction, index=-1):
-    """
-    Draw a card from the deck.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the draw.
-        index (int): The index of the card to draw.
-    """
     if not interaction.user:
         return
     await ctx.disable_view(interaction)
@@ -85,12 +78,6 @@ async def draw_card(ctx: PlayActionContext, interaction: discord.Interaction, in
 
 
 async def attegg(ctx: PlayActionContext, interaction: discord.Interaction):
-    """
-    Handle the 'attegg' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-    """
     if not interaction.user:
         return
     async with BlockingNopeView(
@@ -109,12 +96,6 @@ async def attegg(ctx: PlayActionContext, interaction: discord.Interaction):
 
 
 async def skip(ctx: PlayActionContext, interaction: discord.Interaction):
-    """
-    Handle the 'skip' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-    """
     if not interaction.user:
         return
     target_player_id = (
@@ -132,12 +113,6 @@ async def skip(ctx: PlayActionContext, interaction: discord.Interaction):
 
 
 async def shuffle(ctx: PlayActionContext, interaction: discord.Interaction):
-    """
-    Handle the 'shuffle' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-    """
     prev_deck = ctx.game.deck.copy()
     random.shuffle(ctx.game.deck)
     if not interaction.user:
@@ -153,19 +128,10 @@ async def shuffle(ctx: PlayActionContext, interaction: discord.Interaction):
 
 
 def undo_shuffle(ctx, prev_deck):
-    """
-    Undoes the 'shuffle' action.
-    """
     ctx.game.deck = prev_deck
 
 
 async def predict(ctx: PlayActionContext, interaction: discord.Interaction):
-    """
-    Handle the 'predict' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-    """
     if not interaction.user:
         return
     next_cards = "\n".join(
@@ -184,13 +150,6 @@ async def predict(ctx: PlayActionContext, interaction: discord.Interaction):
 async def food_combo(
     ctx: PlayActionContext, interaction: discord.Interaction, selected: str
 ):
-    """
-    Handle the 'food combo' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-        selected (str): The selected card.
-    """
     if not interaction.user:
         return
     if not ctx.game.any_player_has_cards():
@@ -216,14 +175,6 @@ async def food_combo_begin(
     target_player_id: int,
     food_card: str,
 ):
-    """
-    Begin the 'steal' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-        target_player_id (int): The ID of the target player.
-        food_card (str): The food card used for stealing.
-    """
     if not interaction.user:
         return
     async with BlockingNopeView(
@@ -247,14 +198,6 @@ async def food_combo_finish(
     target_interaction: discord.Interaction | None,
     target_player_id: int,
 ):
-    """
-    Finalize the 'steal' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-        target_interaction (discord.Interaction | None): The interaction of the target player.
-        target_player_id (int): The ID of the target player.
-    """
     if not interaction.user:
         return
     target_hand = ctx.game.hands[target_player_id]
@@ -292,40 +235,22 @@ async def food_combo_finish(
 
 
 async def defuse_finish(ctx: PlayActionContext, interaction: discord.Interaction):
-    """
-    Finalize the 'defuse' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-    """
     if not interaction.user:
         raise TypeError("interaction.user is None")
     await interaction.respond(MESSAGES["defused"].format(interaction.user.id))
     await ctx.end_turn(interaction)
 
 
-async def radioeggtive_finish(self, interaction: discord.Interaction):
-    """
-    Finalize the 'radioeggtive' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-    """
+async def radioeggtive_finish(ctx: PlayActionContext, interaction: discord.Interaction):
     if not interaction.user:
         raise TypeError("interaction.user is None")
     await interaction.respond(MESSAGES["radioeggtive"].format(interaction.user.id))
-    await self.end_turn(interaction)
+    await ctx.end_turn(interaction)
 
 
 async def attegg_finish(
     ctx: PlayActionContext, interaction: discord.Interaction, target_player_id=None
 ):
-    """
-    Finalize the 'attegg' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-    """
     target_player_id = target_player_id or ctx.game.next_player_id
     if not interaction.message:
         return
@@ -339,12 +264,6 @@ async def attegg_finish(
 
 
 async def skip_finish(ctx: PlayActionContext, interaction: discord.Interaction):
-    """
-    Finalize the 'skip' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-    """
     if not interaction.message:
         return
     await ctx.disable_view(interaction)
@@ -353,12 +272,6 @@ async def skip_finish(ctx: PlayActionContext, interaction: discord.Interaction):
 
 
 async def draw_from_bottom(ctx: PlayActionContext, interaction: discord.Interaction):
-    """
-    Handle the 'draw from bottom' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-    """
     if not interaction.user:
         return
     target_player_id = (
@@ -378,12 +291,6 @@ async def draw_from_bottom(ctx: PlayActionContext, interaction: discord.Interact
 
 
 async def targeted_attegg(ctx: PlayActionContext, interaction: discord.Interaction):
-    """
-    Handle the 'targeted attegg' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-    """
     if not interaction.user:
         return
     async with ChoosePlayerView(
@@ -400,12 +307,6 @@ async def targeted_attegg(ctx: PlayActionContext, interaction: discord.Interacti
 async def targeted_attegg_begin(
     ctx: PlayActionContext, interaction: discord.Interaction, target_player_id: int
 ):
-    """
-    Begin the 'targeted attegg' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-    """
     if not interaction.user:
         return
     async with BlockingNopeView(
@@ -424,12 +325,6 @@ async def targeted_attegg_begin(
 
 
 async def alter_future(ctx: PlayActionContext, interaction: discord.Interaction):
-    """
-    Handle the 'alter future' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-    """
     if not interaction.user:
         return
     prev_deck = ctx.game.deck.copy()
@@ -442,13 +337,6 @@ async def alter_future(ctx: PlayActionContext, interaction: discord.Interaction)
 async def alter_future_finish(
     ctx: PlayActionContext, interaction: discord.Interaction, prev_deck
 ):
-    """
-    Finalize the 'alter future' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-        prev_deck (list): The previous deck.
-    """
     if not interaction.user:
         return
     async with NopeView(ctx.copy(), lambda: undo_alter_future(ctx, prev_deck)) as view:
@@ -459,19 +347,10 @@ async def alter_future_finish(
 
 
 def undo_alter_future(ctx: PlayActionContext, prev_deck):
-    """
-    Undo the 'alter future' action.
-    """
     ctx.game.deck = prev_deck
 
 
 async def reverse(ctx: PlayActionContext, interaction: discord.Interaction):
-    """
-    Handle the 'reverse' action.
-
-    Args:
-        interaction (discord.Interaction): The interaction that triggered the action.
-    """
     if not interaction.user:
         return
     ctx.game.reverse()

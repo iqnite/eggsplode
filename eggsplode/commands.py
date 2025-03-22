@@ -21,42 +21,16 @@ from .views.starter import StartGameView, HelpView
 
 
 class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
-    """
-    A subclass of commands.Bot for the Eggsplode game.
-
-    Attributes:
-        admin_maintenance (bool): Indicates if the bot is in maintenance mode.
-        games (dict[int, Game]): A dictionary of active games.
-    """
-
     def __init__(self, **kwargs):
-        """
-        Initialize the Eggsplode bot.
-
-        Args:
-            **kwargs: Arbitrary keyword arguments passed to the superclass.
-        """
         super().__init__(**kwargs)
         self.admin_maintenance: bool = False
         self.games: dict[int, Game] = {}
         self.create_commands()
 
     def games_with_user(self, user_id: int) -> list[int]:
-        """
-        Get a list of game IDs that the user is participating in.
-
-        Args:
-            user_id (int): The ID of the user.
-
-        Returns:
-            list: A list of game IDs.
-        """
         return [i for i, game in self.games.items() if user_id in game.players]
 
     def cleanup(self):
-        """
-        Delete games that have been inactive for 30 minutes.
-        """
         for game_id in list(self.games):
             if (
                 datetime.now() - self.games[game_id].last_activity
@@ -66,12 +40,6 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
     async def show_help(
         self, ctx: discord.ApplicationContext | discord.Interaction, ephemeral=False
     ):
-        """
-        Show help information for the Eggsplode game.
-
-        Args:
-            ctx (discord.ApplicationContext): The context of the command.
-        """
         await ctx.respond(
             "\n".join(
                 (
@@ -88,10 +56,6 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
         )
 
     def create_commands(self):
-        """
-        Create the commands for the Eggsplode game.
-        """
-
         @self.slash_command(
             name="start",
             description="Start a new Eggsplode game!",
@@ -101,12 +65,6 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
             },
         )
         async def start_game(ctx: discord.ApplicationContext):
-            """
-            Start a new Eggsplode game.
-
-            Args:
-                ctx (discord.ApplicationContext): The context of the command.
-            """
             self.cleanup()
             if self.admin_maintenance:
                 await ctx.respond(MESSAGES["maintenance"], ephemeral=True)
@@ -137,12 +95,6 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
             },
         )
         async def hand(ctx: discord.ApplicationContext):
-            """
-            View the user's hand in the current game.
-
-            Args:
-                ctx (discord.ApplicationContext): The context of the command.
-            """
             game_id = ctx.interaction.channel_id
             if not (game_id and ctx.interaction.user):
                 return
@@ -173,12 +125,6 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
             },
         )
         async def list_user_games(ctx: discord.ApplicationContext):
-            """
-            View the games the user is participating in.
-
-            Args:
-                ctx (discord.ApplicationContext): The context of the command.
-            """
             self.cleanup()
             if not ctx.interaction.user:
                 return
@@ -205,12 +151,6 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
             },
         )
         async def show_help_command(ctx: discord.ApplicationContext):
-            """
-            Show help information for the Eggsplode game.
-
-            Args:
-                ctx (discord.ApplicationContext): The context of the command.
-            """
             await self.show_help(ctx)
 
         @self.slash_command(
@@ -228,13 +168,6 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
             required=True,
         )
         async def terminal(ctx: discord.ApplicationContext, command: str):
-            """
-            Execute an admin command.
-
-            Args:
-                ctx (discord.ApplicationContext): The context of the command.
-                command (str): The admin command to execute.
-            """
             if command == ADMIN_MAINTENANCE_CODE:
                 self.cleanup()
                 self.admin_maintenance = not self.admin_maintenance

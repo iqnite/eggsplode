@@ -14,49 +14,21 @@ from .base import BaseView
 
 
 class TurnView(BaseView):
-    """
-    A view that manages the turn-based interactions in the game.
-
-    Attributes:
-        ctx (ActionContext): The context of the current action.
-        parent_interaction (discord.Interaction): The parent interaction.
-        inactivity_count (int): The count of inactivity periods.
-    """
-
     def __init__(
         self,
         ctx: ActionContext,
         parent_interaction: discord.Interaction,
         inactivity_count: int = 0,
     ):
-        """
-        Initializes the TurnView with the given context and parent interaction.
-
-        Args:
-            ctx (ActionContext): The context of the current action.
-            parent_interaction (discord.Interaction): The parent interaction.
-            inactivity_count (int, optional): The count of inactivity periods. Defaults to 0.
-        """
         super().__init__(ctx, timeout=600)
         self.timer = 0
         self.inactivity_count = inactivity_count
         self.parent_interaction = parent_interaction
 
     async def __aexit__(self, exc_type, exc_value, traceback):
-        """
-        Exits the context manager.
-
-        Args:
-            exc_type: The type of the exception that was raised
-            exc_value: The instance of the exception that was raised
-            traceback: The traceback of the exception
-        """
         await self.action_timer()
 
     async def action_timer(self):
-        """
-        Starts the action timer and handles the timeout logic.
-        """
         if self.timer < 0:
             return
         self.start_timer()
@@ -69,22 +41,13 @@ class TurnView(BaseView):
         await self.on_action_timeout()
 
     def deactivate(self):
-        """
-        Stops the action timer and disables the view.
-        """
         self.timer = -200
         self.ctx.action_id = -1
 
     def start_timer(self):
-        """
-        Starts the action timer.
-        """
         self.timer = min(self.timer, 0)
 
     async def on_action_timeout(self):
-        """
-        Handles the logic when an action times out.
-        """
         if not self.message:
             raise TypeError("message is None")
         self.deactivate()
@@ -133,12 +96,6 @@ class TurnView(BaseView):
             await self.parent_interaction.respond(response, view=view)
 
     def create_turn_prompt_message(self) -> str:
-        """
-        Generates the default message to be displayed to the user.
-
-        Returns:
-            str: The formatted message to be displayed.
-        """
         radioeggtive_countdown = self.ctx.game.card_comes_in("radioeggtive_face_up")
         return MESSAGES["next_turn"].format(
             self.ctx.game.current_player_id,
@@ -164,15 +121,6 @@ class TurnView(BaseView):
         )
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        """
-        Checks if the interaction is valid for the current turn.
-
-        Args:
-            interaction (discord.Interaction): The interaction to check.
-
-        Returns:
-            bool: True if the interaction is valid, False otherwise.
-        """
         if not interaction.user:
             return False
         if interaction.user.id != self.ctx.game.current_player_id:
@@ -188,13 +136,6 @@ class TurnView(BaseView):
 
     @discord.ui.button(label="Play!", style=discord.ButtonStyle.blurple, emoji="🤚")
     async def play(self, _: discord.ui.Button, interaction: discord.Interaction):
-        """
-        Handles the play button interaction.
-
-        Args:
-            _ (discord.ui.Button): The button that was clicked.
-            interaction (discord.Interaction): The interaction that occurred.
-        """
         if not interaction.user:
             return
         self.ctx.action_id = self.ctx.game.action_id
@@ -215,29 +156,12 @@ class TurnView(BaseView):
             )
 
     async def end_turn(self, interaction: discord.Interaction):
-        """
-        Ends the current turn and starts the next one.
-
-        Args:
-            interaction (discord.Interaction): The interaction that ends the turn.
-        """
         self.deactivate()
         async with TurnView(self.ctx.copy(), parent_interaction=interaction) as view:
             await interaction.respond(view.create_turn_prompt_message(), view=view)
 
 
 class PlayView(BaseView):
-    """
-    A view for handling the play actions in the game.
-
-    Attributes:
-        ctx (ActionContext): The context of the current action.
-        play_card_select (discord.ui.Select): The select menu for choosing a card to play.
-        on_valid_interaction (function): Callback for valid interactions.
-        end_turn (function): Callback to end the turn.
-        on_game_over (function): Callback for when the game is over.
-    """
-
     def __init__(
         self,
         ctx: ActionContext,
@@ -246,15 +170,6 @@ class PlayView(BaseView):
         end_turn: Callable[[discord.Interaction], Coroutine],
         on_game_over: Callable[[], None],
     ):
-        """
-        Initialize the PlayView.
-
-        Args:
-            ctx (ActionContext): The context of the current action.
-            on_valid_interaction (function): Callback for valid interactions.
-            end_turn (function): Callback to end the turn.
-            on_game_over (function): Callback for when the game is over.
-        """
         super().__init__(ctx)
         self.ctx = PlayActionContext.from_ctx(
             ctx=ctx,
@@ -270,16 +185,10 @@ class PlayView(BaseView):
         self.create_card_selection()
 
     async def deactivate(self, interaction: discord.Interaction):
-        """
-        Deactivates the view.
-        """
         self.disable_all_items()
         await interaction.edit(view=self)
 
     async def update(self, interaction: discord.Interaction):
-        """
-        Updates the view.
-        """
         if not interaction.user:
             return
         self.create_card_selection()
@@ -289,29 +198,11 @@ class PlayView(BaseView):
         )
 
     def create_play_prompt_message(self, user_id: int) -> str:
-        """
-        Generates the default message to be displayed to the user.
-
-        Args:
-            user_id (int): The ID of the user.
-
-        Returns:
-            str: The formatted message to be displayed.
-        """
         return MESSAGES["play_prompt"].format(
             self.ctx.game.cards_help(user_id, template=MESSAGES["hand_list"])
         )
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        """
-        Check if the interaction is valid.
-
-        Args:
-            interaction (discord.Interaction): The interaction to check.
-
-        Returns:
-            bool: True if the interaction is valid, False otherwise.
-        """
         if not interaction.user:
             raise TypeError("interaction.user is None")
         if self.ctx.game.awaiting_prompt:
@@ -331,9 +222,6 @@ class PlayView(BaseView):
         return True
 
     def create_card_selection(self):
-        """
-        Create the card selection menu.
-        """
         if self.play_card_select:
             self.remove_item(self.play_card_select)
         user_cards: dict = self.ctx.game.group_hand(
@@ -364,19 +252,9 @@ class PlayView(BaseView):
     async def draw_callback(
         self, _: discord.ui.Button, interaction: discord.Interaction
     ):
-        """
-        Callback for the draw button.
-        """
         await cards.draw_card(self.ctx, interaction)
 
     async def play_card(self, _, interaction: discord.Interaction):
-        """
-        Play a selected card.
-
-        Args:
-            _ (discord.ui.Button): The button that triggered the play.
-            interaction (discord.Interaction): The interaction that triggered the play.
-        """
         if not (interaction.message and interaction.user and self.play_card_select):
             return
         selected = self.play_card_select.values[0]
