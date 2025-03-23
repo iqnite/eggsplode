@@ -20,8 +20,8 @@ class TurnView(BaseView):
         parent_interaction: discord.Interaction,
         inactivity_count: int = 0,
     ):
-        super().__init__(ctx, timeout=600)
-        self.timer = 0
+        super().__init__(ctx, timeout=None)
+        self.timer: int | None = 0
         self.inactivity_count = inactivity_count
         self.parent_interaction = parent_interaction
 
@@ -29,23 +29,29 @@ class TurnView(BaseView):
         await self.action_timer()
 
     async def action_timer(self):
-        if self.timer < 0:
+        if self.timer is None:
             return
         self.start_timer()
-        while self.timer < int(self.ctx.game.config.get("turn_timeout", 60)):
+        while self.timer is not None and self.timer < int(
+            self.ctx.game.config.get("turn_timeout", 60)
+        ):
             await asyncio.sleep(1)
-            if self.timer < 0:
+            if self.timer is None:
                 return
-            if not self.ctx.game.awaiting_prompt:
-                self.timer += 1
+            if self.ctx.game.awaiting_prompt:
+                continue
+            self.timer += 1
         await self.on_action_timeout()
 
     def deactivate(self):
-        self.timer = -200
+        # None is used to represent a deactivated timer
+        self.timer = None
         self.ctx.action_id = -1
 
     def start_timer(self):
-        self.timer = min(self.timer, 0)
+        if self.timer is None:
+            return
+        self.timer = 0
 
     async def on_action_timeout(self):
         if not self.message:
@@ -126,7 +132,7 @@ class TurnView(BaseView):
         if interaction.user.id != self.ctx.game.current_player_id:
             await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
             return False
-        if self.timer <= 0:
+        if self.timer is None or self.timer < 0:
             self.disable_all_items()
             await interaction.edit(view=self)
             await interaction.respond(MESSAGES["invalid_turn"], ephemeral=True)

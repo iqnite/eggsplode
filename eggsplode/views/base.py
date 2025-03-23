@@ -7,7 +7,7 @@ from ..ctx import ActionContext
 
 
 class BaseView(discord.ui.View):
-    def __init__(self, ctx: ActionContext, timeout=600):
+    def __init__(self, ctx: ActionContext, timeout=None):
         super().__init__(timeout=timeout, disable_on_timeout=True)
         self.ctx = ctx
 
