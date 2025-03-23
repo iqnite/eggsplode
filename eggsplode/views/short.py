@@ -37,7 +37,7 @@ class NopeView(BaseView):
 
     @discord.ui.button(label="Nope!", style=discord.ButtonStyle.red, emoji="🛑")
     async def nope_callback(
-        self, _: discord.ui.Button, interaction: discord.Interaction
+        self, button: discord.ui.Button, interaction: discord.Interaction
     ):
         if not interaction.user:
             return
@@ -58,6 +58,7 @@ class NopeView(BaseView):
         if not interaction.message:
             return
         self.nope_count += 1
+        button.label = "Nope!" if not self.nope_count % 2 else "Yup!"
         new_message_content = "".join(
             (line.strip("~~") + "\n" if line.startswith("~~") else "~~" + line + "~~\n")
             for line in interaction.message.content.split("\n")

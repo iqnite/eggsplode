@@ -32,21 +32,23 @@ class TurnView(BaseView):
         if self.timer is None:
             return
         self.start_timer()
-        while self.timer is not None and self.timer < int(
-            self.ctx.game.config.get("turn_timeout", 60)
-        ):
-            await asyncio.sleep(1)
-            if self.timer is None:
-                return
-            if self.ctx.game.awaiting_prompt:
-                continue
-            self.timer += 1
+        try:
+            while self.timer < int(self.ctx.game.config.get("turn_timeout", 60)):
+                await asyncio.sleep(1)
+                if self.timer is None:
+                    return
+                if self.ctx.game.awaiting_prompt:
+                    continue
+                self.timer += 1
+        except TypeError as e:
+            # Log the error for debugging purposes
+            print(f"TypeError encountered in action_timer: {e}")
+            return
         await self.on_action_timeout()
 
     def deactivate(self):
         # None is used to represent a deactivated timer
         self.timer = None
-        self.ctx.action_id = -1
 
     def start_timer(self):
         if self.timer is None:
@@ -93,9 +95,9 @@ class TurnView(BaseView):
             case _:
                 response += MESSAGES["user_drew_card"].format(turn_player)
         response += "\n" + self.create_turn_prompt_message()
-
+        self.ctx.game.action_id += 1
         async with TurnView(
-            self.ctx.copy(),
+            self.ctx.copy(action_id=self.ctx.game.action_id),
             parent_interaction=self.parent_interaction,
             inactivity_count=self.inactivity_count + 1,
         ) as view:
@@ -163,7 +165,11 @@ class TurnView(BaseView):
 
     async def end_turn(self, interaction: discord.Interaction):
         self.deactivate()
-        async with TurnView(self.ctx.copy(), parent_interaction=interaction) as view:
+        self.ctx.game.action_id += 1
+        async with TurnView(
+            self.ctx.copy(action_id=self.ctx.game.action_id),
+            parent_interaction=interaction,
+        ) as view:
             await interaction.respond(view.create_turn_prompt_message(), view=view)
 
 
@@ -223,7 +229,7 @@ class PlayView(BaseView):
         for view in self.ctx.game.active_nope_views:
             await view.finish()
         self.ctx.game.action_id += 1
-        self.ctx.action_id += 1
+        self.ctx.action_id = self.ctx.game.action_id
         self.on_valid_interaction(interaction)
         return True
 
