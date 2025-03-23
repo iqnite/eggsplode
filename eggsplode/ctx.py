@@ -26,7 +26,7 @@ class ActionContext:  # pylint: disable=too-few-public-methods
             self.action_id: int = self.game.action_id
 
     def copy(self, **kwargs):
-        return self.__class__(
+        return ActionContext(
             app=kwargs.get("app", self.app),
             game_id=kwargs.get("game_id", self.game_id),
             action_id=kwargs.get("action_id", self.action_id),
@@ -70,7 +70,7 @@ class PlayActionContext(ActionContext):
         )
 
     def copy(self, **kwargs):
-        return self.__class__(
+        return PlayActionContext(
             app=kwargs.get("app", self.app),
             game_id=kwargs.get("game_id", self.game_id),
             action_id=kwargs.get("action_id", self.action_id),
