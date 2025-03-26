@@ -3,7 +3,7 @@ Contains the StartGameView class which handles the start game view in the Discor
 """
 
 import discord
-from ..strings import EMOJIS, EXPANSIONS, MESSAGES
+from ..strings import EMOJIS, EXPANSIONS, MESSAGES, customEmoji
 from ..ctx import ActionContext
 from .base import BaseView
 from .action import TurnView
@@ -67,8 +67,7 @@ class StartGameView(BaseView):
                     (
                         MESSAGES["expansions"]
                         + " "
-                        + EMOJIS.get("new1", "🆕")
-                        + EMOJIS.get("new2", ""),
+                        + customEmoji("🆕"),
                         *(
                             MESSAGES["bold_list_item"].format(
                                 EXPANSIONS[expansion]["emoji"],
@@ -263,7 +262,7 @@ class HelpView(discord.ui.View):
                 label="Website",
                 url="https://iqnite.github.io/eggsplode",
                 style=discord.ButtonStyle.link,
-                emoji=EMOJIS.get("iqbit", "🌐"),
+                emoji=customEmoji("🌐"),
             )
         )
         self.add_item(
@@ -271,7 +270,7 @@ class HelpView(discord.ui.View):
                 label="Support & Community server",
                 url="https://discord.gg/UGm36FkGDF",
                 style=discord.ButtonStyle.link,
-                emoji=EMOJIS.get("discord", "💬"),
+                emoji=customEmoji("💬"),
             )
         )
         self.add_item(
@@ -279,7 +278,7 @@ class HelpView(discord.ui.View):
                 label="GitHub",
                 url="https://github.com/iqnite/eggsplode",
                 style=discord.ButtonStyle.link,
-                emoji=EMOJIS.get("github", "🐙"),
+                emoji=customEmoji("🐙"),
             )
         )
         self.add_item(

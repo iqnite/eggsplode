@@ -20,6 +20,11 @@ try:
 except FileNotFoundError:
     EMOJIS = {}
 
+
+def customEmoji(name: str) -> str:
+    return EMOJIS.get(name, name)
+
+
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 LOG_PATH = os.getenv("LOG_PATH")
