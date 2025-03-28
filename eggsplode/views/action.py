@@ -104,29 +104,11 @@ class TurnView(BaseView):
             await self.parent_interaction.respond(response, view=view)
 
     def create_turn_prompt_message(self) -> str:
-        radioeggtive_countdown = self.ctx.game.card_comes_in("radioeggtive_face_up")
         return MESSAGES["next_turn"].format(
             self.ctx.game.current_player_id,
             len(self.ctx.game.deck),
             self.ctx.game.deck.count("eggsplode"),
-        ) + (
-            "\n"
-            + (
-                ""
-                if radioeggtive_countdown is None
-                else (
-                    MESSAGES["play_prompt_radioeggtive"].format(
-                        radioeggtive_countdown + 1
-                    )
-                    if radioeggtive_countdown > 1
-                    else (
-                        MESSAGES["play_prompt_radioeggtive_next"]
-                        if radioeggtive_countdown == 1
-                        else (MESSAGES["play_prompt_radioeggtive_now"])
-                    )
-                )
-            )
-        )
+        ) + ("\n" + cards.radioeggtive_warning(self.ctx))
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if not interaction.user:

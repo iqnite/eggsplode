@@ -5,7 +5,7 @@ Contains card effects for the base game.
 import random
 import discord
 
-from .ctx import PlayActionContext
+from .ctx import ActionContext, PlayActionContext
 from .views.short import (
     BlockingNopeView,
     NopeView,
@@ -122,7 +122,9 @@ async def shuffle(ctx: PlayActionContext, interaction: discord.Interaction):
         nope_callback_action=lambda: undo_shuffle(ctx, prev_deck),
     ) as view:
         await interaction.respond(
-            MESSAGES["shuffled"].format(interaction.user.id),
+            MESSAGES["shuffled"].format(interaction.user.id)
+            + " "
+            + radioeggtive_warning(ctx),
             view=view,
         )
 
@@ -341,7 +343,9 @@ async def alter_future_finish(
         return
     async with NopeView(ctx.copy(), lambda: undo_alter_future(ctx, prev_deck)) as view:
         await interaction.respond(
-            MESSAGES["altered_future"].format(interaction.user.id),
+            MESSAGES["altered_future"].format(interaction.user.id)
+            + " "
+            + radioeggtive_warning(ctx),
             view=view,
         )
 
@@ -367,3 +371,16 @@ async def reverse(ctx: PlayActionContext, interaction: discord.Interaction):
             MESSAGES["before_reverse"].format(interaction.user.id, target_player_id),
             view=view,
         )
+
+
+def radioeggtive_warning(ctx: ActionContext) -> str:
+    radioeggtive_countdown = ctx.game.card_comes_in("radioeggtive_face_up")
+    return (
+        ""
+        if radioeggtive_countdown is None
+        else (
+            MESSAGES["play_prompt_radioeggtive"].format(radioeggtive_countdown + 1)
+            if radioeggtive_countdown > 1
+            else MESSAGES["play_prompt_radioeggtive_now"]
+        )
+    )
