@@ -75,6 +75,7 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
             if game_id in self.games:
                 await ctx.respond(MESSAGES["game_already_exists"], ephemeral=True)
                 return
+            await ctx.defer()
             self.games[game_id] = Game(
                 {
                     "players": [ctx.interaction.user.id],
