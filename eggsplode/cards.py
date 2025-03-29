@@ -380,7 +380,7 @@ def radioeggtive_warning(ctx: ActionContext) -> str:
         if radioeggtive_countdown is None
         else (
             MESSAGES["play_prompt_radioeggtive"].format(radioeggtive_countdown + 1)
-            if radioeggtive_countdown > 1
+            if radioeggtive_countdown >= 1
             else MESSAGES["play_prompt_radioeggtive_now"]
         )
     )
