@@ -39,6 +39,12 @@ class Game:
             player: ["defuse"] + [self.deck.pop() for _ in range(7)]
             for player in self.players
         }
+        if self.config.get("short", False if len(self.players) > 2 else True):
+            # Remove a random number of cards from the deck
+            deck_size = len(self.deck)
+            cards_to_remove = random.randint(deck_size // 3, deck_size // 2)
+            for _ in range(cards_to_remove):
+                self.deck.pop(random.randint(0, len(self.deck) - 1))
         self.deck += ["radioeggtive"] * (
             "radioeggtive" in self.config.get("expansions", [])
         )
