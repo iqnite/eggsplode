@@ -15,7 +15,7 @@ class NopeView(BaseView):
         ctx: ActionContext,
         nope_callback_action: Callable[[], None] | None = None,
     ):
-        super().__init__(ctx, timeout=20)
+        super().__init__(ctx, timeout=10)
         self.nope_callback_action = nope_callback_action
         self.nope_count = 0
         self.ctx.game.active_nope_views.append(self)
@@ -115,7 +115,7 @@ class DefuseView(BaseView):
         card="eggsplode",
         prev_card=None,
     ):
-        super().__init__(ctx, timeout=20)
+        super().__init__(ctx, timeout=30)
         self.ctx.game.awaiting_prompt = True
         self.callback_action = callback_action
         self.card = card
