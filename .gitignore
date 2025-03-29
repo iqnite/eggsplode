@@ -1,5 +1,6 @@
 .env
 .venv/
-.vscode/
 *.pyc
 logs/
+.coverage
+emojis.json

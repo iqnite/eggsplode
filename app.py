@@ -8,8 +8,8 @@ import sys
 import logging
 from logging.handlers import RotatingFileHandler
 import discord
-from commands import Eggsplode
-from strings import DISCORD_TOKEN, LOG_PATH
+from eggsplode.commands import Eggsplode
+from eggsplode.strings import DISCORD_TOKEN, LOG_PATH
 
 if not DISCORD_TOKEN:
     raise TypeError("DISCORD_TOKEN must be set in .env file. ")
@@ -28,7 +28,7 @@ if LOG_PATH:
     logger.setLevel(logging.DEBUG)
     sys.excepthook = logger.error
 
-eggsplode_app = Eggsplode(
+app = Eggsplode(
     activity=discord.Activity(type=discord.ActivityType.watching, name="you")
 )
 
@@ -36,4 +36,4 @@ if __name__ == "__main__":
     if LOG_PATH:
         logger.info("PROGRAM STARTED!")
     print("PROGRAM STARTED!")
-    eggsplode_app.run(DISCORD_TOKEN)
+    app.run(DISCORD_TOKEN)
