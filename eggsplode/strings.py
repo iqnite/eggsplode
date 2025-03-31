@@ -21,8 +21,26 @@ except FileNotFoundError:
     EMOJIS = {}
 
 
-def customEmoji(name: str) -> str:
-    return EMOJIS.get(name, name)
+def replace_emojis(text: str) -> str:
+    for name, emoji in EMOJIS.items():
+        text = text.replace(name, emoji)
+    return text
+
+
+def get_message(key: str) -> str:
+    message = MESSAGES[key]
+    if isinstance(message, str):
+        return replace_emojis(message)
+    elif isinstance(message, list):
+        return (
+            "\n".join([replace_emojis(m) for m in message])
+            if isinstance(message, list)
+            else replace_emojis(message)
+        )
+    elif isinstance(message, dict):
+        return "\n".join(replace_emojis(v) for _, v in message.items())
+    else:
+        raise ValueError(f"Invalid message format for key: {key}")
 
 
 load_dotenv()

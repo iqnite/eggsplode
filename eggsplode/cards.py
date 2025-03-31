@@ -13,7 +13,7 @@ from .views.short import (
     AlterFutureView,
     DefuseView,
 )
-from .strings import CARDS, MESSAGES
+from .strings import CARDS, get_message
 
 
 async def draw_card(ctx: PlayActionContext, interaction: discord.Interaction, index=-1):
@@ -36,13 +36,13 @@ async def draw_card(ctx: PlayActionContext, interaction: discord.Interaction, in
             return
         case "eggsplode":
             await interaction.respond(
-                MESSAGES["eggsploded"].format(interaction.user.id)
+                get_message("eggsploded").format(interaction.user.id)
             )
         case "gameover":
             await interaction.respond(
-                MESSAGES["eggsploded"].format(interaction.user.id)
+                get_message("eggsploded").format(interaction.user.id)
                 + "\n"
-                + MESSAGES["game_over"].format(ctx.game.players[0])
+                + get_message("game_over").format(ctx.game.players[0])
             )
             ctx.on_game_over()
             del ctx.games[ctx.game_id]
@@ -62,14 +62,14 @@ async def draw_card(ctx: PlayActionContext, interaction: discord.Interaction, in
             return
         case "radioeggtive_face_up":
             await interaction.respond(
-                MESSAGES["radioeggtive_face_up"].format(interaction.user.id)
+                get_message("radioeggtive_face_up").format(interaction.user.id)
             )
         case _:
             await interaction.respond(
-                MESSAGES["user_drew_card"].format(interaction.user.id)
+                get_message("user_drew_card").format(interaction.user.id)
             )
             await interaction.respond(
-                MESSAGES["you_drew_card"].format(
+                get_message("you_drew_card").format(
                     CARDS[card]["emoji"], CARDS[card]["title"]
                 ),
                 ephemeral=True,
@@ -86,7 +86,7 @@ async def attegg(ctx: PlayActionContext, interaction: discord.Interaction):
         ok_callback_action=lambda _: attegg_finish(ctx, interaction),
     ) as view:
         await interaction.respond(
-            MESSAGES["before_attegg"].format(
+            get_message("before_attegg").format(
                 interaction.user.id,
                 ctx.game.next_player_id,
                 ctx.game.draw_in_turn + 2,
@@ -107,7 +107,7 @@ async def skip(ctx: PlayActionContext, interaction: discord.Interaction):
         ok_callback_action=lambda _: skip_finish(ctx, interaction),
     ) as view:
         await interaction.respond(
-            MESSAGES["before_skip"].format(interaction.user.id, target_player_id),
+            get_message("before_skip").format(interaction.user.id, target_player_id),
             view=view,
         )
 
@@ -122,7 +122,7 @@ async def shuffle(ctx: PlayActionContext, interaction: discord.Interaction):
         nope_callback_action=lambda: undo_shuffle(ctx, prev_deck),
     ) as view:
         await interaction.respond(
-            MESSAGES["shuffled"].format(interaction.user.id)
+            get_message("shuffled").format(interaction.user.id)
             + " "
             + radioeggtive_warning(ctx),
             view=view,
@@ -137,14 +137,14 @@ async def predict(ctx: PlayActionContext, interaction: discord.Interaction):
     if not interaction.user:
         return
     next_cards = "\n".join(
-        MESSAGES["bold_list_item"].format(CARDS[card]["emoji"], CARDS[card]["title"])
+        get_message("bold_list_item").format(CARDS[card]["emoji"], CARDS[card]["title"])
         for card in ctx.game.deck[-1:-4:-1]
     )
     await interaction.respond(
-        MESSAGES["predicted"].format(interaction.user.id),
+        get_message("predicted").format(interaction.user.id),
     )
     await interaction.respond(
-        "\n".join((MESSAGES["next_cards"], next_cards)),
+        "\n".join((get_message("next_cards"), next_cards)),
         ephemeral=True,
     )
 
@@ -155,7 +155,7 @@ async def food_combo(
     if not interaction.user:
         return
     if not ctx.game.any_player_has_cards():
-        await interaction.respond(MESSAGES["no_players_have_cards"])
+        await interaction.respond(get_message("no_players_have_cards"))
         return
     assert ctx.game.current_player_hand.count(selected) >= 2
     for _ in range(2):
@@ -168,7 +168,9 @@ async def food_combo(
         condition=lambda user_id: user_id != ctx.game.current_player_id
         and len(ctx.game.hands[user_id]) > 0,
     ) as view:
-        await interaction.respond(MESSAGES["steal_prompt"], view=view, ephemeral=True)
+        await interaction.respond(
+            get_message("steal_prompt"), view=view, ephemeral=True
+        )
 
 
 async def food_combo_begin(
@@ -187,7 +189,7 @@ async def food_combo_begin(
         ),
     ) as view:
         await interaction.respond(
-            MESSAGES["before_steal"].format(
+            get_message("before_steal").format(
                 CARDS[food_card]["emoji"], interaction.user.id, target_player_id
             ),
             view=view,
@@ -205,7 +207,7 @@ async def food_combo_finish(
     target_hand = ctx.game.hands[target_player_id]
     if not target_hand:
         await interaction.respond(
-            MESSAGES["no_cards_to_steal"].format(
+            get_message("no_cards_to_steal").format(
                 ctx.game.current_player_id, target_player_id
             )
         )
@@ -215,19 +217,19 @@ async def food_combo_finish(
     ctx.game.current_player_hand.append(stolen_card)
     await ctx.update_view(interaction)
     await interaction.respond(
-        MESSAGES["stolen_card_public"].format(
+        get_message("stolen_card_public").format(
             ctx.game.current_player_id, target_player_id
         )
     )
     await interaction.respond(
-        MESSAGES["stolen_card_you"].format(
+        get_message("stolen_card_you").format(
             CARDS[stolen_card]["emoji"], CARDS[stolen_card]["title"]
         ),
         ephemeral=True,
     )
     if target_interaction:
         await target_interaction.respond(
-            MESSAGES["stolen_card_them"].format(
+            get_message("stolen_card_them").format(
                 ctx.game.current_player_id,
                 CARDS[stolen_card]["emoji"],
                 CARDS[stolen_card]["title"],
@@ -239,14 +241,14 @@ async def food_combo_finish(
 async def defuse_finish(ctx: PlayActionContext, interaction: discord.Interaction):
     if not interaction.user:
         raise TypeError("interaction.user is None")
-    await interaction.respond(MESSAGES["defused"].format(interaction.user.id))
+    await interaction.respond(get_message("defused").format(interaction.user.id))
     await ctx.end_turn(interaction)
 
 
 async def radioeggtive_finish(ctx: PlayActionContext, interaction: discord.Interaction):
     if not interaction.user:
         raise TypeError("interaction.user is None")
-    await interaction.respond(MESSAGES["radioeggtive"].format(interaction.user.id))
+    await interaction.respond(get_message("radioeggtive").format(interaction.user.id))
     await ctx.end_turn(interaction)
 
 
@@ -285,7 +287,7 @@ async def draw_from_bottom(ctx: PlayActionContext, interaction: discord.Interact
         ok_callback_action=lambda _: draw_card(ctx, interaction, index=0),
     ) as view:
         await interaction.respond(
-            MESSAGES["before_draw_from_bottom"].format(
+            get_message("before_draw_from_bottom").format(
                 interaction.user.id, target_player_id
             ),
             view=view,
@@ -302,7 +304,7 @@ async def targeted_attegg(ctx: PlayActionContext, interaction: discord.Interacti
         ),
     ) as view:
         await interaction.respond(
-            MESSAGES["targeted_attegg_prompt"], view=view, ephemeral=True
+            get_message("targeted_attegg_prompt"), view=view, ephemeral=True
         )
 
 
@@ -317,7 +319,7 @@ async def targeted_attegg_begin(
         ok_callback_action=lambda _: attegg_finish(ctx, interaction, target_player_id),
     ) as view:
         await interaction.respond(
-            MESSAGES["before_targeted_attegg"].format(
+            get_message("before_targeted_attegg").format(
                 interaction.user.id,
                 target_player_id,
                 ctx.game.draw_in_turn + 2,
@@ -343,7 +345,7 @@ async def alter_future_finish(
         return
     async with NopeView(ctx.copy(), lambda: undo_alter_future(ctx, prev_deck)) as view:
         await interaction.respond(
-            MESSAGES["altered_future"].format(interaction.user.id)
+            get_message("altered_future").format(interaction.user.id)
             + " "
             + radioeggtive_warning(ctx),
             view=view,
@@ -368,7 +370,7 @@ async def reverse(ctx: PlayActionContext, interaction: discord.Interaction):
         ok_callback_action=lambda _: skip_finish(ctx, interaction),
     ) as view:
         await interaction.respond(
-            MESSAGES["before_reverse"].format(interaction.user.id, target_player_id),
+            get_message("before_reverse").format(interaction.user.id, target_player_id),
             view=view,
         )
 
@@ -379,8 +381,8 @@ def radioeggtive_warning(ctx: ActionContext) -> str:
         ""
         if radioeggtive_countdown is None
         else (
-            MESSAGES["play_prompt_radioeggtive"].format(radioeggtive_countdown + 1)
+            get_message("play_prompt_radioeggtive").format(radioeggtive_countdown + 1)
             if radioeggtive_countdown > 0
-            else MESSAGES["play_prompt_radioeggtive_now"]
+            else get_message("play_prompt_radioeggtive_now")
         )
     )
