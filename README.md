@@ -38,7 +38,8 @@ First, we need to create a Bot on Discord's side.
 
 Clone the Git repo and go to the folder you cloned the repo into.
 
-I strongly recommend to look into Git and version control before contributing to Eggsplode, as it's knowledge that you'll often need. There are easy-to-understand tutorials about Git on YouTube, which is why I will not explain it here.
+> [!NOTE]
+> I strongly recommend to look into Git and version control before contributing to Eggsplode, as it's important knowledge. There are easy-to-understand tutorials about Git on YouTube, which is why I will not explain it here.
 
 ```bash
 git clone https://github.com/iqnite/eggsplode
@@ -55,7 +56,8 @@ Remember that Bot Token you copied earlier? We need it now. If you don't have it
 
 Time to install the dependencies!
 
-Although it is best practice to create a virtual environment, it is not strictly necessary. If your operating system enforces it, please google "python virtual environment" and go by a tutorial.
+> [!NOTE]
+> Although it is best practice to create a virtual environment, it is not strictly necessary. If your operating system enforces it, please google "python virtual environment" and go by a tutorial.
 
 Python's package manager (pip) will automatically detect the required libraries if you run the following commands.
 
@@ -69,5 +71,3 @@ pip install -r requirements.txt
 You're all set! Now you can start the bot and it should appear online on your test server!
 
 *If you don't know how to start a Python program, you **really** shouldn't be contributing to Eggsplode. 😊*
-
-Note that your bot will go offline as soon as the Python program stops. For information on how to host a Discord bot, check out [this page](https://guide.pycord.dev/getting-started/hosting-your-bot).
