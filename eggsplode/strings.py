@@ -6,7 +6,7 @@ import os
 import json
 from dotenv import load_dotenv
 
-VERSION = "1.0"
+VERSION = "1.1"
 
 with open("messages.json", encoding="utf-8") as f:
     MESSAGES = json.load(f)
@@ -21,8 +21,20 @@ except FileNotFoundError:
     EMOJIS = {}
 
 
-def customEmoji(name: str) -> str:
-    return EMOJIS.get(name, name)
+def replace_emojis(text: str) -> str:
+    for name, emoji in EMOJIS.items():
+        text = text.replace(name, emoji)
+    return text
+
+
+def get_message(key: str) -> str:
+    message = MESSAGES[key]
+    if isinstance(message, str):
+        return replace_emojis(message)
+    elif isinstance(message, list):
+        return "\n".join([replace_emojis(m) for m in message])
+    else:
+        raise ValueError(f"Invalid message format for key: {key}")
 
 
 load_dotenv()
