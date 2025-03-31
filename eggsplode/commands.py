@@ -41,7 +41,7 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
         self, ctx: discord.ApplicationContext | discord.Interaction, ephemeral=False
     ):
         await ctx.respond(
-            get_message(f"help{0}")
+            get_message("help0")
             + "\n"
             + get_message("status").format(
                 self.latency * 1000,

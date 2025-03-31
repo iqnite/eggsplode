@@ -33,8 +33,6 @@ def get_message(key: str) -> str:
         return replace_emojis(message)
     elif isinstance(message, list):
         return "\n".join([replace_emojis(m) for m in message])
-    elif isinstance(message, dict):
-        return "\n".join(replace_emojis(v) for _, v in message.items())
     else:
         raise ValueError(f"Invalid message format for key: {key}")
 
