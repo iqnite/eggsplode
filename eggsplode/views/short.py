@@ -24,15 +24,25 @@ class NopeView(BaseView):
         self.nope_callback_action = nope_callback_action
         self.nope_count = 0
         self.ctx.game.awaiting_prompt = True
+        self.disabled = False
 
     async def on_timeout(self):
         try:
             await super().on_timeout()
         finally:
+            self.disabled = True
+            self.on_timeout = super().on_timeout
             if self.ctx.action_id == self.ctx.game.action_id:
                 self.ctx.game.awaiting_prompt = False
                 if (not (self.nope_count % 2)) and self.ok_callback_action:
                     await self.ok_callback_action(None)
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        return (
+            interaction.user is not None
+            and interaction.user.id in self.ctx.game.players
+            and not self.disabled
+        )
 
     @discord.ui.button(label="Nope!", style=discord.ButtonStyle.red, emoji="🛑")
     async def nope_callback(
@@ -45,9 +55,6 @@ class NopeView(BaseView):
             and self.ctx.game.current_player_id == interaction.user.id
         ):
             await interaction.respond(get_message("no_self_nope"), ephemeral=True)
-            return
-        if interaction.user.id not in self.ctx.game.players:
-            await interaction.respond(get_message("user_not_in_game"), ephemeral=True)
             return
         try:
             self.ctx.game.hands[interaction.user.id].remove("nope")

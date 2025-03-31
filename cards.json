@@ -32,7 +32,7 @@
         "explicit": true
     },
     "shuffle": {
-        "title": "Eggbeater",
+        "title": "Shuffle",
         "description": "Shuffle the deck.",
         "emoji": "🌀",
         "count": 4,

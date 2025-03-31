@@ -8,7 +8,6 @@ import discord
 from .ctx import ActionContext, PlayActionContext
 from .views.short import (
     ExplicitNopeView,
-    NopeView,
     ChoosePlayerView,
     AlterFutureView,
     DefuseView,
@@ -322,16 +321,23 @@ async def targeted_attegg_begin(
         )
 
 
-async def alter_future(
-    ctx: PlayActionContext, interaction: discord.Interaction, prev_deck
-):
+async def alter_future(ctx: PlayActionContext, interaction: discord.Interaction):
+    if not interaction.user:
+        return
+    async with AlterFutureView(
+        ctx.copy(), lambda: alter_future_finish(ctx, interaction), 3
+    ) as view:
+        await interaction.respond(view=view, ephemeral=True)
+
+
+async def alter_future_finish(ctx: PlayActionContext, interaction: discord.Interaction):
     if not interaction.user:
         return
     await interaction.respond(
-            get_message("altered_future").format(interaction.user.id)
-            + " "
-            + radioeggtive_warning(ctx),
-        )
+        get_message("altered_future").format(interaction.user.id)
+        + " "
+        + radioeggtive_warning(ctx),
+    )
 
 
 async def reverse(ctx: PlayActionContext, interaction: discord.Interaction):
@@ -359,7 +365,7 @@ def radioeggtive_warning(ctx: ActionContext) -> str:
         ""
         if radioeggtive_countdown is None
         else (
-            get_message("play_prompt_radioeggtive").format(radioeggtive_countdown + 1)
+            get_message("play_prompt_radioeggtive").format(radioeggtive_countdown)
             if radioeggtive_countdown > 0
             else get_message("play_prompt_radioeggtive_now")
         )
