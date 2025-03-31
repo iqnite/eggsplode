@@ -4,7 +4,7 @@ Contains the views for the short interactions in the game, such as "Nope" and "D
 
 from collections.abc import Callable, Coroutine
 import discord
-from ..strings import CARDS, MESSAGES
+from ..strings import CARDS, get_message, replace_emojis
 from ..ctx import ActionContext
 from .base import BaseView
 
@@ -44,15 +44,15 @@ class NopeView(BaseView):
             not self.nope_count % 2
             and self.ctx.game.current_player_id == interaction.user.id
         ):
-            await interaction.respond(MESSAGES["no_self_nope"], ephemeral=True)
+            await interaction.respond(get_message("no_self_nope"), ephemeral=True)
             return
         if interaction.user.id not in self.ctx.game.players:
-            await interaction.respond(MESSAGES["user_not_in_game"], ephemeral=True)
+            await interaction.respond(get_message("user_not_in_game"), ephemeral=True)
             return
         try:
             self.ctx.game.hands[interaction.user.id].remove("nope")
         except ValueError:
-            await interaction.respond(MESSAGES["no_nope_cards"], ephemeral=True)
+            await interaction.respond(get_message("no_nope_cards"), ephemeral=True)
             return
         if not interaction.message:
             return
@@ -62,9 +62,9 @@ class NopeView(BaseView):
             (line.strip("~~") + "\n" if line.startswith("~~") else "~~" + line + "~~\n")
             for line in interaction.message.content.split("\n")
         ) + (
-            MESSAGES["message_edit_on_nope"].format(interaction.user.id)
+            get_message("message_edit_on_nope").format(interaction.user.id)
             if self.nope_count % 2
-            else MESSAGES["message_edit_on_yup"].format(interaction.user.id)
+            else get_message("message_edit_on_yup").format(interaction.user.id)
         )
         await interaction.edit(content=new_message_content, view=self)
 
@@ -86,10 +86,10 @@ class ExplicitNopeView(NopeView):
         if not interaction.user:
             return
         if interaction.user.id != self.target_player_id:
-            await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
+            await interaction.respond(get_message("not_your_turn"), ephemeral=True)
             return
         if self.nope_count % 2:
-            await interaction.respond(MESSAGES["action_noped"], ephemeral=True)
+            await interaction.respond(get_message("action_noped"), ephemeral=True)
             return
         await super().on_timeout()
         if self.ok_callback_action:
@@ -163,12 +163,12 @@ class DefuseView(BaseView):
         )
 
     def generate_move_prompt(self):
-        return MESSAGES["move_prompt"].format(
+        return get_message("move_prompt").format(
             CARDS[self.prev_card]["title"],
             self.card_position,
             len(self.ctx.game.deck),
             "\n".join(
-                MESSAGES["players_list_item"].format(player)
+                get_message("players_list_item").format(player)
                 for player in self.ctx.game.players
             ),
         )
@@ -248,7 +248,7 @@ class AlterFutureView(BaseView):
                 value=f"{i}:{card}",
                 label=CARDS[card]["title"],
                 description=CARDS[card]["description"],
-                emoji=CARDS[card]["emoji"],
+                emoji=replace_emojis(CARDS[card]["emoji"]),
             )
             for i, card in enumerate(
                 self.ctx.game.deck[-1 : -self.amount_of_cards - 1 : -1]

@@ -10,7 +10,7 @@ import discord
 
 from .. import cards
 from ..ctx import ActionContext, PlayActionContext
-from ..strings import CARDS, MESSAGES
+from ..strings import CARDS, get_message, replace_emojis
 from ..views.short import NopeView
 from .base import BaseView
 
@@ -62,26 +62,26 @@ class TurnView(BaseView):
             raise TypeError("message is None")
         self.deactivate()
         if self.inactivity_count > 5:
-            await self.parent_interaction.respond(MESSAGES["game_timeout"])
+            await self.parent_interaction.respond(get_message("game_timeout"))
             del self.ctx.games[self.ctx.game_id]
             return
         turn_player: int = self.ctx.game.current_player_id
         card: str = self.ctx.game.draw_card()
-        response = MESSAGES["timeout"]
+        response = get_message("timeout")
         match card:
             case "defused":
                 self.ctx.game.deck.insert(
                     random.randint(0, len(self.ctx.game.deck)), "eggsplode"
                 )
-                response += MESSAGES["defused"].format(turn_player)
+                response += get_message("defused").format(turn_player)
             case "eggsplode":
-                response += MESSAGES["eggsploded"].format(turn_player)
+                response += get_message("eggsploded").format(turn_player)
             case "gameover":
                 await self.parent_interaction.respond(
-                    MESSAGES["timeout"]
-                    + MESSAGES["eggsploded"].format(turn_player)
+                    get_message("timeout")
+                    + get_message("eggsploded").format(turn_player)
                     + "\n"
-                    + MESSAGES["game_over"].format(self.ctx.game.players[0])
+                    + get_message("game_over").format(self.ctx.game.players[0])
                 )
                 del self.ctx.games[self.ctx.game_id]
                 return
@@ -89,11 +89,11 @@ class TurnView(BaseView):
                 self.ctx.game.deck.insert(
                     random.randint(0, len(self.ctx.game.deck)), "radioeggtive_face_up"
                 )
-                response += MESSAGES["radioeggtive"].format(turn_player)
+                response += get_message("radioeggtive").format(turn_player)
             case "radioeggtive_face_up":
-                response += MESSAGES["radioeggtive_face_up"].format(turn_player)
+                response += get_message("radioeggtive_face_up").format(turn_player)
             case _:
-                response += MESSAGES["user_drew_card"].format(turn_player)
+                response += get_message("user_drew_card").format(turn_player)
         response += "\n" + self.create_turn_prompt_message()
         self.ctx.game.action_id += 1
         async with TurnView(
@@ -104,7 +104,7 @@ class TurnView(BaseView):
             await self.parent_interaction.respond(response, view=view)
 
     def create_turn_prompt_message(self) -> str:
-        return MESSAGES["next_turn"].format(
+        return get_message("next_turn").format(
             self.ctx.game.current_player_id,
             len(self.ctx.game.deck),
             self.ctx.game.deck.count("eggsplode"),
@@ -114,12 +114,12 @@ class TurnView(BaseView):
         if not interaction.user:
             return False
         if interaction.user.id != self.ctx.game.current_player_id:
-            await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
+            await interaction.respond(get_message("not_your_turn"), ephemeral=True)
             return False
         if self.timer is None or self.timer < 0:
             self.disable_all_items()
             await interaction.edit(view=self)
-            await interaction.respond(MESSAGES["invalid_turn"], ephemeral=True)
+            await interaction.respond(get_message("invalid_turn"), ephemeral=True)
             return False
         self.start_timer()
         return True
@@ -192,21 +192,21 @@ class PlayView(BaseView):
         )
 
     def create_play_prompt_message(self, user_id: int) -> str:
-        return MESSAGES["play_prompt"].format(
-            self.ctx.game.cards_help(user_id, template=MESSAGES["hand_list"])
+        return get_message("play_prompt").format(
+            self.ctx.game.cards_help(user_id, template=get_message("hand_list"))
         )
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if not interaction.user:
             raise TypeError("interaction.user is None")
         if self.ctx.game.awaiting_prompt:
-            await interaction.respond(MESSAGES["awaiting_prompt"], ephemeral=True)
+            await interaction.respond(get_message("awaiting_prompt"), ephemeral=True)
             return False
         if interaction.user.id != self.ctx.game.current_player_id:
-            await interaction.respond(MESSAGES["not_your_turn"], ephemeral=True)
+            await interaction.respond(get_message("not_your_turn"), ephemeral=True)
             return False
         if self.ctx.action_id != self.ctx.game.action_id:
-            await interaction.respond(MESSAGES["invalid_turn"], ephemeral=True)
+            await interaction.respond(get_message("invalid_turn"), ephemeral=True)
             return False
         self.ctx.game.action_id += 1
         self.ctx.action_id = self.ctx.game.action_id
@@ -230,7 +230,7 @@ class PlayView(BaseView):
                     value=card,
                     label=f"{CARDS[card]['title']} ({user_cards[card]}x)",
                     description=CARDS[card]["description"],
-                    emoji=CARDS[card]["emoji"],
+                    emoji=replace_emojis(CARDS[card]["emoji"]),
                 )
                 for card in user_cards
             ],
@@ -267,7 +267,7 @@ class PlayView(BaseView):
                     ),
                 ) as view:
                     await interaction.respond(
-                        MESSAGES["play_card"].format(
+                        get_message("play_card").format(
                             interaction.user.id,
                             CARDS[selected]["emoji"],
                             CARDS[selected]["title"],

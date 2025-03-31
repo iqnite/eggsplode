@@ -3,7 +3,7 @@ Contains the StartGameView class which handles the start game view in the Discor
 """
 
 import discord
-from ..strings import EMOJIS, EXPANSIONS, MESSAGES, customEmoji
+from ..strings import EXPANSIONS, get_message, replace_emojis
 from ..ctx import ActionContext
 from .base import BaseView
 from .action import TurnView
@@ -44,7 +44,7 @@ class StartGameView(BaseView):
                     if not line.endswith(f"<@{interaction.user.id}>")
                 )
                 + "\n"
-                + (MESSAGES["game_cancelled"] if game_cancelled else ""),
+                + (get_message("game_cancelled") if game_cancelled else ""),
                 view=self,
             )
             return
@@ -57,18 +57,18 @@ class StartGameView(BaseView):
     def generate_game_start_message(self):
         return "\n".join(
             (
-                MESSAGES["start"].format(self.ctx.game.config["players"][0]),
-                MESSAGES["players"],
+                get_message("start").format(self.ctx.game.config["players"][0]),
+                get_message("players"),
                 *(
-                    MESSAGES["players_list_item"].format(player)
+                    get_message("players_list_item").format(player)
                     for player in self.ctx.game.config["players"]
                 ),
                 *(
                     (
-                        MESSAGES["expansions"] + " " + customEmoji("🆕"),
+                        get_message("expansions"),
                         *(
-                            MESSAGES["bold_list_item"].format(
-                                EXPANSIONS[expansion]["emoji"],
+                            get_message("bold_list_item").format(
+                                replace_emojis(EXPANSIONS[expansion]["emoji"]),
                                 EXPANSIONS[expansion]["name"],
                             )
                             for expansion in self.ctx.game.config.get("expansions", [])
@@ -78,7 +78,7 @@ class StartGameView(BaseView):
                 (
                     ""
                     if self.ctx.game.config.get("expansions", [])
-                    else MESSAGES["no_expansions"]
+                    else get_message("no_expansions")
                 ),
             )
         )
@@ -89,19 +89,19 @@ class StartGameView(BaseView):
             return
         if interaction.user.id != self.ctx.game.config["players"][0]:
             await interaction.respond(
-                MESSAGES["not_game_creator_start"], ephemeral=True
+                get_message("not_game_creator_start"), ephemeral=True
             )
             return
         if len(self.ctx.game.config["players"]) < 2:
             await interaction.respond(
-                MESSAGES["not_enough_players_to_start"], ephemeral=True
+                get_message("not_enough_players_to_start"), ephemeral=True
             )
             return
         self.on_timeout = super().on_timeout
         self.ctx.game.start()
         self.disable_all_items()
         await interaction.edit(view=self)
-        await interaction.respond(MESSAGES["game_started"], ephemeral=True)
+        await interaction.respond(get_message("game_started"), ephemeral=True)
         async with TurnView(self.ctx.copy(), parent_interaction=interaction) as view:
             view.message = await interaction.respond(
                 view.create_turn_prompt_message(), view=view
@@ -113,7 +113,7 @@ class StartGameView(BaseView):
             return
         if interaction.user.id != self.ctx.game.config["players"][0]:
             await interaction.respond(
-                MESSAGES["not_game_creator_edit_settings"], ephemeral=True
+                get_message("not_game_creator_edit_settings"), ephemeral=True
             )
             return
         await interaction.respond(
@@ -143,7 +143,7 @@ class SettingsView(BaseView):
         if not (self.expansion_select and self.parent_view.message):
             return
         self.ctx.game.config["expansions"] = self.expansion_select.values
-        await interaction.respond(MESSAGES["expansions_updated"], ephemeral=True)
+        await interaction.respond(get_message("expansions_updated"), ephemeral=True)
         await interaction.followup.edit_message(
             self.parent_view.message.id,
             content=self.parent_view.generate_game_start_message(),
@@ -160,7 +160,7 @@ class SettingsView(BaseView):
                 discord.SelectOption(
                     value=name,
                     label=expansion["name"],
-                    emoji=expansion["emoji"],
+                    emoji=replace_emojis(expansion["emoji"]),
                     default=name in self.ctx.game.config.get("expansions", []),
                 )
                 for name, expansion in EXPANSIONS.items()
@@ -240,12 +240,12 @@ class SettingsModal(discord.ui.Modal):
     async def callback(self, interaction: discord.Interaction):
         if self.ctx.game_id not in self.ctx.games:
             return
-        response = MESSAGES["settings_updated"]
+        response = get_message("settings_updated")
         for input_name, item in self.inputs.items():
             item_input = item["input"]
             if item_input.value == "":
                 self.ctx.game.config.pop(input_name, None)
-                response += "\n" + MESSAGES["settings_updated_success"].format(
+                response += "\n" + get_message("settings_updated_success").format(
                     item_input.label, item_input.placeholder
                 )
                 continue
@@ -257,12 +257,12 @@ class SettingsModal(discord.ui.Modal):
                     item.get("max", None),
                 )
             )[0]:
-                response += "\n" + MESSAGES["settings_updated_error"].format(
+                response += "\n" + get_message("settings_updated_error").format(
                     item_input.label, item_input.value, validation[1]
                 )
                 continue
             self.ctx.game.config[input_name] = item_input.value
-            response += "\n" + MESSAGES["settings_updated_success"].format(
+            response += "\n" + get_message("settings_updated_success").format(
                 item_input.label, item_input.value
             )
         await interaction.respond(response, ephemeral=True)
@@ -289,7 +289,7 @@ class HelpView(discord.ui.View):
                 label="Website",
                 url="https://iqnite.github.io/eggsplode",
                 style=discord.ButtonStyle.link,
-                emoji=customEmoji("🌐"),
+                emoji=replace_emojis("🌐"),
             )
         )
         self.add_item(
@@ -297,7 +297,7 @@ class HelpView(discord.ui.View):
                 label="Support & Community server",
                 url="https://discord.gg/UGm36FkGDF",
                 style=discord.ButtonStyle.link,
-                emoji=customEmoji("💬"),
+                emoji=replace_emojis("💬"),
             )
         )
         self.add_item(
@@ -305,7 +305,7 @@ class HelpView(discord.ui.View):
                 label="GitHub",
                 url="https://github.com/iqnite/eggsplode",
                 style=discord.ButtonStyle.link,
-                emoji=customEmoji("🐙"),
+                emoji=replace_emojis("🐙"),
             )
         )
         self.add_item(
@@ -341,6 +341,4 @@ class HelpView(discord.ui.View):
         self, select: discord.ui.Select, interaction: discord.Interaction
     ):
         assert isinstance(select.values[0], str)
-        await interaction.edit(
-            content="\n".join(MESSAGES["help"][int(select.values[0])])
-        )
+        await interaction.edit(content=get_message(f"help{int(select.values[0])}"))
