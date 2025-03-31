@@ -17,7 +17,6 @@ class Game:
         self.action_id: int = 0
         self.draw_in_turn: int = 0
         self.awaiting_prompt: bool = False
-        self.active_nope_views: list = []
         self.last_activity = datetime.now()
 
     def start(self):
@@ -27,7 +26,7 @@ class Game:
         for card in CARDS:
             self.deck += (
                 [card]
-                * CARDS[card]["count"]
+                * CARDS[card].get("count", 0)
                 * (
                     CARDS[card].get("expansion", "base")
                     in self.config.get("expansions", []) + ["base"]
@@ -91,7 +90,7 @@ class Game:
         result = {}
         for card in player_cards:
             if usable_only:
-                if not CARDS[card]["usable"]:
+                if not CARDS[card].get("usable", False):
                     continue
                 if CARDS[card].get("combo", 0) > 0 and player_cards.count(card) < 2:
                     continue

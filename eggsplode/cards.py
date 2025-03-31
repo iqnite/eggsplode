@@ -7,7 +7,7 @@ import discord
 
 from .ctx import ActionContext, PlayActionContext
 from .views.short import (
-    BlockingNopeView,
+    ExplicitNopeView,
     NopeView,
     ChoosePlayerView,
     AlterFutureView,
@@ -80,7 +80,7 @@ async def draw_card(ctx: PlayActionContext, interaction: discord.Interaction, in
 async def attegg(ctx: PlayActionContext, interaction: discord.Interaction):
     if not interaction.user:
         return
-    async with BlockingNopeView(
+    async with ExplicitNopeView(
         ctx=ctx.copy(),
         target_player_id=ctx.game.next_player_id,
         ok_callback_action=lambda _: attegg_finish(ctx, interaction),
@@ -101,7 +101,7 @@ async def skip(ctx: PlayActionContext, interaction: discord.Interaction):
     target_player_id = (
         ctx.game.next_player_id if ctx.game.draw_in_turn == 0 else interaction.user.id
     )
-    async with BlockingNopeView(
+    async with ExplicitNopeView(
         ctx=ctx.copy(),
         target_player_id=target_player_id,
         ok_callback_action=lambda _: skip_finish(ctx, interaction),
@@ -113,24 +113,14 @@ async def skip(ctx: PlayActionContext, interaction: discord.Interaction):
 
 
 async def shuffle(ctx: PlayActionContext, interaction: discord.Interaction):
-    prev_deck = ctx.game.deck.copy()
-    random.shuffle(ctx.game.deck)
     if not interaction.user:
         return
-    async with NopeView(
-        ctx=ctx.copy(),
-        nope_callback_action=lambda: undo_shuffle(ctx, prev_deck),
-    ) as view:
-        await interaction.respond(
-            MESSAGES["shuffled"].format(interaction.user.id)
-            + " "
-            + radioeggtive_warning(ctx),
-            view=view,
-        )
-
-
-def undo_shuffle(ctx, prev_deck):
-    ctx.game.deck = prev_deck
+    random.shuffle(ctx.game.deck)
+    await interaction.respond(
+        MESSAGES["shuffled"].format(interaction.user.id)
+        + " "
+        + radioeggtive_warning(ctx)
+    )
 
 
 async def predict(ctx: PlayActionContext, interaction: discord.Interaction):
@@ -179,7 +169,7 @@ async def food_combo_begin(
 ):
     if not interaction.user:
         return
-    async with BlockingNopeView(
+    async with ExplicitNopeView(
         ctx=ctx.copy(),
         target_player_id=target_player_id,
         ok_callback_action=lambda target_interaction: food_combo_finish(
@@ -279,7 +269,7 @@ async def draw_from_bottom(ctx: PlayActionContext, interaction: discord.Interact
     target_player_id = (
         ctx.game.next_player_id if ctx.game.draw_in_turn == 0 else interaction.user.id
     )
-    async with BlockingNopeView(
+    async with ExplicitNopeView(
         ctx=ctx.copy(),
         target_player_id=target_player_id,
         ok_callback_action=lambda _: draw_card(ctx, interaction, index=0),
@@ -311,7 +301,7 @@ async def targeted_attegg_begin(
 ):
     if not interaction.user:
         return
-    async with BlockingNopeView(
+    async with ExplicitNopeView(
         ctx=ctx.copy(),
         target_player_id=target_player_id,
         ok_callback_action=lambda _: attegg_finish(ctx, interaction, target_player_id),
@@ -326,32 +316,16 @@ async def targeted_attegg_begin(
         )
 
 
-async def alter_future(ctx: PlayActionContext, interaction: discord.Interaction):
-    if not interaction.user:
-        return
-    prev_deck = ctx.game.deck.copy()
-    async with AlterFutureView(
-        ctx.copy(), lambda: alter_future_finish(ctx, interaction, prev_deck), 3
-    ) as view:
-        await interaction.respond(view=view, ephemeral=True)
-
-
-async def alter_future_finish(
+async def alter_future(
     ctx: PlayActionContext, interaction: discord.Interaction, prev_deck
 ):
     if not interaction.user:
         return
-    async with NopeView(ctx.copy(), lambda: undo_alter_future(ctx, prev_deck)) as view:
-        await interaction.respond(
+    await interaction.respond(
             MESSAGES["altered_future"].format(interaction.user.id)
             + " "
             + radioeggtive_warning(ctx),
-            view=view,
         )
-
-
-def undo_alter_future(ctx: PlayActionContext, prev_deck):
-    ctx.game.deck = prev_deck
 
 
 async def reverse(ctx: PlayActionContext, interaction: discord.Interaction):
@@ -361,7 +335,7 @@ async def reverse(ctx: PlayActionContext, interaction: discord.Interaction):
     target_player_id = (
         ctx.game.next_player_id if ctx.game.draw_in_turn == 0 else interaction.user.id
     )
-    async with BlockingNopeView(
+    async with ExplicitNopeView(
         ctx=ctx.copy(),
         target_player_id=target_player_id,
         nope_callback_action=ctx.game.reverse,

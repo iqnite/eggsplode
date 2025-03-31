@@ -7,9 +7,11 @@ from collections.abc import Callable, Coroutine
 import random
 import discord
 
+
 from .. import cards
 from ..ctx import ActionContext, PlayActionContext
 from ..strings import CARDS, MESSAGES
+from ..views.short import NopeView
 from .base import BaseView
 
 
@@ -63,8 +65,6 @@ class TurnView(BaseView):
             await self.parent_interaction.respond(MESSAGES["game_timeout"])
             del self.ctx.games[self.ctx.game_id]
             return
-        for view in self.ctx.game.active_nope_views:
-            await view.finish()
         turn_player: int = self.ctx.game.current_player_id
         card: str = self.ctx.game.draw_card()
         response = MESSAGES["timeout"]
@@ -208,8 +208,6 @@ class PlayView(BaseView):
         if self.ctx.action_id != self.ctx.game.action_id:
             await interaction.respond(MESSAGES["invalid_turn"], ephemeral=True)
             return False
-        for view in self.ctx.game.active_nope_views:
-            await view.finish()
         self.ctx.game.action_id += 1
         self.ctx.action_id = self.ctx.game.action_id
         self.on_valid_interaction(interaction)
@@ -259,7 +257,23 @@ class PlayView(BaseView):
             await cards.food_combo(self.ctx.copy(view=self), interaction, selected)
         else:
             self.ctx.game.current_player_hand.remove(selected)
-            await self.CARD_ACTIONS[selected](self.ctx.copy(view=self), interaction)
+            if CARDS[selected].get("explicit", False):
+                await self.CARD_ACTIONS[selected](self.ctx.copy(view=self), interaction)
+            else:
+                async with NopeView(
+                    self.ctx.copy(view=self),
+                    ok_callback_action=lambda _: self.CARD_ACTIONS[selected](
+                        self.ctx.copy(view=self), interaction
+                    ),
+                ) as view:
+                    await interaction.respond(
+                        MESSAGES["play_card"].format(
+                            interaction.user.id,
+                            CARDS[selected]["emoji"],
+                            CARDS[selected]["title"],
+                        ),
+                        view=view,
+                    )
         self.create_card_selection()
         await interaction.edit(
             content=self.create_play_prompt_message(interaction.user.id),

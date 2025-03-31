@@ -2,37 +2,34 @@
     "eggsplode": {
         "title": "Eggsplode",
         "description": "If you draw this card and don't have a Defuse, you lose the game.",
-        "emoji": "💣",
-        "count": 0,
-        "usable": false
+        "emoji": "💣"
     },
     "defuse": {
         "title": "Defuse",
         "description": "Put an Eggsplode card back into the deck. Used automatically when you draw an Eggsplode card.",
-        "emoji": "🔧",
-        "count": 0,
-        "usable": false
+        "emoji": "🔧"
     },
     "nope": {
         "title": "Nope",
         "description": "Stop the action of another card. Can be used by clicking on the **Nope** button.",
         "emoji": "🛑",
-        "count": 5,
-        "usable": false
+        "count": 5
     },
     "attegg": {
         "title": "Attegg",
         "description": "End your turn without drawing and force the next player to take 2 turns in a row.",
         "emoji": "⚡",
         "count": 4,
-        "usable": true
+        "usable": true,
+        "explicit": true
     },
     "skip": {
         "title": "Skip",
         "description": "End your turn without drawing.",
         "emoji": "🏃‍➡️",
         "count": 4,
-        "usable": true
+        "usable": true,
+        "explicit": true
     },
     "shuffle": {
         "title": "Eggbeater",
@@ -54,6 +51,7 @@
         "emoji": "🥚",
         "count": 4,
         "usable": true,
+        "explicit": true,
         "combo": 1
     },
     "food2": {
@@ -62,6 +60,7 @@
         "emoji": "🍳",
         "count": 4,
         "usable": true,
+        "explicit": true,
         "combo": 1
     },
     "food3": {
@@ -70,6 +69,7 @@
         "emoji": "🥓",
         "count": 4,
         "usable": true,
+        "explicit": true,
         "combo": 1
     },
     "food4": {
@@ -78,6 +78,7 @@
         "emoji": "🥞",
         "count": 4,
         "usable": true,
+        "explicit": true,
         "combo": 1
     },
     "food5": {
@@ -86,22 +87,19 @@
         "emoji": "🍗",
         "count": 4,
         "usable": true,
+        "explicit": true,
         "combo": 1
     },
     "radioeggtive": {
         "title": "Radioeggtive",
         "description": "Put this card back into the deck face up.",
         "emoji": "☢️",
-        "count": 0,
-        "usable": false,
         "expansion": "radioeggtive"
     },
     "radioeggtive_face_up": {
         "title": "Radioeggtive (Face up)!",
         "description": "You lose the game. No escape.",
         "emoji": "💥",
-        "count": 0,
-        "usable": false,
         "expansion": "radioeggtive"
     },
     "draw_from_bottom": {
@@ -110,6 +108,7 @@
         "emoji": "🔽",
         "count": 4,
         "usable": true,
+        "explicit": true,
         "expansion": "radioeggtive"
     },
     "targeted_attegg": {
@@ -118,6 +117,7 @@
         "emoji": "🎯",
         "count": 4,
         "usable": true,
+        "explicit": true,
         "expansion": "radioeggtive"
     },
     "alter_future": {
@@ -134,6 +134,7 @@
         "emoji": "🔄",
         "count": 4,
         "usable": true,
+        "explicit": true,
         "expansion": "radioeggtive"
     }
 }
