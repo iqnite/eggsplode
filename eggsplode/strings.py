@@ -32,11 +32,7 @@ def get_message(key: str) -> str:
     if isinstance(message, str):
         return replace_emojis(message)
     elif isinstance(message, list):
-        return (
-            "\n".join([replace_emojis(m) for m in message])
-            if isinstance(message, list)
-            else replace_emojis(message)
-        )
+        return "\n".join([replace_emojis(m) for m in message])
     elif isinstance(message, dict):
         return "\n".join(replace_emojis(v) for _, v in message.items())
     else:
