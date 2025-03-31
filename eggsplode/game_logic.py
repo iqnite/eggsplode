@@ -4,7 +4,7 @@ Contains the game logic for the Eggsplode game.
 
 from datetime import datetime
 import random
-from .strings import CARDS
+from .strings import CARDS, replace_emojis
 
 
 class Game:
@@ -149,7 +149,7 @@ class Game:
         grouped_hand = self.group_hand(user_id)
         return "\n".join(
             template.format(
-                CARDS[card]["emoji"],
+                replace_emojis(CARDS[card]["emoji"]),
                 CARDS[card]["title"],
                 count,
                 CARDS[card]["description"],

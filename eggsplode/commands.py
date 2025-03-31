@@ -13,9 +13,9 @@ from .game_logic import Game
 from .strings import (
     ADMIN_LISTGAMES_CODE,
     ADMIN_MAINTENANCE_CODE,
-    MESSAGES,
     RESTART_CMD,
     VERSION,
+    get_message,
 )
 from .views.starter import StartGameView, HelpView
 
@@ -41,15 +41,12 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
         self, ctx: discord.ApplicationContext | discord.Interaction, ephemeral=False
     ):
         await ctx.respond(
-            "\n".join(
-                (
-                    *MESSAGES["help"][0],
-                    MESSAGES["status"].format(
-                        self.latency * 1000,
-                        VERSION,
-                        MESSAGES["maintenance"] if self.admin_maintenance else "",
-                    ),
-                )
+            get_message("help0")
+            + "\n"
+            + get_message("status").format(
+                self.latency * 1000,
+                VERSION,
+                get_message("maintenance") if self.admin_maintenance else "",
             ),
             view=HelpView(),
             ephemeral=ephemeral,
@@ -67,13 +64,13 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
         async def start_game(ctx: discord.ApplicationContext):
             self.cleanup()
             if self.admin_maintenance:
-                await ctx.respond(MESSAGES["maintenance"], ephemeral=True)
+                await ctx.respond(get_message("maintenance"), ephemeral=True)
                 return
             game_id = ctx.interaction.channel_id
             if not (game_id and ctx.interaction.user):
                 return
             if game_id in self.games:
-                await ctx.respond(MESSAGES["game_already_exists"], ephemeral=True)
+                await ctx.respond(get_message("game_already_exists"), ephemeral=True)
                 return
             await ctx.defer()
             self.games[game_id] = Game(
@@ -100,18 +97,18 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
             if not (game_id and ctx.interaction.user):
                 return
             if game_id not in self.games:
-                await ctx.respond(MESSAGES["game_not_found"], ephemeral=True)
+                await ctx.respond(get_message("game_not_found"), ephemeral=True)
                 return
             if ctx.interaction.user.id not in self.games[game_id].players:
-                await ctx.respond(MESSAGES["user_not_in_game"], ephemeral=True)
+                await ctx.respond(get_message("user_not_in_game"), ephemeral=True)
                 return
             if not self.games[game_id].hands:
-                await ctx.respond(MESSAGES["game_not_started"], ephemeral=True)
+                await ctx.respond(get_message("game_not_started"), ephemeral=True)
                 return
             await ctx.respond(
-                MESSAGES["hand_title"].format(
+                get_message("hand_title").format(
                     self.games[game_id].cards_help(
-                        ctx.interaction.user.id, template=MESSAGES["hand_list"]
+                        ctx.interaction.user.id, template=get_message("hand_list")
                     )
                 ),
                 ephemeral=True,
@@ -132,13 +129,14 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
             found_games = self.games_with_user(ctx.interaction.user.id)
             await ctx.respond(
                 (
-                    MESSAGES["list_games_title"].format(
+                    get_message("list_games_title").format(
                         "\n".join(
-                            MESSAGES["list_games_item"].format(i) for i in found_games
+                            get_message("list_games_item").format(i)
+                            for i in found_games
                         )
                     )
                     if found_games
-                    else MESSAGES["user_not_in_any_games"]
+                    else get_message("user_not_in_any_games")
                 ),
                 ephemeral=True,
             )
@@ -173,10 +171,10 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
                 self.cleanup()
                 self.admin_maintenance = not self.admin_maintenance
                 await ctx.respond(
-                    MESSAGES["maintenance_mode_toggle"].format(
+                    get_message("maintenance_mode_toggle").format(
                         "enabled" if self.admin_maintenance else "disabled",
                         (
-                            MESSAGES["maintenance_mode_no_games_running"]
+                            get_message("maintenance_mode_no_games_running")
                             if not self.games
                             else ""
                         ),
@@ -190,10 +188,10 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
                     os.system(RESTART_CMD)
             elif command == ADMIN_LISTGAMES_CODE:
                 await ctx.respond(
-                    MESSAGES["list_games_title"].format(
+                    get_message("list_games_title").format(
                         "\n".join(f"- {i}" for i in self.games)
                     ),
                     ephemeral=True,
                 )
             else:
-                await ctx.respond(MESSAGES["invalid_command"], ephemeral=True)
+                await ctx.respond(get_message("invalid_command"), ephemeral=True)
