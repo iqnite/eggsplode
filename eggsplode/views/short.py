@@ -13,27 +13,26 @@ class NopeView(BaseView):
     def __init__(
         self,
         ctx: ActionContext,
+        ok_callback_action: (
+            Callable[[discord.Interaction | None], Coroutine] | None
+        ) = None,
         nope_callback_action: Callable[[], None] | None = None,
+        timeout: int = 5,
     ):
-        super().__init__(ctx, timeout=10)
+        super().__init__(ctx, timeout=timeout)
+        self.ok_callback_action = ok_callback_action
         self.nope_callback_action = nope_callback_action
         self.nope_count = 0
-        self.ctx.game.active_nope_views.append(self)
+        self.ctx.game.awaiting_prompt = True
 
     async def on_timeout(self):
         try:
             await super().on_timeout()
         finally:
-            await self.finish()
-
-    async def finish(self):
-        self.on_timeout = super().on_timeout
-        self.ctx.game.active_nope_views.remove(self)
-        try:
-            await super().on_timeout()
-        finally:
-            if self.nope_callback_action and self.nope_count % 2:
-                self.nope_callback_action()
+            if self.ctx.action_id == self.ctx.game.action_id:
+                self.ctx.game.awaiting_prompt = False
+                if (not (self.nope_count % 2)) and self.ok_callback_action:
+                    await self.ok_callback_action(None)
 
     @discord.ui.button(label="Nope!", style=discord.ButtonStyle.red, emoji="🛑")
     async def nope_callback(
@@ -70,27 +69,17 @@ class NopeView(BaseView):
         await interaction.edit(content=new_message_content, view=self)
 
 
-class BlockingNopeView(NopeView):
+class ExplicitNopeView(NopeView):
     def __init__(
         self,
         ctx: ActionContext,
         target_player_id: int,
         ok_callback_action: Callable[[discord.Interaction | None], Coroutine],
         nope_callback_action: Callable[[], None] | None = None,
+        timeout: int = 10,
     ):
-        super().__init__(ctx, nope_callback_action=nope_callback_action)
-        self.ctx.game.awaiting_prompt = True
+        super().__init__(ctx, ok_callback_action, nope_callback_action, timeout)
         self.target_player_id = target_player_id
-        self.ok_callback_action = ok_callback_action
-
-    async def on_timeout(self):
-        try:
-            await super().on_timeout()
-        finally:
-            if self.ctx.action_id == self.ctx.game.action_id:
-                self.ctx.game.awaiting_prompt = False
-                if not self.nope_count % 2:
-                    await self.ok_callback_action(None)
 
     @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
     async def ok_callback(self, _: discord.ui.Button, interaction: discord.Interaction):
@@ -103,8 +92,8 @@ class BlockingNopeView(NopeView):
             await interaction.respond(get_message("action_noped"), ephemeral=True)
             return
         await super().on_timeout()
-        self.ctx.game.awaiting_prompt = False
-        await self.ok_callback_action(interaction)
+        if self.ok_callback_action:
+            await self.ok_callback_action(interaction)
 
 
 class DefuseView(BaseView):
@@ -115,7 +104,7 @@ class DefuseView(BaseView):
         card="eggsplode",
         prev_card=None,
     ):
-        super().__init__(ctx, timeout=10)
+        super().__init__(ctx, timeout=30)
         self.ctx.game.awaiting_prompt = True
         self.callback_action = callback_action
         self.card = card
@@ -192,7 +181,7 @@ class ChoosePlayerView(BaseView):
         callback_action: Callable[[int], Coroutine],
         condition: Callable[[int], bool] = lambda _: True,
     ):
-        super().__init__(ctx, timeout=10)
+        super().__init__(ctx, timeout=20)
         self.ctx.game.awaiting_prompt = True
         self.eligible_players = [
             user_id for user_id in self.ctx.game.players if condition(user_id)
@@ -246,7 +235,7 @@ class AlterFutureView(BaseView):
         callback_action: Callable[[], Coroutine],
         amount_of_cards: int,
     ):
-        super().__init__(ctx, timeout=10)
+        super().__init__(ctx, timeout=20)
         self.ctx.game.awaiting_prompt = True
         self.amount_of_cards = min(amount_of_cards, len(self.ctx.game.deck))
         self.callback_action = callback_action

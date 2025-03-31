@@ -135,6 +135,26 @@ class SettingsView(BaseView):
     ):
         super().__init__(ctx)
         self.parent_view = parent_view
+        self.expansion_select: discord.ui.Select | None = None
+        self.short_mode_button: discord.ui.Button | None = None
+        self.create_view()
+
+    async def expansion_callback(self, interaction: discord.Interaction):
+        if not (self.expansion_select and self.parent_view.message):
+            return
+        self.ctx.game.config["expansions"] = self.expansion_select.values
+        await interaction.respond(get_message("expansions_updated"), ephemeral=True)
+        await interaction.followup.edit_message(
+            self.parent_view.message.id,
+            content=self.parent_view.generate_game_start_message(),
+            view=self.parent_view,
+        )
+
+    def create_view(self):
+        if self.expansion_select:
+            self.remove_item(self.expansion_select)
+        if self.short_mode_button:
+            self.remove_item(self.short_mode_button)
         self.expansion_select = discord.ui.Select(
             options=[
                 discord.SelectOption(
@@ -151,15 +171,24 @@ class SettingsView(BaseView):
         )
         self.expansion_select.callback = self.expansion_callback
         self.add_item(self.expansion_select)
-
-    async def expansion_callback(self, interaction: discord.Interaction):
-        self.ctx.game.config["expansions"] = self.expansion_select.values
-        await interaction.respond(get_message("expansions_updated"), ephemeral=True)
-        assert self.parent_view.message
-        await self.parent_view.message.edit(
-            content=self.parent_view.generate_game_start_message(),
-            view=self.parent_view,
+        short = self.ctx.game.config.get("short", None)
+        self.short_mode_button = discord.ui.Button(
+            label="Short mode: "
+            + ("Auto" if short is None else "On" if short else "Off"),
+            style=(
+                discord.ButtonStyle.green
+                if self.ctx.game.config.get("short", False)
+                else discord.ButtonStyle.grey
+            ),
+            emoji="⚡",
         )
+        self.short_mode_button.callback = self.short_mode_callback
+        self.add_item(self.short_mode_button)
+
+    async def short_mode_callback(self, interaction: discord.Interaction):
+        self.ctx.game.config["short"] = not self.ctx.game.config.get("short", False)
+        self.create_view()
+        await interaction.edit(view=self)
 
     @discord.ui.button(
         label="Advanced Settings", style=discord.ButtonStyle.grey, emoji="⚙️"
