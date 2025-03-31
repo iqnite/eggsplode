@@ -4,7 +4,7 @@ Contains the views for the short interactions in the game, such as "Nope" and "D
 
 from collections.abc import Callable, Coroutine
 import discord
-from ..strings import CARDS, get_message
+from ..strings import CARDS, get_message, replace_emojis
 from ..ctx import ActionContext
 from .base import BaseView
 
@@ -259,7 +259,7 @@ class AlterFutureView(BaseView):
                 value=f"{i}:{card}",
                 label=CARDS[card]["title"],
                 description=CARDS[card]["description"],
-                emoji=CARDS[card]["emoji"],
+                emoji=replace_emojis(CARDS[card]["emoji"]),
             )
             for i, card in enumerate(
                 self.ctx.game.deck[-1 : -self.amount_of_cards - 1 : -1]

@@ -13,7 +13,7 @@ from .views.short import (
     AlterFutureView,
     DefuseView,
 )
-from .strings import CARDS, get_message
+from .strings import CARDS, get_message, replace_emojis
 
 
 async def draw_card(ctx: PlayActionContext, interaction: discord.Interaction, index=-1):
@@ -70,7 +70,7 @@ async def draw_card(ctx: PlayActionContext, interaction: discord.Interaction, in
             )
             await interaction.respond(
                 get_message("you_drew_card").format(
-                    CARDS[card]["emoji"], CARDS[card]["title"]
+                    replace_emojis(CARDS[card]["emoji"]), CARDS[card]["title"]
                 ),
                 ephemeral=True,
             )
@@ -137,7 +137,9 @@ async def predict(ctx: PlayActionContext, interaction: discord.Interaction):
     if not interaction.user:
         return
     next_cards = "\n".join(
-        get_message("bold_list_item").format(CARDS[card]["emoji"], CARDS[card]["title"])
+        get_message("bold_list_item").format(
+            replace_emojis(CARDS[card]["emoji"]), CARDS[card]["title"]
+        )
         for card in ctx.game.deck[-1:-4:-1]
     )
     await interaction.respond(
@@ -190,7 +192,9 @@ async def food_combo_begin(
     ) as view:
         await interaction.respond(
             get_message("before_steal").format(
-                CARDS[food_card]["emoji"], interaction.user.id, target_player_id
+                replace_emojis(CARDS[food_card]["emoji"]),
+                interaction.user.id,
+                target_player_id,
             ),
             view=view,
         )
@@ -223,7 +227,7 @@ async def food_combo_finish(
     )
     await interaction.respond(
         get_message("stolen_card_you").format(
-            CARDS[stolen_card]["emoji"], CARDS[stolen_card]["title"]
+            replace_emojis(CARDS[stolen_card]["emoji"]), CARDS[stolen_card]["title"]
         ),
         ephemeral=True,
     )
@@ -231,7 +235,7 @@ async def food_combo_finish(
         await target_interaction.respond(
             get_message("stolen_card_them").format(
                 ctx.game.current_player_id,
-                CARDS[stolen_card]["emoji"],
+                replace_emojis(CARDS[stolen_card]["emoji"]),
                 CARDS[stolen_card]["title"],
             ),
             ephemeral=True,

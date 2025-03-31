@@ -68,7 +68,7 @@ class StartGameView(BaseView):
                         get_message("expansions"),
                         *(
                             get_message("bold_list_item").format(
-                                EXPANSIONS[expansion]["emoji"],
+                                replace_emojis(EXPANSIONS[expansion]["emoji"]),
                                 EXPANSIONS[expansion]["name"],
                             )
                             for expansion in self.ctx.game.config.get("expansions", [])
@@ -140,7 +140,7 @@ class SettingsView(BaseView):
                 discord.SelectOption(
                     value=name,
                     label=expansion["name"],
-                    emoji=expansion["emoji"],
+                    emoji=replace_emojis(expansion["emoji"]),
                     default=name in self.ctx.game.config.get("expansions", []),
                 )
                 for name, expansion in EXPANSIONS.items()

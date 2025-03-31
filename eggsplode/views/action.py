@@ -9,7 +9,7 @@ import discord
 
 from .. import cards
 from ..ctx import ActionContext, PlayActionContext
-from ..strings import CARDS, get_message
+from ..strings import CARDS, get_message, replace_emojis
 from .base import BaseView
 
 
@@ -232,7 +232,7 @@ class PlayView(BaseView):
                     value=card,
                     label=f"{CARDS[card]['title']} ({user_cards[card]}x)",
                     description=CARDS[card]["description"],
-                    emoji=CARDS[card]["emoji"],
+                    emoji=replace_emojis(CARDS[card]["emoji"]),
                 )
                 for card in user_cards
             ],
