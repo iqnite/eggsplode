@@ -69,5 +69,3 @@ pip install -r requirements.txt
 You're all set! Now you can start the bot and it should appear online on your test server!
 
 *If you don't know how to start a Python program, you **really** shouldn't be contributing to Eggsplode. 😊*
-
-Note that your bot will go offline as soon as the Python program stops. For information on how to host a Discord bot, check out [this page](https://guide.pycord.dev/getting-started/hosting-your-bot).
