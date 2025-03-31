@@ -72,7 +72,7 @@
         "-# Deck Count: 4 (multiplied when there are more than 5 players)",
         "## 🔮 See the future",
         "Privately look at the next 3 cards on the deck, without changing their order.",
-        "-# Can be played during your turn. Cannot be noped.",
+        "-# Can be played during your turn.",
         "-# Deck Count: 5 (multiplied when there are more than 5 players)"
     ],
     "help3": [
