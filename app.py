@@ -8,7 +8,7 @@ import sys
 import logging
 from logging.handlers import RotatingFileHandler
 import discord
-from eggsplode.commands import Eggsplode
+from eggsplode.commands import EggsplodeApp
 from eggsplode.strings import DISCORD_TOKEN, LOG_PATH
 
 if not DISCORD_TOKEN:
@@ -28,7 +28,7 @@ if LOG_PATH:
     logger.setLevel(logging.DEBUG)
     sys.excepthook = logger.error
 
-app = Eggsplode(
+app = EggsplodeApp(
     activity=discord.Activity(type=discord.ActivityType.watching, name="you")
 )
 
