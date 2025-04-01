@@ -46,10 +46,10 @@ class Misc(commands.Cog):
     async def terminal(self, ctx: discord.ApplicationContext, command: str):
         if command == ADMIN_MAINTENANCE_CODE:
             self.bot.cleanup()
-            self.admin_maintenance = not self.admin_maintenance
+            self.bot.admin_maintenance = not self.bot.admin_maintenance
             await ctx.respond(
                 get_message("maintenance_mode_toggle").format(
-                    "enabled" if self.admin_maintenance else "disabled",
+                    "enabled" if self.bot.admin_maintenance else "disabled",
                     (
                         get_message("maintenance_mode_no_games_running")
                         if not self.bot.games
@@ -58,9 +58,9 @@ class Misc(commands.Cog):
                 ),
                 ephemeral=True,
             )
-            while self.bot.games and self.admin_maintenance:
+            while self.bot.games and self.bot.admin_maintenance:
                 await asyncio.sleep(10)
-            if RESTART_CMD and self.admin_maintenance:
+            if RESTART_CMD and self.bot.admin_maintenance:
                 print("RESTARTING VIA ADMIN COMMAND")
                 os.system(RESTART_CMD)
         elif command == ADMIN_LISTGAMES_CODE:
