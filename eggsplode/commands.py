@@ -196,7 +196,14 @@ class Eggsplode(commands.Bot):  # pylint: disable=too-many-ancestors
             else:
                 await ctx.respond(get_message("invalid_command"), ephemeral=True)
 
-        @self.message_command(name="Eggify", description="Eggify a message!")
+        @self.message_command(
+            name="Eggify",
+            description="Eggify a message!",
+            integration_types={
+                discord.IntegrationType.guild_install,
+                discord.IntegrationType.user_install,
+            },
+        )
         async def eggify(ctx: discord.ApplicationContext, message: discord.Message):
             await ctx.defer()
             await ctx.respond(
