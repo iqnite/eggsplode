@@ -29,7 +29,7 @@ class MiniGames(commands.Cog):
             .replace("egg", "**egg**")
             .replace("Egg", "**EGG**")
             .replace("EGG", "**__EGG__**")
-            .replace("ex", "egg")
+            .replace("ex", "eggs")
             .replace("ack", "egg")
             .replace("ac", "egg")
             .replace("O", "🥚")
