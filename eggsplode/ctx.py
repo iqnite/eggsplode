@@ -3,12 +3,10 @@ Contains the context classes for the game actions.
 """
 
 from collections.abc import Callable, Coroutine
-from typing import Generator
 
 import discord
 
 from .game_logic import Game
-from .strings import get_message
 
 
 class ActionContext:  # pylint: disable=too-few-public-methods
@@ -86,48 +84,45 @@ class PlayActionContext(ActionContext):
 
 class ActionLog:
     def __init__(self, actions, character_limit: int | None = 2000):
-        self._actions: list[str] = list(actions)
+        self.actions: list[str] = list(actions)
         self.character_limit = character_limit
 
     def add(self, action: str):
-        self._actions.append(action)
+        self.actions.append(action)
 
     def clear(self):
-        self._actions.clear()
-
-    @property
-    def amount_of_pages(self) -> int:
-        return 1 + sum(1 for _ in self.pages)
+        self.actions.clear()
 
     @property
     def pages(self):
         if self.character_limit is None:
-            yield str(self)
-            return
+            return [str(self)]
+        lst = []
         from_line = 0
         to_line = 0
         total_characters = 0
-        while to_line < len(self._actions):
+        while to_line < len(self.actions):
             action = self[to_line]
             total_characters += len(action)
             if total_characters > self.character_limit:
-                yield "\n".join(self[from_line:to_line])
+                lst.append("\n".join(self[from_line:to_line]))
                 from_line = to_line
                 total_characters = 0
                 continue
             to_line += 1
+        return lst + ["\n".join(self.actions[from_line : len(self.actions)])]
 
     def __str__(self):
-        return "\n".join(get_message(action) for action in self._actions)
+        return "\n".join(self.actions)
 
     def __len__(self):
-        return len(self._actions)
+        return len(self.actions)
 
     def __iter__(self):
-        for i, _ in enumerate(self._actions):
-            yield self[i]
+        return self.actions.__iter__()
 
     def __getitem__(self, index):
-        if isinstance(index, slice):
-            return [get_message(action) for action in self._actions[index]]
-        return get_message(self._actions[index])
+        return self.actions[index]
+
+    def __setitem__(self, index, value):
+        self.actions[index] = value
