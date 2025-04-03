@@ -3,16 +3,7 @@ Contains tests for the ctx module.
 """
 
 import unittest
-from unittest.mock import patch
 from eggsplode.ctx import ActionLog
-from eggsplode.strings import get_message
-
-
-def mock_get_message(key):
-    clean_key = int(key.replace("action", ""))
-    if clean_key > 10:
-        raise KeyError(f"Key {key} not found")
-    return f"Action message {clean_key}!"
 
 
 class TestActionLog(unittest.TestCase):

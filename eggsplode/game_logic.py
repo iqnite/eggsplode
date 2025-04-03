@@ -16,7 +16,6 @@ class Game:
         self.current_player: int = 0
         self.action_id: int = 0
         self.draw_in_turn: int = 0
-        self.awaiting_prompt: bool = False
         self.last_activity = datetime.now()
 
     def start(self):

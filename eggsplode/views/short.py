@@ -5,7 +5,7 @@ Contains the views for the short interactions in the game, such as "Nope" and "D
 from collections.abc import Callable, Coroutine
 import discord
 from ..strings import CARDS, get_message, replace_emojis
-from ..ctx import ActionContext
+from ..ctx import ActionContext, EventController
 from .base import BaseView
 
 
@@ -23,7 +23,6 @@ class NopeView(BaseView):
         self.ok_callback_action = ok_callback_action
         self.nope_callback_action = nope_callback_action
         self.nope_count = 0
-        self.ctx.game.awaiting_prompt = True
         self.disabled = False
 
     async def on_timeout(self):
@@ -33,9 +32,10 @@ class NopeView(BaseView):
             self.disabled = True
             self.on_timeout = super().on_timeout
             if self.ctx.action_id == self.ctx.game.action_id:
-                self.ctx.game.awaiting_prompt = False
                 if (not (self.nope_count % 2)) and self.ok_callback_action:
                     await self.ok_callback_action(None)
+                else:
+                    await self.ctx.events.notify(EventController.ACTION_END)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return (
@@ -61,19 +61,22 @@ class NopeView(BaseView):
         except ValueError:
             await interaction.respond(get_message("no_nope_cards"), ephemeral=True)
             return
-        if not interaction.message:
-            return
         self.nope_count += 1
         button.label = "Nope!" if not self.nope_count % 2 else "Yup!"
-        new_message_content = "".join(
-            (line.strip("~~") + "\n" if line.startswith("~~") else "~~" + line + "~~\n")
-            for line in interaction.message.content.split("\n")
-        ) + (
-            get_message("message_edit_on_nope").format(interaction.user.id)
-            if self.nope_count % 2
-            else get_message("message_edit_on_yup").format(interaction.user.id)
+        for i in range(len(self.ctx.log) - 1 - self.nope_count, len(self.ctx.log)):
+            self.ctx.log[i] = (
+                self.ctx.log[i].strip("~~")
+                if self.ctx.log[i].startswith("~~")
+                else "~~" + self.ctx.log[i] + "~~"
+            )
+        await self.ctx.log(
+            (
+                get_message("message_edit_on_nope").format(interaction.user.id)
+                if self.nope_count % 2
+                else get_message("message_edit_on_yup").format(interaction.user.id)
+            ),
+            view=self,
         )
-        await interaction.edit(content=new_message_content, view=self)
 
 
 class ExplicitNopeView(NopeView):
@@ -112,7 +115,6 @@ class DefuseView(BaseView):
         prev_card=None,
     ):
         super().__init__(ctx, timeout=30)
-        self.ctx.game.awaiting_prompt = True
         self.callback_action = callback_action
         self.card = card
         self.prev_card = prev_card if prev_card else card
@@ -121,7 +123,6 @@ class DefuseView(BaseView):
 
     async def finish(self):
         self.ctx.game.deck.insert(self.card_position, self.card)
-        self.ctx.game.awaiting_prompt = False
         await self.callback_action()
 
     async def on_timeout(self):
@@ -189,7 +190,6 @@ class ChoosePlayerView(BaseView):
         condition: Callable[[int], bool] = lambda _: True,
     ):
         super().__init__(ctx, timeout=20)
-        self.ctx.game.awaiting_prompt = True
         self.eligible_players = [
             user_id for user_id in self.ctx.game.players if condition(user_id)
         ]
@@ -243,7 +243,6 @@ class AlterFutureView(BaseView):
         amount_of_cards: int,
     ):
         super().__init__(ctx, timeout=20)
-        self.ctx.game.awaiting_prompt = True
         self.amount_of_cards = min(amount_of_cards, len(self.ctx.game.deck))
         self.callback_action = callback_action
         self.selects: list[discord.ui.Select] = []
@@ -276,7 +275,6 @@ class AlterFutureView(BaseView):
             self.add_item(select)
 
     async def finish(self):
-        self.ctx.game.awaiting_prompt = False
         await self.callback_action()
 
     async def on_timeout(self):

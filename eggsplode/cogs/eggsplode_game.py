@@ -7,7 +7,7 @@ from discord.ext import commands
 
 from ..commands import EggsplodeApp
 from ..strings import get_message
-from ..ctx import ActionContext
+from ..ctx import ActionContext, ActionLog, EventController
 from ..game_logic import Game
 from ..views.starter import StartGameView
 
@@ -41,11 +41,15 @@ class MainGame(commands.Cog):
                 "players": [ctx.interaction.user.id],
             }
         )
-        async with StartGameView(ActionContext(app=self.bot, game_id=game_id)) as view:
-            view.message = await ctx.respond(
-                view.generate_game_start_message(),
-                view=view,
-            )
+        action_log = ActionLog(anchor_interaction=ctx.interaction, character_limit=2000)
+        action_ctx = ActionContext(
+            app=self.bot, game_id=game_id, log=action_log, events=EventController()
+        )
+        view = StartGameView(action_ctx)
+        await ctx.interaction.respond(
+            view.generate_game_start_message(),
+            view=view,
+        )
 
     @discord.slash_command(
         name="hand",
