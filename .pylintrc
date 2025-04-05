@@ -1,0 +1,19 @@
+[MAIN]
+
+fail-under=10
+
+disable=
+    C0115, # Missing class docstring
+    C0116, # Missing function or method docstring,
+    R0901, # Too many ancestors
+    R0902, # Too many instance attributes    
+    R0903, # Too few public methods
+    R0913, # Too many arguments
+    R0917, # Too many positional arguments
+
+generated-members=
+    discord.*,
+
+ignore=
+    *.pyc,
+    .venv/,

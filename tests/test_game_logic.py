@@ -21,7 +21,6 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self.game.current_player, 0)
         self.assertEqual(self.game.action_id, 0)
         self.assertEqual(self.game.draw_in_turn, 0)
-        self.assertFalse(self.game.awaiting_prompt)
         self.assertIsInstance(self.game.last_activity, datetime)
 
     def test_start(self):
