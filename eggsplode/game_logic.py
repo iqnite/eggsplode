@@ -37,7 +37,7 @@ class Game:
             player: ["defuse"] + [self.deck.pop() for _ in range(7)]
             for player in self.players
         }
-        if self.config.get("short", False if len(self.players) > 2 else True):
+        if self.config.get("short", not len(self.players) > 2):
             # Remove a random number of cards from the deck
             deck_size = len(self.deck)
             cards_to_remove = random.randint(deck_size // 3, deck_size // 2)

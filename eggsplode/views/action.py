@@ -10,13 +10,14 @@ import discord
 from .. import cards
 from ..ctx import ActionContext, EventController
 from ..strings import CARDS, get_message, replace_emojis
-from ..views.short import NopeView
 from .base import BaseView
+from .nope import NopeView
+from .game_ended import GameEndedView
 
 
 class TurnView(BaseView):
     def __init__(self, ctx: ActionContext):
-        super().__init__(ctx, timeout=None)
+        super().__init__(ctx)
         self.paused = False
         self.inactivity_count = 0
         self.ctx.events.subscribe(EventController.TURN_START, self.next_turn)
@@ -78,7 +79,7 @@ class TurnView(BaseView):
                     + get_message("eggsploded").format(turn_player)
                     + "\n"
                     + get_message("game_over").format(self.ctx.game.players[0]),
-                    view=None,
+                    view=GameEndedView(self.ctx.copy()),
                 )
                 del self.ctx.games[self.ctx.game_id]
                 return
@@ -106,22 +107,25 @@ class TurnView(BaseView):
         if not interaction.user:
             raise TypeError("interaction.user is None")
         if interaction.user.id != self.ctx.game.current_player_id:
-            await interaction.respond(get_message("not_your_turn"), ephemeral=True)
+            await interaction.respond(
+                get_message("not_your_turn"), ephemeral=True, delete_after=5
+            )
             return
         self.ctx.log.anchor_interaction = interaction
         self.ctx.action_id = self.ctx.game.action_id
-        async with PlayView(self.ctx.copy(action_id=self.ctx.action_id)) as view:
-            await interaction.respond(
-                view.create_play_prompt_message(interaction.user.id),
-                view=view,
-                ephemeral=True,
-            )
+        view = PlayView(self.ctx.copy(action_id=self.ctx.action_id))
+        await interaction.respond(
+            view.create_play_prompt_message(interaction.user.id),
+            view=view,
+            ephemeral=True,
+        )
         await self.ctx.events.notify(EventController.TURN_RESET)
 
 
-class PlayView(BaseView):
+class PlayView(discord.ui.View):
     def __init__(self, ctx: ActionContext):
-        super().__init__(ctx)
+        super().__init__(timeout=60)
+        self.ctx = ctx
         self.play_card_select = None
         self.create_card_selection()
 
@@ -147,10 +151,14 @@ class PlayView(BaseView):
         if not interaction.user:
             raise TypeError("interaction.user is None")
         if interaction.user.id != self.ctx.game.current_player_id:
-            await interaction.respond(get_message("not_your_turn"), ephemeral=True)
+            await interaction.respond(
+                get_message("not_your_turn"), ephemeral=True, delete_after=5
+            )
             return False
         if self.ctx.action_id != self.ctx.game.action_id:
-            await interaction.respond(get_message("invalid_turn"), ephemeral=True)
+            await interaction.respond(
+                get_message("invalid_turn"), ephemeral=True, delete_after=10
+            )
             return False
         self.ctx.game.action_id += 1
         self.ctx.action_id = self.ctx.game.action_id
@@ -205,11 +213,13 @@ class PlayView(BaseView):
         else:
             self.ctx.game.current_player_hand.remove(selected)
             if CARDS[selected].get("explicit", False):
-                await self.CARD_ACTIONS[selected](self.ctx.copy(view=self), interaction)
+                await cards.CARD_ACTIONS[selected](
+                    self.ctx.copy(view=self), interaction
+                )
             else:
                 async with NopeView(
                     self.ctx.copy(view=self),
-                    ok_callback_action=lambda _: self.CARD_ACTIONS[selected](
+                    ok_callback_action=lambda _: cards.CARD_ACTIONS[selected](
                         self.ctx.copy(view=self), interaction
                     ),
                 ) as view:
@@ -221,14 +231,3 @@ class PlayView(BaseView):
                         ),
                         view=view,
                     )
-
-    CARD_ACTIONS = {
-        "attegg": cards.attegg,
-        "skip": cards.skip,
-        "shuffle": cards.shuffle,
-        "predict": cards.predict,
-        "draw_from_bottom": cards.draw_from_bottom,
-        "targeted_attegg": cards.targeted_attegg,
-        "alter_future": cards.alter_future,
-        "reverse": cards.reverse,
-    }

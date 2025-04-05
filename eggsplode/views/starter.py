@@ -3,6 +3,7 @@ Contains the StartGameView class which handles the start game view in the Discor
 """
 
 import discord
+
 from ..strings import EXPANSIONS, get_message, replace_emojis
 from ..ctx import ActionContext, EventController
 from .action import TurnView
@@ -82,12 +83,12 @@ class StartGameView(discord.ui.View):
             return
         if interaction.user.id != self.ctx.game.config["players"][0]:
             await interaction.respond(
-                get_message("not_game_creator_start"), ephemeral=True
+                get_message("not_game_creator_start"), ephemeral=True, delete_after=5
             )
             return
         if len(self.ctx.game.config["players"]) < 2:
             await interaction.respond(
-                get_message("not_enough_players_to_start"), ephemeral=True
+                get_message("not_enough_players_to_start"), ephemeral=True, delete_after=5
             )
             return
         self.on_timeout = super().on_timeout
@@ -96,7 +97,7 @@ class StartGameView(discord.ui.View):
         await self.ctx.log(get_message("game_started"), view=self)
         self.ctx.log.anchor_interaction = interaction
         await self.ctx.events.notify(self.ctx.events.GAME_START)
-        async with TurnView(self.ctx.copy()) as view:
+        async with TurnView(self.ctx.copy()):
             await self.ctx.events.notify(EventController.TURN_START)
 
     @discord.ui.button(label="Settings", style=discord.ButtonStyle.grey, emoji="⚙️")
@@ -105,7 +106,7 @@ class StartGameView(discord.ui.View):
             return
         if interaction.user.id != self.ctx.game.config["players"][0]:
             await interaction.respond(
-                get_message("not_game_creator_edit_settings"), ephemeral=True
+                get_message("not_game_creator_edit_settings"), ephemeral=True, delete_after=5
             )
             return
         await interaction.respond(
@@ -131,17 +132,6 @@ class SettingsView(discord.ui.View):
         self.short_mode_button: discord.ui.Button | None = None
         self.parent_view = parent_view
         self.create_view()
-
-    async def expansion_callback(self, interaction: discord.Interaction):
-        if not (self.expansion_select):
-            return
-        self.ctx.game.config["expansions"] = self.expansion_select.values
-        await interaction.respond(get_message("expansions_updated"), ephemeral=True)
-        self.ctx.log.actions = []
-        await self.ctx.log(
-            self.parent_view.generate_game_start_message(),
-            view=self.parent_view,
-        )
 
     def create_view(self):
         if self.expansion_select:
@@ -177,6 +167,19 @@ class SettingsView(discord.ui.View):
         )
         self.short_mode_button.callback = self.short_mode_callback
         self.add_item(self.short_mode_button)
+
+    async def expansion_callback(self, interaction: discord.Interaction):
+        if not self.expansion_select:
+            return
+        self.ctx.game.config["expansions"] = self.expansion_select.values
+        await interaction.respond(
+            get_message("expansions_updated"), ephemeral=True, delete_after=5
+        )
+        self.ctx.log.actions = []
+        await self.ctx.log(
+            self.parent_view.generate_game_start_message(),
+            view=self.parent_view,
+        )
 
     async def short_mode_callback(self, interaction: discord.Interaction):
         self.ctx.game.config["short"] = not self.ctx.game.config.get("short", False)
@@ -258,7 +261,7 @@ class SettingsModal(discord.ui.Modal):
             response += "\n" + get_message("settings_updated_success").format(
                 item_input.label, item_input.value
             )
-        await interaction.respond(response, ephemeral=True)
+        await interaction.respond(response, ephemeral=True, delete_after=5)
 
     @staticmethod
     def validate(value, required_type=None, min_value=None, max_value=None):

@@ -7,9 +7,6 @@ from discord.ext import commands
 
 from ..commands import EggsplodeApp
 from ..strings import get_message
-from ..ctx import ActionContext, ActionLog, EventController
-from ..game_logic import Game
-from ..views.starter import StartGameView
 
 
 class MainGame(commands.Cog):
@@ -25,31 +22,7 @@ class MainGame(commands.Cog):
         },
     )
     async def start_game(self, ctx: discord.ApplicationContext):
-        self.bot.cleanup()
-        if self.bot.admin_maintenance:
-            await ctx.respond(get_message("maintenance"), ephemeral=True)
-            return
-        game_id = ctx.interaction.channel_id
-        if not (game_id and ctx.interaction.user):
-            return
-        if game_id in self.bot.games:
-            await ctx.respond(get_message("game_already_exists"), ephemeral=True)
-            return
-        await ctx.defer()
-        self.bot.games[game_id] = Game(
-            {
-                "players": [ctx.interaction.user.id],
-            }
-        )
-        action_log = ActionLog(anchor_interaction=ctx.interaction, character_limit=2000)
-        action_ctx = ActionContext(
-            app=self.bot, game_id=game_id, log=action_log, events=EventController()
-        )
-        view = StartGameView(action_ctx)
-        await ctx.interaction.respond(
-            view.generate_game_start_message(),
-            view=view,
-        )
+        await self.bot.start_game(ctx.interaction)
 
     @discord.slash_command(
         name="hand",

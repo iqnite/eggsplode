@@ -8,10 +8,12 @@ import discord
 from discord.ext import commands
 
 from ..commands import EggsplodeApp
-from ..strings import ADMIN_LISTGAMES_CODE, ADMIN_MAINTENANCE_CODE, RESTART_CMD, get_message
-from ..ctx import ActionContext
-from ..game_logic import Game
-from ..views.starter import StartGameView
+from ..strings import (
+    ADMIN_LISTGAMES_CODE,
+    ADMIN_MAINTENANCE_CODE,
+    RESTART_CMD,
+    get_message,
+)
 
 
 class Misc(commands.Cog):
@@ -27,7 +29,7 @@ class Misc(commands.Cog):
         },
     )
     async def show_help_command(self, ctx: discord.ApplicationContext):
-        await self.bot.show_help(ctx)
+        await self.bot.show_help(ctx.interaction)
 
     @discord.slash_command(
         name="terminal",

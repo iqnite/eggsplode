@@ -1,112 +1,15 @@
 """
-Contains the views for the short interactions in the game, such as "Nope" and "Defuse".
+Contains the views for the short interactions in the game, such as "Defuse".
 """
 
 from collections.abc import Callable, Coroutine
 import discord
+
 from ..strings import CARDS, get_message, replace_emojis
-from ..ctx import ActionContext, EventController
-from .base import BaseView
+from ..ctx import ActionContext
 
 
-class NopeView(BaseView):
-    def __init__(
-        self,
-        ctx: ActionContext,
-        ok_callback_action: (
-            Callable[[discord.Interaction | None], Coroutine] | None
-        ) = None,
-        nope_callback_action: Callable[[], None] | None = None,
-        timeout: int = 5,
-    ):
-        super().__init__(ctx, timeout=timeout)
-        self.ok_callback_action = ok_callback_action
-        self.nope_callback_action = nope_callback_action
-        self.nope_count = 0
-        self.disabled = False
-
-    async def on_timeout(self):
-        try:
-            await super().on_timeout()
-        finally:
-            self.disabled = True
-            self.on_timeout = super().on_timeout
-            if self.ctx.action_id == self.ctx.game.action_id:
-                if (not (self.nope_count % 2)) and self.ok_callback_action:
-                    await self.ok_callback_action(None)
-                else:
-                    await self.ctx.events.notify(EventController.ACTION_END)
-
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        return (
-            interaction.user is not None
-            and interaction.user.id in self.ctx.game.players
-            and not self.disabled
-        )
-
-    @discord.ui.button(label="Nope!", style=discord.ButtonStyle.red, emoji="🛑")
-    async def nope_callback(
-        self, button: discord.ui.Button, interaction: discord.Interaction
-    ):
-        if not interaction.user:
-            return
-        if (
-            not self.nope_count % 2
-            and self.ctx.game.current_player_id == interaction.user.id
-        ):
-            await interaction.respond(get_message("no_self_nope"), ephemeral=True)
-            return
-        try:
-            self.ctx.game.hands[interaction.user.id].remove("nope")
-        except ValueError:
-            await interaction.respond(get_message("no_nope_cards"), ephemeral=True)
-            return
-        self.nope_count += 1
-        button.label = "Nope!" if not self.nope_count % 2 else "Yup!"
-        for i in range(len(self.ctx.log) - 1 - self.nope_count, len(self.ctx.log)):
-            self.ctx.log[i] = (
-                self.ctx.log[i].strip("~~")
-                if self.ctx.log[i].startswith("~~")
-                else "~~" + self.ctx.log[i] + "~~"
-            )
-        await self.ctx.log(
-            (
-                get_message("message_edit_on_nope").format(interaction.user.id)
-                if self.nope_count % 2
-                else get_message("message_edit_on_yup").format(interaction.user.id)
-            ),
-            view=self,
-        )
-
-
-class ExplicitNopeView(NopeView):
-    def __init__(
-        self,
-        ctx: ActionContext,
-        target_player_id: int,
-        ok_callback_action: Callable[[discord.Interaction | None], Coroutine],
-        nope_callback_action: Callable[[], None] | None = None,
-        timeout: int = 10,
-    ):
-        super().__init__(ctx, ok_callback_action, nope_callback_action, timeout)
-        self.target_player_id = target_player_id
-
-    @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
-    async def ok_callback(self, _: discord.ui.Button, interaction: discord.Interaction):
-        if not interaction.user:
-            return
-        if interaction.user.id != self.target_player_id:
-            await interaction.respond(get_message("not_your_turn"), ephemeral=True)
-            return
-        if self.nope_count % 2:
-            await interaction.respond(get_message("action_noped"), ephemeral=True)
-            return
-        await super().on_timeout()
-        if self.ok_callback_action:
-            await self.ok_callback_action(interaction)
-
-
-class DefuseView(BaseView):
+class DefuseView(discord.ui.View):
     def __init__(
         self,
         ctx: ActionContext,
@@ -114,7 +17,8 @@ class DefuseView(BaseView):
         card="eggsplode",
         prev_card=None,
     ):
-        super().__init__(ctx, timeout=30)
+        super().__init__(timeout=30)
+        self.ctx = ctx
         self.callback_action = callback_action
         self.card = card
         self.prev_card = prev_card if prev_card else card
@@ -182,23 +86,20 @@ class DefuseView(BaseView):
         )
 
 
-class ChoosePlayerView(BaseView):
+class ChoosePlayerView(discord.ui.View):
     def __init__(
         self,
         ctx: ActionContext,
         callback_action: Callable[[int], Coroutine],
         condition: Callable[[int], bool] = lambda _: True,
     ):
-        super().__init__(ctx, timeout=20)
+        super().__init__(timeout=20)
+        self.ctx = ctx
         self.eligible_players = [
             user_id for user_id in self.ctx.game.players if condition(user_id)
         ]
         self.callback_action = callback_action
         self.user_select = None
-
-    async def __aenter__(self):
-        await self.create_user_selection()
-        return self
 
     async def on_timeout(self):
         try:
@@ -235,14 +136,15 @@ class ChoosePlayerView(BaseView):
         await self.callback_action(int(self.user_select.values[0]))
 
 
-class AlterFutureView(BaseView):
+class AlterFutureView(discord.ui.View):
     def __init__(
         self,
         ctx: ActionContext,
         callback_action: Callable[[], Coroutine],
         amount_of_cards: int,
     ):
-        super().__init__(ctx, timeout=20)
+        super().__init__(timeout=20)
+        self.ctx = ctx
         self.amount_of_cards = min(amount_of_cards, len(self.ctx.game.deck))
         self.callback_action = callback_action
         self.selects: list[discord.ui.Select] = []

@@ -10,12 +10,12 @@ from .game_logic import Game
 class ActionLog:
     def __init__(
         self,
-        actions=[],
+        actions=None,
         anchor_interaction: discord.Interaction | None = None,
         anchor_message: discord.Message | None = None,
-        character_limit: int | None = 2000,
+        character_limit: int | None = 1800,
     ):
-        self.actions: list[str] = list(actions)
+        self.actions: list[str] = list(actions) if actions else []
         self.character_limit = character_limit
         self.anchor_interaction = anchor_interaction
         self.anchor_message = anchor_message
@@ -60,7 +60,7 @@ class ActionLog:
         args = {"content": self.pages[-1], "view": view}
         try:
             await self.anchor_interaction.response.edit_message(**args)
-        except discord.errors.InteractionResponded as e:
+        except discord.errors.InteractionResponded:
             if self.anchor_message is None:
                 self.anchor_message = await self.anchor_interaction.original_response()
             await self.anchor_interaction.followup.edit_message(
@@ -131,8 +131,8 @@ class EventController:
                 await r
 
 
-class ActionContext:  # pylint: disable=too-few-public-methods
-    def __init__(  # pylint: disable=too-many-arguments
+class ActionContext:
+    def __init__(
         self,
         *,
         app,

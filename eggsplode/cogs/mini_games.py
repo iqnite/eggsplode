@@ -4,10 +4,7 @@ Contains commands for minigames.
 
 import discord
 from discord.ext import commands
-
 from ..commands import EggsplodeApp
-from ..strings import get_message
-from ..views.base import ButtonView
 
 
 class MiniGames(commands.Cog):
