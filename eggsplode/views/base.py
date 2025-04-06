@@ -25,11 +25,12 @@ class BaseView(discord.ui.View):
     async def full_log(self, _: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=self.ephemeral_full_log)
         view = UpDownView(
-            lambda interaction, index: interaction.edit(
-                content=self.get_page_with_count(index),
-                view=view,
-            ),
+            lambda interaction, index: None,  # Placeholder lambda
             len(self.ctx.log.pages),
+        )
+        view.callback = lambda interaction, index: interaction.edit(
+            content=self.get_page_with_count(index),
+            view=view,
         )
         await interaction.respond(
             self.get_page_with_count(len(self.ctx.log.pages) - 1),
