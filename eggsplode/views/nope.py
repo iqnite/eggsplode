@@ -73,6 +73,7 @@ class NopeView(BaseView):
                 if self.ctx.log[i].startswith("~~")
                 else "~~" + self.ctx.log[i] + "~~"
             )
+        self.ctx.log.anchor_interaction = interaction
         await self.ctx.log(
             (
                 get_message("message_edit_on_nope").format(interaction.user.id)
@@ -110,5 +111,6 @@ class ExplicitNopeView(NopeView):
             )
             return
         await super().on_timeout()
+        self.ctx.log.anchor_interaction = interaction
         if self.ok_callback_action:
             await self.ok_callback_action(interaction)
