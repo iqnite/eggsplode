@@ -38,10 +38,8 @@ class BaseView(discord.ui.View):
         )
 
     def get_page_with_count(self, index):
-        return (
-            self.ctx.log.pages[index]
-            + "\n"
-            + get_message("page_count").format(index + 1, len(self.ctx.log.pages))
+        return self.ctx.log.pages[index] + get_message("page_count").format(
+            index + 1, len(self.ctx.log.pages)
         )
 
 
@@ -54,16 +52,16 @@ class UpDownView(discord.ui.View):
 
     @discord.ui.button(label="⬆️", style=discord.ButtonStyle.grey)
     async def up(self, _: discord.ui.Button, interaction: discord.Interaction):
-        if self.index < self.amount - 1:
-            self.index += 1
+        if self.index > 0:
+            self.index -= 1
         else:
             self.index = self.amount - 1
         await self.callback(interaction, self.index)
 
     @discord.ui.button(label="⬇️", style=discord.ButtonStyle.grey)
     async def down(self, _: discord.ui.Button, interaction: discord.Interaction):
-        if self.index > 0:
-            self.index -= 1
+        if self.index < self.amount - 1:
+            self.index += 1
         else:
             self.index = 0
         await self.callback(interaction, self.index)

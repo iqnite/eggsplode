@@ -38,7 +38,7 @@ class DefuseView(discord.ui.View):
     @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green, emoji="✅")
     async def confirm(self, _: discord.ui.Button, interaction: discord.Interaction):
         self.disable_all_items()
-        await interaction.edit(view=self)
+        await interaction.edit(view=self, delete_after=0)
         self.on_timeout = super().on_timeout
         await self.finish()
 
@@ -130,7 +130,7 @@ class ChoosePlayerView(discord.ui.View):
             return
         self.on_timeout = super().on_timeout
         self.disable_all_items()
-        await interaction.edit(view=self)
+        await interaction.edit(view=self, delete_after=0)
         if not isinstance(self.user_select.values[0], str):
             raise TypeError("user_select.values[0] is not a str")
         await self.callback_action(int(self.user_select.values[0]))
@@ -188,7 +188,7 @@ class AlterFutureView(discord.ui.View):
     @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green, emoji="✅")
     async def confirm(self, _: discord.ui.Button, interaction: discord.Interaction):
         self.disable_all_items()
-        await interaction.edit(view=self)
+        await interaction.edit(view=self, delete_after=0)
         self.on_timeout = super().on_timeout
         await self.finish()
 

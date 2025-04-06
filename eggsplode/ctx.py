@@ -30,20 +30,20 @@ class ActionLog:
     def pages(self):
         if self.character_limit is None:
             return [str(self)]
-        lst = []
-        from_line = 0
-        to_line = 0
-        total_characters = 0
-        while to_line < len(self.actions):
-            action = self[to_line]
-            total_characters += len(action)
-            if total_characters > self.character_limit:
-                lst.append("\n".join(self[from_line:to_line]))
-                from_line = to_line
-                total_characters = 0
+        if len(self) == 0:
+            return [""]
+        result = []
+        line = len(self) - 1
+        action = next_action = ""
+        while line >= 0:
+            next_action = self[line] + "\n" + action
+            if len(next_action) > self.character_limit:
+                result.insert(0, action)
+                action = ""
                 continue
-            to_line += 1
-        return lst + ["\n".join(self.actions[from_line : len(self.actions)])]
+            line -= 1
+            action = next_action
+        return [next_action] + result
 
     async def temporary(self, message: str, view: discord.ui.View | None = None):
         await self(message, view)

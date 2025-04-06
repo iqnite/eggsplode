@@ -3,10 +3,9 @@ Contains the PlayView and TurnView classes which handle the game actions in the 
 """
 
 import asyncio
-import datetime
 import random
 import discord
-
+from datetime import datetime, timedelta
 from .. import cards
 from ..ctx import ActionContext, EventController
 from ..strings import CARDS, get_message, replace_emojis
@@ -32,8 +31,8 @@ class TurnView(BaseView):
 
     async def action_timer(self):
         while (
-            datetime.datetime.now() - self.ctx.game.last_activity
-            < datetime.timedelta(seconds=self.ctx.game.config.get("turn_timeout", 60))
+            datetime.now() - self.ctx.game.last_activity
+            < timedelta(seconds=self.ctx.game.config.get("turn_timeout", 60))
         ) or self.paused:
             await asyncio.sleep(1)
         await self.on_action_timeout()
@@ -42,7 +41,7 @@ class TurnView(BaseView):
         self.paused = True
 
     async def resume(self):
-        self.ctx.game.last_activity = datetime.datetime.now()
+        self.ctx.game.last_activity = datetime.now()
         self.paused = False
         await self.ctx.log.temporary(self.create_turn_prompt_message(), view=self)
 
@@ -164,7 +163,7 @@ class PlayView(discord.ui.View):
         self.ctx.action_id = self.ctx.game.action_id
         await self.ctx.events.notify(EventController.ACTION_START)
         self.disable_all_items()
-        await interaction.edit(view=None, delete_after=0)
+        await interaction.edit(view=self, delete_after=0)
         return True
 
     def create_card_selection(self):
@@ -228,6 +227,7 @@ class PlayView(discord.ui.View):
                             interaction.user.id,
                             CARDS[selected]["emoji"],
                             CARDS[selected]["title"],
+                            int((datetime.now() + timedelta(seconds=5)).timestamp()),
                         ),
                         view=view,
                     )

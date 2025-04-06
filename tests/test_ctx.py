@@ -9,11 +9,18 @@ from eggsplode.ctx import ActionLog
 class TestActionLog(unittest.TestCase):
     def setUp(self):
         super().setUp()
+        self.maxDiff = None
         self.log = ActionLog(
             (f"Action message {i}!" for i in range(11)), character_limit=60
         )
         self.messages = []
         self.messages = [f"Action message {i}!" for i in range(11)]
+        self.expected_pages = [
+            "Action message 0!\nAction message 1!\n",
+            "Action message 2!\nAction message 3!\nAction message 4!\n",
+            "Action message 5!\nAction message 6!\nAction message 7!\n",
+            "Action message 8!\nAction message 9!\nAction message 10!\n",
+        ]
 
     def test_init(self, *_):
         self.assertEqual(self.log.actions, [f"Action message {i}!" for i in range(11)])
@@ -24,8 +31,8 @@ class TestActionLog(unittest.TestCase):
         self.assertIn("Action message 11!", self.log.actions)
 
     def test_pages(self, *_):
-        for i, page in enumerate(self.log.pages):
-            self.assertEqual(page, "\n".join(self.messages[i * 3 : (i + 1) * 3]))
+        self.assertEqual(self.log.pages, self.expected_pages)
+        for page in self.log.pages:
             self.assertLessEqual(len(page), 60)
         self.assertEqual(len(self.log.pages), 4)
 
