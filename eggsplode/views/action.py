@@ -3,66 +3,79 @@ Contains the PlayView and TurnView classes which handle the game actions in the 
 """
 
 import asyncio
-from collections.abc import Callable, Coroutine
 import random
 import discord
-
-
+from datetime import datetime, timedelta
 from .. import cards
-from ..ctx import ActionContext, PlayActionContext
+from ..ctx import ActionContext, EventController
 from ..strings import CARDS, get_message, replace_emojis
-from ..views.short import NopeView
 from .base import BaseView
+from .nope import NopeView
+from .game_ended import GameEndedView
+
+
+def turn_action(func):
+    async def wrapper(view, item, interaction: discord.Interaction):
+        if not interaction.user:
+            raise TypeError("interaction.user is None")
+        if interaction.user.id != view.ctx.game.current_player_id:
+            await interaction.respond(
+                get_message("not_your_turn"), ephemeral=True, delete_after=5
+            )
+            return
+        await interaction.response.defer(invisible=True)
+        view.ctx.log.anchor_interaction = interaction
+        view.ctx.action_id = view.ctx.game.action_id
+        return await func(view, item, interaction)
+
+    return wrapper
 
 
 class TurnView(BaseView):
-    def __init__(
-        self,
-        ctx: ActionContext,
-        parent_interaction: discord.Interaction,
-        inactivity_count: int = 0,
-    ):
-        super().__init__(ctx, timeout=None)
-        self.timer: int | None = 0
-        self.inactivity_count = inactivity_count
-        self.parent_interaction = parent_interaction
+    def __init__(self, ctx: ActionContext):
+        super().__init__(ctx)
+        self.paused = False
+        self.inactivity_count = 0
+        self.ctx.events.subscribe(EventController.TURN_START, self.next_turn)
+        self.ctx.events.subscribe(EventController.TURN_RESET, self.resume)
+        self.ctx.events.subscribe(EventController.TURN_END, self.end_turn)
+        self.ctx.events.subscribe(EventController.ACTION_START, self.pause)
+        self.ctx.events.subscribe(EventController.ACTION_END, self.resume)
+        self.ctx.events.subscribe(EventController.GAME_END, self.pause)
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         await self.action_timer()
 
     async def action_timer(self):
-        if self.timer is None:
-            return
-        self.start_timer()
-        try:
-            while self.timer < int(self.ctx.game.config.get("turn_timeout", 60)):
-                await asyncio.sleep(1)
-                if self.timer is None:
-                    return
-                if self.ctx.game.awaiting_prompt:
-                    continue
-                self.timer += 1
-        except TypeError as e:
-            # Log the error for debugging purposes
-            print(f"TypeError encountered in action_timer: {e}")
-            return
+        while (
+            datetime.now() - self.ctx.game.last_activity
+            < timedelta(seconds=self.ctx.game.config.get("turn_timeout", 60))
+        ) or self.paused:
+            await asyncio.sleep(1)
         await self.on_action_timeout()
 
-    def deactivate(self):
-        # None is used to represent a deactivated timer
-        self.timer = None
+    def pause(self):
+        self.paused = True
 
-    def start_timer(self):
-        if self.timer is None:
-            return
-        self.timer = 0
+    async def resume(self):
+        self.ctx.game.last_activity = datetime.now()
+        self.paused = False
+        await self.ctx.log.temporary(self.create_turn_prompt_message(), view=self)
+
+    async def next_turn(self):
+        await self.resume()
+        async with self:
+            pass
+
+    async def end_turn(self):
+        self.ctx.game.action_id += 1
+        await self.ctx.events.notify(EventController.TURN_START)
 
     async def on_action_timeout(self):
-        if not self.message:
-            raise TypeError("message is None")
-        self.deactivate()
+        self.pause()
+        self.inactivity_count += 1
         if self.inactivity_count > 5:
-            await self.parent_interaction.respond(get_message("game_timeout"))
+            await self.ctx.log(get_message("game_timeout"))
             del self.ctx.games[self.ctx.game_id]
             return
         turn_player: int = self.ctx.game.current_player_id
@@ -77,11 +90,12 @@ class TurnView(BaseView):
             case "eggsplode":
                 response += get_message("eggsploded").format(turn_player)
             case "gameover":
-                await self.parent_interaction.respond(
+                await self.ctx.log(
                     get_message("timeout")
                     + get_message("eggsploded").format(turn_player)
                     + "\n"
-                    + get_message("game_over").format(self.ctx.game.players[0])
+                    + get_message("game_over").format(self.ctx.game.players[0]),
+                    view=GameEndedView(self.ctx.copy()),
                 )
                 del self.ctx.games[self.ctx.game_id]
                 return
@@ -94,14 +108,9 @@ class TurnView(BaseView):
                 response += get_message("radioeggtive_face_up").format(turn_player)
             case _:
                 response += get_message("user_drew_card").format(turn_player)
-        response += "\n" + self.create_turn_prompt_message()
-        self.ctx.game.action_id += 1
-        async with TurnView(
-            self.ctx.copy(action_id=self.ctx.game.action_id),
-            parent_interaction=self.parent_interaction,
-            inactivity_count=self.inactivity_count + 1,
-        ) as view:
-            await self.parent_interaction.respond(response, view=view)
+        await self.ctx.log(response)
+        self.ctx.game.next_turn()
+        await self.ctx.events.notify(EventController.TURN_END)
 
     def create_turn_prompt_message(self) -> str:
         return get_message("next_turn").format(
@@ -110,72 +119,29 @@ class TurnView(BaseView):
             self.ctx.game.deck.count("eggsplode"),
         ) + ("\n" + cards.radioeggtive_warning(self.ctx))
 
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if not interaction.user:
-            return False
-        if interaction.user.id != self.ctx.game.current_player_id:
-            await interaction.respond(get_message("not_your_turn"), ephemeral=True)
-            return False
-        if self.timer is None or self.timer < 0:
-            self.disable_all_items()
-            await interaction.edit(view=self)
-            await interaction.respond(get_message("invalid_turn"), ephemeral=True)
-            return False
-        self.start_timer()
-        return True
+    @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
+    @turn_action
+    async def draw_callback(self, _, interaction: discord.Interaction):
+        await self.ctx.events.notify(EventController.ACTION_START)
+        await cards.draw_card(self.ctx, interaction)
 
-    @discord.ui.button(label="Play!", style=discord.ButtonStyle.blurple, emoji="🤚")
-    async def play(self, _: discord.ui.Button, interaction: discord.Interaction):
-        if not interaction.user:
-            return
-        self.ctx.action_id = self.ctx.game.action_id
-        async with PlayView(
-            ActionContext(
-                app=self.ctx.app,
-                game_id=self.ctx.game_id,
-                action_id=self.ctx.action_id,
-            ),
-            on_valid_interaction=lambda _: self.start_timer(),
-            end_turn=self.end_turn,
-            on_game_over=self.deactivate,
-        ) as view:
-            await interaction.respond(
-                view.create_play_prompt_message(interaction.user.id),
-                view=view,
-                ephemeral=True,
-            )
-
-    async def end_turn(self, interaction: discord.Interaction):
-        self.deactivate()
-        self.ctx.game.action_id += 1
-        async with TurnView(
-            self.ctx.copy(action_id=self.ctx.game.action_id),
-            parent_interaction=interaction,
-        ) as view:
-            await interaction.respond(view.create_turn_prompt_message(), view=view)
-
-
-class PlayView(BaseView):
-    def __init__(
-        self,
-        ctx: ActionContext,
-        *,
-        on_valid_interaction: Callable[[discord.Interaction], None],
-        end_turn: Callable[[discord.Interaction], Coroutine],
-        on_game_over: Callable[[], None],
-    ):
-        super().__init__(ctx)
-        self.ctx = PlayActionContext.from_ctx(
-            ctx=ctx,
-            disable_view=self.deactivate,
-            update_view=self.update,
-            end_turn=end_turn,
-            on_game_over=on_game_over,
+    @discord.ui.button(label="Play a card", style=discord.ButtonStyle.green, emoji="🎴")
+    @turn_action
+    async def play(self, _, interaction: discord.Interaction):
+        view = PlayView(self.ctx.copy(action_id=self.ctx.action_id))
+        await interaction.respond(
+            view.create_play_prompt_message(self.ctx.game.current_player_id),
+            view=view,
+            ephemeral=True,
         )
+        await self.ctx.events.notify(EventController.TURN_RESET)
+
+
+class PlayView(discord.ui.View):
+    def __init__(self, ctx: ActionContext):
+        super().__init__(timeout=60)
+        self.ctx = ctx
         self.play_card_select = None
-        self.on_valid_interaction = on_valid_interaction
-        self.end_turn = end_turn
-        self.on_game_over = on_game_over
         self.create_card_selection()
 
     async def deactivate(self, interaction: discord.Interaction):
@@ -199,18 +165,21 @@ class PlayView(BaseView):
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if not interaction.user:
             raise TypeError("interaction.user is None")
-        if self.ctx.game.awaiting_prompt:
-            await interaction.respond(get_message("awaiting_prompt"), ephemeral=True)
-            return False
         if interaction.user.id != self.ctx.game.current_player_id:
-            await interaction.respond(get_message("not_your_turn"), ephemeral=True)
+            await interaction.respond(
+                get_message("not_your_turn"), ephemeral=True, delete_after=5
+            )
             return False
         if self.ctx.action_id != self.ctx.game.action_id:
-            await interaction.respond(get_message("invalid_turn"), ephemeral=True)
+            await interaction.respond(
+                get_message("invalid_turn"), ephemeral=True, delete_after=10
+            )
             return False
         self.ctx.game.action_id += 1
         self.ctx.action_id = self.ctx.game.action_id
-        self.on_valid_interaction(interaction)
+        await self.ctx.events.notify(EventController.ACTION_START)
+        self.disable_all_items()
+        await interaction.edit(view=self, delete_after=0)
         return True
 
     def create_card_selection(self):
@@ -240,53 +209,34 @@ class PlayView(BaseView):
         )
         self.add_item(self.play_card_select)
 
-    @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
-    async def draw_callback(
-        self, _: discord.ui.Button, interaction: discord.Interaction
-    ):
-        await cards.draw_card(self.ctx, interaction)
-
     async def play_card(self, _, interaction: discord.Interaction):
         if not (interaction.message and interaction.user and self.play_card_select):
             return
         selected = self.play_card_select.values[0]
         if not isinstance(selected, str):
             raise TypeError("selected is not a str")
-        await interaction.edit(view=self)
+        await self.ctx.events.notify(EventController.ACTION_START)
         if CARDS[selected].get("combo", 0) == 1:
             await cards.food_combo(self.ctx.copy(view=self), interaction, selected)
         else:
             self.ctx.game.current_player_hand.remove(selected)
             if CARDS[selected].get("explicit", False):
-                await self.CARD_ACTIONS[selected](self.ctx.copy(view=self), interaction)
+                await cards.CARD_ACTIONS[selected](
+                    self.ctx.copy(view=self), interaction
+                )
             else:
                 async with NopeView(
                     self.ctx.copy(view=self),
-                    ok_callback_action=lambda _: self.CARD_ACTIONS[selected](
+                    ok_callback_action=lambda _: cards.CARD_ACTIONS[selected](
                         self.ctx.copy(view=self), interaction
                     ),
                 ) as view:
-                    await interaction.respond(
+                    await self.ctx.log(
                         get_message("play_card").format(
                             interaction.user.id,
                             CARDS[selected]["emoji"],
                             CARDS[selected]["title"],
+                            int((datetime.now() + timedelta(seconds=5)).timestamp()),
                         ),
                         view=view,
                     )
-        self.create_card_selection()
-        await interaction.edit(
-            content=self.create_play_prompt_message(interaction.user.id),
-            view=self,
-        )
-
-    CARD_ACTIONS = {
-        "attegg": cards.attegg,
-        "skip": cards.skip,
-        "shuffle": cards.shuffle,
-        "predict": cards.predict,
-        "draw_from_bottom": cards.draw_from_bottom,
-        "targeted_attegg": cards.targeted_attegg,
-        "alter_future": cards.alter_future,
-        "reverse": cards.reverse,
-    }

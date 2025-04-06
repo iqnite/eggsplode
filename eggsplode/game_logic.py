@@ -16,7 +16,6 @@ class Game:
         self.current_player: int = 0
         self.action_id: int = 0
         self.draw_in_turn: int = 0
-        self.awaiting_prompt: bool = False
         self.last_activity = datetime.now()
 
     def start(self):
@@ -38,7 +37,7 @@ class Game:
             player: ["defuse"] + [self.deck.pop() for _ in range(7)]
             for player in self.players
         }
-        if self.config.get("short", False if len(self.players) > 2 else True):
+        if self.config.get("short", not len(self.players) > 2):
             # Remove a random number of cards from the deck
             deck_size = len(self.deck)
             cards_to_remove = random.randint(deck_size // 3, deck_size // 2)
@@ -104,14 +103,11 @@ class Game:
         if card == "eggsplode":
             if "defuse" in self.hands[self.current_player_id]:
                 self.hands[self.current_player_id].remove("defuse")
-                self.next_turn()
                 return "defused"
             self.remove_player(self.current_player_id)
             self.draw_in_turn = 0
             if len(self.players) == 1:
                 return "gameover"
-        elif card == "radioeggtive":
-            self.next_turn()
         elif card == "radioeggtive_face_up":
             self.remove_player(self.current_player_id)
             self.draw_in_turn = 0
@@ -119,7 +115,6 @@ class Game:
                 return "gameover"
         else:
             self.hands[self.current_player_id].append(card)
-            self.next_turn()
         return card
 
     def remove_player(self, user_id: int):
@@ -127,7 +122,6 @@ class Game:
         del self.hands[user_id]
         self.current_player -= 1
         self.draw_in_turn = 0
-        self.next_turn()
 
     def any_player_has_cards(self) -> bool:
         eligible_players = self.players.copy()
