@@ -68,7 +68,6 @@ class TurnView(BaseView):
 
     async def end_turn(self):
         self.ctx.game.action_id += 1
-        self.ctx.game.next_turn()
         await self.ctx.events.notify(EventController.TURN_START)
 
     async def on_action_timeout(self):
@@ -109,6 +108,7 @@ class TurnView(BaseView):
             case _:
                 response += get_message("user_drew_card").format(turn_player)
         await self.ctx.log(response)
+        self.ctx.game.next_turn()
         await self.ctx.events.notify(EventController.TURN_END)
 
     def create_turn_prompt_message(self) -> str:

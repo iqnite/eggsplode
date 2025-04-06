@@ -68,6 +68,7 @@ async def draw_card(ctx: ActionContext, interaction: discord.Interaction, index=
                 ephemeral=True,
                 delete_after=10,
             )
+    ctx.game.next_turn()
     await ctx.events.notify(EventController.ACTION_END)
     await ctx.events.notify(EventController.TURN_END)
 
