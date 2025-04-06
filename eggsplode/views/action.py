@@ -23,6 +23,7 @@ def turn_action(func):
                 get_message("not_your_turn"), ephemeral=True, delete_after=5
             )
             return
+        await interaction.response.defer(invisible=True)
         view.ctx.log.anchor_interaction = interaction
         view.ctx.action_id = view.ctx.game.action_id
         return await func(view, item, interaction)

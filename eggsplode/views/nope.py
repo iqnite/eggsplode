@@ -29,6 +29,8 @@ class NopeView(BaseView):
         try:
             await super().on_timeout()
         finally:
+            if self.disabled:
+                return
             self.disabled = True
             self.on_timeout = super().on_timeout
             if self.ctx.action_id == self.ctx.game.action_id:
@@ -110,7 +112,7 @@ class ExplicitNopeView(NopeView):
                 get_message("action_noped"), ephemeral=True, delete_after=5
             )
             return
-        await super().on_timeout()
         self.ctx.log.anchor_interaction = interaction
+        self.disabled = True
         if self.ok_callback_action:
             await self.ok_callback_action(interaction)

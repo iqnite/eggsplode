@@ -79,7 +79,7 @@ async def attegg(ctx: ActionContext, interaction: discord.Interaction):
     async with ExplicitNopeView(
         ctx=ctx.copy(),
         target_player_id=ctx.game.next_player_id,
-        ok_callback_action=lambda _: attegg_finish(ctx, interaction),
+        ok_callback_action=lambda _: attegg_finish(ctx),
     ) as view:
         await ctx.log(
             get_message("before_attegg").format(
