@@ -115,7 +115,7 @@
         "And of course, thanks to you for playing!"
     ],
     "invalid_command": "❌ Invalid command.",
-    "invalid_turn": "❌ This turn has ended or the action is not valid anymore! Make sure to click **Play!** on the latest message.",
+    "invalid_turn": "❌ This turn has ended or the action is not valid anymore. Please click **Play** on the main message.",
     "list_games_item": "- <#{}>",
     "list_games_title": "📋 **Games:**\n{}",
     "maintenance": "⚠️ The bot is currently under maintenance. You can find more info in our support server.",
@@ -145,7 +145,7 @@
     "players": "**Players:**",
     "players_list_item": "- <@{}>",
     "predicted": "🔮 <@{}> looked at the next 3 cards on the deck!",
-    "radioeggtive": "## 🔧 <@{}> drew the Radioeggtive card and put it back into the deck face up!",
+    "radioeggtive": "## ☢️ <@{}> drew the Radioeggtive card and put it back into the deck face up!",
     "radioeggtive_face_up": "## 💥 <@{}> drew the Radioeggtive card face up and eggsploded!",
     "settings_updated": "**Game settings updated**",
     "settings_updated_error": "❌ {}: {} ({})",

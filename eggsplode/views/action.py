@@ -14,6 +14,22 @@ from .nope import NopeView
 from .game_ended import GameEndedView
 
 
+def turn_action(func):
+    async def wrapper(view, item, interaction: discord.Interaction):
+        if not interaction.user:
+            raise TypeError("interaction.user is None")
+        if interaction.user.id != view.ctx.game.current_player_id:
+            await interaction.respond(
+                get_message("not_your_turn"), ephemeral=True, delete_after=5
+            )
+            return
+        view.ctx.log.anchor_interaction = interaction
+        view.ctx.action_id = view.ctx.game.action_id
+        return await func(view, item, interaction)
+
+    return wrapper
+
+
 class TurnView(BaseView):
     def __init__(self, ctx: ActionContext):
         super().__init__(ctx)
@@ -52,6 +68,7 @@ class TurnView(BaseView):
 
     async def end_turn(self):
         self.ctx.game.action_id += 1
+        self.ctx.game.next_turn()
         await self.ctx.events.notify(EventController.TURN_START)
 
     async def on_action_timeout(self):
@@ -101,20 +118,18 @@ class TurnView(BaseView):
             self.ctx.game.deck.count("eggsplode"),
         ) + ("\n" + cards.radioeggtive_warning(self.ctx))
 
-    @discord.ui.button(label="Play!", style=discord.ButtonStyle.blurple, emoji="🤚")
-    async def play(self, _: discord.ui.Button, interaction: discord.Interaction):
-        if not interaction.user:
-            raise TypeError("interaction.user is None")
-        if interaction.user.id != self.ctx.game.current_player_id:
-            await interaction.respond(
-                get_message("not_your_turn"), ephemeral=True, delete_after=5
-            )
-            return
-        self.ctx.log.anchor_interaction = interaction
-        self.ctx.action_id = self.ctx.game.action_id
+    @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
+    @turn_action
+    async def draw_callback(self, _, interaction: discord.Interaction):
+        await self.ctx.events.notify(EventController.ACTION_START)
+        await cards.draw_card(self.ctx, interaction)
+
+    @discord.ui.button(label="Play a card", style=discord.ButtonStyle.green, emoji="🎴")
+    @turn_action
+    async def play(self, _, interaction: discord.Interaction):
         view = PlayView(self.ctx.copy(action_id=self.ctx.action_id))
         await interaction.respond(
-            view.create_play_prompt_message(interaction.user.id),
+            view.create_play_prompt_message(self.ctx.game.current_player_id),
             view=view,
             ephemeral=True,
         )
@@ -192,13 +207,6 @@ class PlayView(discord.ui.View):
             None, interaction
         )
         self.add_item(self.play_card_select)
-
-    @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
-    async def draw_callback(
-        self, _: discord.ui.Button, interaction: discord.Interaction
-    ):
-        await self.ctx.events.notify(EventController.ACTION_START)
-        await cards.draw_card(self.ctx, interaction)
 
     async def play_card(self, _, interaction: discord.Interaction):
         if not (interaction.message and interaction.user and self.play_card_select):

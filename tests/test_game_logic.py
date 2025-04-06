@@ -126,7 +126,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self.game.hands[1], prev_hand + [next_card])
         self.assertEqual(len(self.game.hands[1]), 9)
         self.assertEqual(len(self.game.deck), 40)
-        self.assertEqual(self.game.current_player_id, 2)
+        self.assertEqual(self.game.current_player_id, 1)
 
     def test_draw_card_defuse(self):
         self.game.start()
@@ -136,13 +136,14 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self.game.hands[1], [])
         self.assertEqual(len(self.game.hands), 7)
         self.assertEqual(len(self.game.deck), 40)
-        self.assertEqual(self.game.current_player_id, 2)
+        self.assertEqual(self.game.current_player_id, 1)
 
     def test_draw_card_eggsplode(self):
         self.game.start()
         self.game.deck[-1] = "eggsplode"
         self.game.hands[1] = ["food1", "food2"]
         self.game.draw_card()
+        self.game.next_turn()
         self.assertEqual(len(self.game.hands), 6)
         self.assertEqual(len(self.game.deck), 40)
         self.assertEqual(self.game.current_player_id, 2)
@@ -153,6 +154,7 @@ class TestGame(unittest.TestCase):
         for _ in range(13):
             self.game.deck[-1] = "eggsplode"
             result = self.game.draw_card()
+            self.game.next_turn()
         self.assertEqual(result, "gameover")
 
     def test_draw_card_radioeggtive(self):
@@ -162,13 +164,14 @@ class TestGame(unittest.TestCase):
         self.game.draw_card()
         self.assertEqual(len(self.game.hands), 7)
         self.assertEqual(len(self.game.deck), 40)
-        self.assertEqual(self.game.current_player_id, 2)
+        self.assertEqual(self.game.current_player_id, 1)
 
     def test_draw_card_radioeggtive_face_up(self):
         self.game.start()
         self.game.deck[-1] = "radioeggtive_face_up"
         self.game.hands[1] = ["defuse", "food1", "food2"]
         self.game.draw_card()
+        self.game.next_turn()
         self.assertEqual(len(self.game.hands), 6)
         self.assertEqual(len(self.game.deck), 40)
         self.assertEqual(self.game.current_player_id, 2)
@@ -178,6 +181,7 @@ class TestGame(unittest.TestCase):
         for _ in range(12):
             self.game.deck[-1] = "eggsplode"
             result = self.game.draw_card()
+            self.game.next_turn()
         self.game.deck[-1] = "radioeggtive_face_up"
         result = self.game.draw_card()
         self.assertEqual(result, "gameover")
