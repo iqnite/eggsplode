@@ -25,6 +25,7 @@ def turn_action(func):
             return
         view.ctx.log.anchor_interaction = interaction
         view.ctx.action_id = view.ctx.game.action_id
+        view.inactivity_count = 0
         return await func(view, item, interaction)
 
     return wrapper
