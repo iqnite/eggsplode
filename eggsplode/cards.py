@@ -213,24 +213,26 @@ async def food_combo_finish(
             ctx.game.current_player_id, target_player_id
         )
     )
-    await interaction.respond(
-        get_message("stolen_card_you").format(
-            replace_emojis(CARDS[stolen_card]["emoji"]), CARDS[stolen_card]["title"]
-        ),
-        ephemeral=True,
-        delete_after=10,
-    )
-    if target_interaction:
-        await target_interaction.respond(
-            get_message("stolen_card_them").format(
-                ctx.game.current_player_id,
-                replace_emojis(CARDS[stolen_card]["emoji"]),
-                CARDS[stolen_card]["title"],
+    try:
+        await interaction.respond(
+            get_message("stolen_card_you").format(
+                replace_emojis(CARDS[stolen_card]["emoji"]), CARDS[stolen_card]["title"]
             ),
             ephemeral=True,
             delete_after=10,
         )
-    await ctx.events.notify(EventController.ACTION_END)
+        if target_interaction:
+            await target_interaction.respond(
+                get_message("stolen_card_them").format(
+                    ctx.game.current_player_id,
+                    replace_emojis(CARDS[stolen_card]["emoji"]),
+                    CARDS[stolen_card]["title"],
+                ),
+                ephemeral=True,
+                delete_after=10,
+            )
+    finally:
+        await ctx.events.notify(EventController.ACTION_END)
 
 
 async def defuse_finish(ctx: ActionContext):

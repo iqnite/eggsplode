@@ -116,5 +116,6 @@ class ExplicitNopeView(NopeView):
             return
         self.ctx.log.anchor_interaction = interaction
         self.disabled = True
+        self.disable_all_items()
         if self.ok_callback_action:
             await self.ok_callback_action(interaction)

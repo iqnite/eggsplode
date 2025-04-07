@@ -23,6 +23,11 @@ def turn_action(func):
                 get_message("not_your_turn"), ephemeral=True, delete_after=5
             )
             return
+        if view.paused:
+            await interaction.respond(
+                get_message("awaiting_prompt"), ephemeral=True, delete_after=5
+            )
+            return
         view.ctx.log.anchor_interaction = interaction
         view.ctx.action_id = view.ctx.game.action_id
         view.inactivity_count = 0
@@ -166,13 +171,13 @@ class PlayView(discord.ui.View):
         if not interaction.user:
             raise TypeError("interaction.user is None")
         if interaction.user.id != self.ctx.game.current_player_id:
-            await interaction.respond(
-                get_message("not_your_turn"), ephemeral=True, delete_after=5
+            await interaction.edit(
+                content=get_message("not_your_turn"), view=None, delete_after=5
             )
             return False
         if self.ctx.action_id != self.ctx.game.action_id:
-            await interaction.respond(
-                get_message("invalid_turn"), ephemeral=True, delete_after=10
+            await interaction.edit(
+                content=get_message("invalid_turn"), view=None, delete_after=10
             )
             return False
         self.ctx.game.action_id += 1
