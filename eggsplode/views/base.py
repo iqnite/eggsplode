@@ -27,7 +27,6 @@ class BaseView(discord.ui.View):
         label="Full game log", style=discord.ButtonStyle.gray, emoji="📜", row=4
     )
     async def full_log(self, _: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=self.ephemeral_full_log)
         view = UpDownView(
             lambda interaction, index: None,  # Placeholder lambda
             len(self.ctx.log.pages),
