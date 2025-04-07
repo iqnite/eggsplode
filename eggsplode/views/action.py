@@ -4,8 +4,8 @@ Contains the PlayView and TurnView classes which handle the game actions in the 
 
 import asyncio
 import random
-import discord
 from datetime import datetime, timedelta
+import discord
 from .. import cards
 from ..ctx import ActionContext, EventController
 from ..strings import CARDS, get_message, replace_emojis
