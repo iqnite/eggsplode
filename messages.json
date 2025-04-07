@@ -151,7 +151,7 @@
     "settings_updated_error": "❌ {}: {} ({})",
     "settings_updated_success": "✅ {}: {}",
     "shuffled": "🌀 <@{}> shuffled the deck!",
-    "start": "# New game\n<@{}> wants to start a new Eggsplode game! Click on **Join** to participate!",
+    "start": "# New game",
     "status": "-# Ping: {:.0f}ms | Version: {} {}",
     "steal_prompt": "Choose a player to steal a card from.",
     "stolen_card_public": "🎭 <@{}> stole a card from <@{}>!",
