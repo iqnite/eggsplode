@@ -51,7 +51,7 @@ class StartGameView(discord.ui.View):
     def generate_game_start_message(self):
         return "\n".join(
             (
-                get_message("start").format(self.ctx.game.config["players"][0]),
+                get_message("start"),
                 get_message("players"),
                 *(
                     get_message("players_list_item").format(player)
@@ -88,7 +88,9 @@ class StartGameView(discord.ui.View):
             return
         if len(self.ctx.game.config["players"]) < 2:
             await interaction.respond(
-                get_message("not_enough_players_to_start"), ephemeral=True, delete_after=5
+                get_message("not_enough_players_to_start"),
+                ephemeral=True,
+                delete_after=5,
             )
             return
         self.on_timeout = super().on_timeout
@@ -106,7 +108,9 @@ class StartGameView(discord.ui.View):
             return
         if interaction.user.id != self.ctx.game.config["players"][0]:
             await interaction.respond(
-                get_message("not_game_creator_edit_settings"), ephemeral=True, delete_after=5
+                get_message("not_game_creator_edit_settings"),
+                ephemeral=True,
+                delete_after=5,
             )
             return
         await interaction.respond(

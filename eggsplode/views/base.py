@@ -19,6 +19,10 @@ class BaseView(discord.ui.View):
     async def __aexit__(self, exc_type, exc_value, traceback):
         pass
 
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        await interaction.response.defer(invisible=True)
+        return True
+
     @discord.ui.button(
         label="Full game log", style=discord.ButtonStyle.gray, emoji="📜", row=4
     )
