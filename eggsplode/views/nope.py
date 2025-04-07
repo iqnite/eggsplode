@@ -40,9 +40,10 @@ class NopeView(BaseView):
                     await self.ctx.events.notify(EventController.ACTION_END)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        await super().interaction_check(interaction)
+        base_check = await super().interaction_check(interaction)
         return (
-            interaction.user is not None
+            base_check
+            and interaction.user is not None
             and interaction.user.id in self.ctx.game.players
             and not self.disabled
         )
