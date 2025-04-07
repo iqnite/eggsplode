@@ -235,11 +235,13 @@ async def food_combo_finish(
 
 async def defuse_finish(ctx: ActionContext):
     await ctx.log(get_message("defused").format(ctx.game.current_player_id))
+    ctx.game.next_turn()
     await ctx.events.notify(EventController.TURN_END)
 
 
 async def radioeggtive_finish(ctx: ActionContext):
     await ctx.log(get_message("radioeggtive").format(ctx.game.current_player_id))
+    ctx.game.next_turn()
     await ctx.events.notify(EventController.TURN_END)
 
 
