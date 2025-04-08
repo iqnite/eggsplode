@@ -93,9 +93,9 @@ class StartGameView(discord.ui.View):
                 delete_after=5,
             )
             return
-        self.on_timeout = super().on_timeout
+        await interaction.response.defer()
+        self.stop()
         self.ctx.game.start()
-        self.disable_all_items()
         await self.ctx.log(get_message("game_started"), view=self)
         self.ctx.log.anchor_interaction = interaction
         await self.ctx.events.notify(self.ctx.events.GAME_START)
