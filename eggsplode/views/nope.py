@@ -26,17 +26,13 @@ class NopeView(BaseView):
         self.disabled = False
 
     async def on_timeout(self):
-        try:
-            await super().on_timeout()
-        finally:
-            if not self.disabled:
-                self.disabled = True
-                self.on_timeout = super().on_timeout
-                if self.ctx.action_id == self.ctx.game.action_id:
-                    if not self.nope_count % 2 and self.ok_callback_action:
-                        await self.ok_callback_action(None)
-                    else:
-                        await self.ctx.events.notify(EventController.ACTION_END)
+        if not self.disabled:
+            self.disabled = True
+            if self.ctx.action_id == self.ctx.game.action_id:
+                if not self.nope_count % 2 and self.ok_callback_action:
+                    await self.ok_callback_action(None)
+                else:
+                    await self.ctx.events.notify(EventController.ACTION_END)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         base_check = await super().interaction_check(interaction)
@@ -115,6 +111,5 @@ class ExplicitNopeView(NopeView):
             return
         self.ctx.log.anchor_interaction = interaction
         self.disabled = True
-        self.disable_all_items()
         if self.ok_callback_action:
             await self.ok_callback_action(interaction)
