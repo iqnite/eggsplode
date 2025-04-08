@@ -11,7 +11,6 @@ from ..ctx import ActionContext, EventController
 from ..strings import CARDS, get_message, replace_emojis
 from .base import BaseView
 from .nope import NopeView
-from .game_ended import GameEndedView
 
 
 def turn_action(func):
@@ -100,7 +99,7 @@ class TurnView(BaseView):
                     + get_message("eggsploded").format(turn_player)
                     + "\n"
                     + get_message("game_over").format(self.ctx.game.players[0]),
-                    view=GameEndedView(self.ctx.copy()),
+                    view=BaseView(self.ctx.copy()),
                 )
                 del self.ctx.games[self.ctx.game_id]
                 return

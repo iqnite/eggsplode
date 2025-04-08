@@ -4,9 +4,10 @@ Contains card effects for the base game.
 
 import random
 import discord
+
 from .ctx import ActionContext, EventController
+from .views.base import BaseView
 from .views.nope import ExplicitNopeView
-from .views.game_ended import GameEndedView
 from .views.short import ChoosePlayerView, AlterFutureView, DefuseView
 from .strings import CARDS, get_message, replace_emojis
 
@@ -36,7 +37,7 @@ async def draw_card(ctx: ActionContext, interaction: discord.Interaction, index=
                 get_message("eggsploded").format(interaction.user.id)
                 + "\n"
                 + get_message("game_over").format(ctx.game.players[0]),
-                view=GameEndedView(ctx.copy()),
+                view=BaseView(ctx.copy()),
             )
             await ctx.events.notify(EventController.GAME_END)
             del ctx.games[ctx.game_id]
