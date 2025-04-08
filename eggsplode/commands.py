@@ -11,7 +11,7 @@ from .ctx import ActionContext, ActionLog, EventController
 
 from .game_logic import Game
 from .strings import VERSION, get_message
-from .views.starter import HelpView, StartGameView
+from .views.start import HelpView, StartGameView
 
 
 class EggsplodeApp(commands.Bot):
