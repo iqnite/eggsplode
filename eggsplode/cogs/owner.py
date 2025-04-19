@@ -65,8 +65,17 @@ class Owner(commands.Cog):
         await ctx.respond(
             get_message("terminal_response").format(command), ephemeral=True
         )
-        os.system(command)
+        process = await asyncio.create_subprocess_shell(
+            command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await process.communicate()
 
+        if process.returncode == 0:
+            await ctx.respond(f"Command executed successfully:\n{stdout.decode()}", ephemeral=True)
+        else:
+            await ctx.respond(f"Command failed with error:\n{stderr.decode()}", ephemeral=True)
     @discord.slash_command(
         name="listgames",
         description="List all games.",
