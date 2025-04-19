@@ -42,5 +42,4 @@ LOG_PATH = os.getenv("LOG_PATH")
 try:
     TEST_GUILD_ID = int(os.getenv("TEST_GUILD_ID", 0))
 except ValueError as e:
-    logging.error(f"Failed to convert TEST_GUILD_ID to an integer. Using default value 0. Error: {e}")
     TEST_GUILD_ID = 0
