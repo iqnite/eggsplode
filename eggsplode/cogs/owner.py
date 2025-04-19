@@ -26,7 +26,7 @@ class Owner(commands.Cog):
         while self.bot.games and self.bot.admin_maintenance:
             await asyncio.sleep(10)
         print("RESTARTING VIA ADMIN COMMAND")
-        os.system("sudo reboot")
+        await asyncio.create_subprocess_shell("sudo reboot")
 
     @discord.slash_command(
         name="maintenance",
