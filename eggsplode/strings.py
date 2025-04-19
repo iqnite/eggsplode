@@ -39,6 +39,3 @@ def get_message(key: str) -> str:
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 LOG_PATH = os.getenv("LOG_PATH")
-RESTART_CMD = os.getenv("RESTART_CMD")
-ADMIN_MAINTENANCE_CODE = os.getenv("ADMIN_MAINTENANCE_CODE")
-ADMIN_LISTGAMES_CODE = os.getenv("ADMIN_LISTGAMES_CODE")
