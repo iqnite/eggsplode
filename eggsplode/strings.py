@@ -39,3 +39,7 @@ def get_message(key: str) -> str:
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 LOG_PATH = os.getenv("LOG_PATH")
+try:
+    TEST_GUILD_ID = int(os.getenv("TEST_GUILD_ID", 0))
+except ValueError:
+    TEST_GUILD_ID = 0

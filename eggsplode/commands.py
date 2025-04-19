@@ -22,6 +22,7 @@ class EggsplodeApp(commands.Bot):
         self.load_extension("eggsplode.cogs.eggsplode_game")
         self.load_extension("eggsplode.cogs.mini_games")
         self.load_extension("eggsplode.cogs.misc")
+        self.load_extension("eggsplode.cogs.owner")
 
     def games_with_user(self, user_id: int) -> list[int]:
         return [i for i, game in self.games.items() if user_id in game.players]
