@@ -3,7 +3,6 @@ Contains owner only commands.
 """
 
 import asyncio
-import os
 import discord
 from discord.ext import commands
 
@@ -73,9 +72,14 @@ class Owner(commands.Cog):
         stdout, stderr = await process.communicate()
 
         if process.returncode == 0:
-            await ctx.respond(f"Command executed successfully:\n{stdout.decode()}", ephemeral=True)
+            await ctx.respond(
+                f"Command executed successfully:\n`{stdout.decode()}`", ephemeral=True
+            )
         else:
-            await ctx.respond(f"Command failed with error:\n{stderr.decode()}", ephemeral=True)
+            await ctx.respond(
+                f"Command failed with error:\n`{stderr.decode()}`", ephemeral=True
+            )
+
     @discord.slash_command(
         name="listgames",
         description="List all games.",
