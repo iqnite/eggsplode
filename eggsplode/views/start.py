@@ -19,7 +19,7 @@ class StartGameView(discord.ui.View):
         await super().on_timeout()
 
     @discord.ui.button(label="Join", style=discord.ButtonStyle.blurple, emoji="👋")
-    async def join_game(self, _: discord.ui.Button, interaction: discord.Interaction):
+    async def join_game(self, _, interaction: discord.Interaction):
         if not interaction.user:
             return
         game_cancelled = False
@@ -78,7 +78,7 @@ class StartGameView(discord.ui.View):
         )
 
     @discord.ui.button(label="Start Game", style=discord.ButtonStyle.green, emoji="🚀")
-    async def start_game(self, _: discord.ui.Button, interaction: discord.Interaction):
+    async def start_game(self, _, interaction: discord.Interaction):
         if not (interaction.user and self.message):
             return
         if interaction.user.id != self.ctx.game.config["players"][0]:
@@ -103,7 +103,7 @@ class StartGameView(discord.ui.View):
             await self.ctx.events.notify(EventController.TURN_START)
 
     @discord.ui.button(label="Settings", style=discord.ButtonStyle.grey, emoji="⚙️")
-    async def settings(self, _: discord.ui.Button, interaction: discord.Interaction):
+    async def settings(self, _, interaction: discord.Interaction):
         if not (interaction.user and self.message):
             return
         if interaction.user.id != self.ctx.game.config["players"][0]:
@@ -118,7 +118,7 @@ class StartGameView(discord.ui.View):
         )
 
     @discord.ui.button(label="Help", style=discord.ButtonStyle.grey, emoji="❓")
-    async def help(self, _: discord.ui.Button, interaction: discord.Interaction):
+    async def help(self, _, interaction: discord.Interaction):
         if not (interaction.user and self.message):
             return
         await self.ctx.app.show_help(interaction, ephemeral=True)
@@ -193,9 +193,7 @@ class SettingsView(discord.ui.View):
     @discord.ui.button(
         label="Advanced Settings", style=discord.ButtonStyle.grey, emoji="⚙️"
     )
-    async def advanced_settings(
-        self, _: discord.ui.Button, interaction: discord.Interaction
-    ):
+    async def advanced_settings(self, _, interaction: discord.Interaction):
         await interaction.response.send_modal(
             SettingsModal(ctx=self.ctx, title="Advanced Settings")
         )

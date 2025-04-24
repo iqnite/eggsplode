@@ -96,7 +96,7 @@ class ExplicitNopeView(NopeView):
         self.target_player_id = target_player_id
 
     @discord.ui.button(label="OK!", style=discord.ButtonStyle.green, emoji="✅")
-    async def ok_callback(self, _: discord.ui.Button, interaction: discord.Interaction):
+    async def ok_callback(self, _, interaction: discord.Interaction):
         if not interaction.user:
             return
         if interaction.user.id != self.target_player_id:
