@@ -52,7 +52,7 @@ class UpDownView(discord.ui.View):
         super().__init__(timeout=60, disable_on_timeout=True)
         self.callback = callback
         self.amount = amount
-        self.index = 0
+        self.index = amount - 1
 
     @discord.ui.button(label="⬆️", style=discord.ButtonStyle.grey)
     async def up(self, _: discord.ui.Button, interaction: discord.Interaction):
