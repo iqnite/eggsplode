@@ -72,7 +72,6 @@ class NopeView(BaseView):
                 if self.ctx.log[i].startswith("~~")
                 else "~~" + self.ctx.log[i] + "~~"
             )
-        self.ctx.log.anchor_interaction = interaction
         await self.ctx.log(
             (
                 get_message("message_edit_on_nope").format(interaction.user.id)
@@ -80,6 +79,7 @@ class NopeView(BaseView):
                 else get_message("message_edit_on_yup").format(interaction.user.id)
             ),
             view=self,
+            anchor=interaction,
         )
 
 

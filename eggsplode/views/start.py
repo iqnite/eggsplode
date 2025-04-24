@@ -96,8 +96,7 @@ class StartGameView(discord.ui.View):
         await interaction.response.defer()
         self.stop()
         self.ctx.game.start()
-        await self.ctx.log(get_message("game_started"), view=self)
-        self.ctx.log.anchor_interaction = interaction
+        await self.ctx.log(get_message("game_started"), view=self, anchor=interaction)
         await self.ctx.events.notify(self.ctx.events.GAME_START)
         async with TurnView(self.ctx.copy()):
             await self.ctx.events.notify(EventController.TURN_START)

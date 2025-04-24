@@ -45,16 +45,24 @@ class ActionLog:
             action = next_action
         return [next_action] + result
 
-    async def temporary(self, message: str, view: discord.ui.View | None = None):
-        await self(message, view)
+    async def temporary(
+        self,
+        message: str,
+        view: discord.ui.View | None = None,
+        anchor: discord.Interaction | None = None,
+    ):
+        await self(message, view, anchor)
         del self[-1]
 
     async def __call__(
         self,
         message: str,
         view: discord.ui.View | None = None,
+        anchor: discord.Interaction | None = None,
     ):
         self.add(message)
+        if anchor is not None:
+            self.anchor_interaction = anchor
         if self.anchor_interaction is None:
             raise ValueError("anchor_interaction is None")
         args = {"content": self.pages[-1], "view": view}
