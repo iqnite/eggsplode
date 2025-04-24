@@ -26,7 +26,7 @@ class BaseView(discord.ui.View):
     @discord.ui.button(
         label="Full game log", style=discord.ButtonStyle.gray, emoji="📜", row=4
     )
-    async def full_log(self, _: discord.ui.Button, interaction: discord.Interaction):
+    async def full_log(self, _, interaction: discord.Interaction):
         view = UpDownView(
             lambda interaction, index: None,  # Placeholder lambda
             len(self.ctx.log.pages),
@@ -52,10 +52,10 @@ class UpDownView(discord.ui.View):
         super().__init__(timeout=60, disable_on_timeout=True)
         self.callback = callback
         self.amount = amount
-        self.index = 0
+        self.index = amount - 1
 
     @discord.ui.button(label="⬆️", style=discord.ButtonStyle.grey)
-    async def up(self, _: discord.ui.Button, interaction: discord.Interaction):
+    async def up(self, _, interaction: discord.Interaction):
         if self.index > 0:
             self.index -= 1
         else:
@@ -63,7 +63,7 @@ class UpDownView(discord.ui.View):
         await self.callback(interaction, self.index)
 
     @discord.ui.button(label="⬇️", style=discord.ButtonStyle.grey)
-    async def down(self, _: discord.ui.Button, interaction: discord.Interaction):
+    async def down(self, _, interaction: discord.Interaction):
         if self.index < self.amount - 1:
             self.index += 1
         else:

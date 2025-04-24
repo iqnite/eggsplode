@@ -113,7 +113,7 @@ class Game:
             self.draw_in_turn = 0
             if len(self.players) == 1:
                 return "gameover"
-        else:
+        elif card != "radioeggtive":
             self.hands[self.current_player_id].append(card)
         return card
 
