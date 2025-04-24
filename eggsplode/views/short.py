@@ -36,19 +36,19 @@ class DefuseView(discord.ui.View):
             await self.finish()
 
     @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green, emoji="✅")
-    async def confirm(self, _: discord.ui.Button, interaction: discord.Interaction):
+    async def confirm(self, _, interaction: discord.Interaction):
         self.disable_all_items()
         await interaction.edit(view=self, delete_after=0)
         self.on_timeout = super().on_timeout
         await self.finish()
 
     @discord.ui.button(label="Top", style=discord.ButtonStyle.blurple, emoji="⏫")
-    async def top(self, _: discord.ui.Button, interaction: discord.Interaction):
+    async def top(self, _, interaction: discord.Interaction):
         self.card_position = len(self.ctx.game.deck)
         await self.update_view(interaction)
 
     @discord.ui.button(label="Move up", style=discord.ButtonStyle.blurple, emoji="⬆️")
-    async def move_up(self, _: discord.ui.Button, interaction: discord.Interaction):
+    async def move_up(self, _, interaction: discord.Interaction):
         if self.card_position < len(self.ctx.game.deck):
             self.card_position += 1
         else:
@@ -56,7 +56,7 @@ class DefuseView(discord.ui.View):
         await self.update_view(interaction)
 
     @discord.ui.button(label="Move down", style=discord.ButtonStyle.blurple, emoji="⬇️")
-    async def move_down(self, _: discord.ui.Button, interaction: discord.Interaction):
+    async def move_down(self, _, interaction: discord.Interaction):
         if self.card_position > 0:
             self.card_position -= 1
         else:
@@ -64,7 +64,7 @@ class DefuseView(discord.ui.View):
         await self.update_view(interaction)
 
     @discord.ui.button(label="Bottom", style=discord.ButtonStyle.blurple, emoji="⏬")
-    async def bottom(self, _: discord.ui.Button, interaction: discord.Interaction):
+    async def bottom(self, _, interaction: discord.Interaction):
         self.card_position = 0
         await self.update_view(interaction)
 
@@ -186,7 +186,7 @@ class AlterFutureView(discord.ui.View):
             await self.finish()
 
     @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green, emoji="✅")
-    async def confirm(self, _: discord.ui.Button, interaction: discord.Interaction):
+    async def confirm(self, _, interaction: discord.Interaction):
         self.disable_all_items()
         await interaction.edit(view=self, delete_after=0)
         self.on_timeout = super().on_timeout
