@@ -165,6 +165,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(len(self.game.hands), 7)
         self.assertEqual(len(self.game.deck), 40)
         self.assertEqual(self.game.current_player_id, 1)
+        self.assertEqual(self.game.hands[1], ["food1", "food2"])
 
     def test_draw_card_radioeggtive_face_up(self):
         self.game.start()
