@@ -6,8 +6,8 @@ import random
 import discord
 
 from ..ctx import ActionContext
-from ..views.nope import ExplicitNopeView
-from ..views.selections import ChoosePlayerView
+from ..nope import ExplicitNopeView
+from ..selections import ChoosePlayerView
 from ..strings import CARDS, get_message, replace_emojis
 
 

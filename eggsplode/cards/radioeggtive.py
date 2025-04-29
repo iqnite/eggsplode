@@ -9,8 +9,8 @@ from ..action import draw_card
 from ..cards.base import attegg_finish, skip_finish
 from ..ctx import ActionContext
 from ..strings import CARDS, get_message, replace_emojis
-from ..views.nope import ExplicitNopeView
-from ..views.selections import ChoosePlayerView
+from ..nope import ExplicitNopeView
+from ..selections import ChoosePlayerView
 
 
 async def draw_from_bottom(ctx: ActionContext, interaction: discord.Interaction):

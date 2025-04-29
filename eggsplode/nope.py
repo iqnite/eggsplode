@@ -4,9 +4,9 @@ Contains the Nope views for the game.
 
 from collections.abc import Callable, Coroutine
 import discord
-from ..ctx import ActionContext
-from ..strings import get_message
-from .base import BaseView
+from .ctx import ActionContext
+from .strings import get_message
+from .base_views import BaseView
 
 
 class NopeView(BaseView):

@@ -4,9 +4,9 @@ Contains the StartGameView class which handles the start game view in the Discor
 
 import discord
 
-from ..strings import EXPANSIONS, get_message, replace_emojis
-from ..ctx import ActionContext
-from ..action import TurnView
+from .strings import EXPANSIONS, get_message, replace_emojis
+from .ctx import ActionContext
+from .action import TurnView
 
 
 class StartGameView(discord.ui.View):

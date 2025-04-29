@@ -8,7 +8,7 @@ from discord.ext import commands
 from .ctx import ActionContext, ActionLog
 from .game_logic import Game
 from .strings import VERSION, get_message
-from .views.start import HelpView, StartGameView
+from .start import HelpView, StartGameView
 
 
 class EggsplodeApp(commands.Bot):

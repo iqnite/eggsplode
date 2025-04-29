@@ -3,8 +3,8 @@ Contains the BaseView class which is used to create a Discord UI view for the ga
 """
 
 import discord
-from ..ctx import ActionContext
-from ..strings import get_message
+from .ctx import ActionContext
+from .strings import get_message
 
 
 class BaseView(discord.ui.View):

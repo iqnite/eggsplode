@@ -11,9 +11,9 @@ import discord
 from .cards import base, radioeggtive
 from .ctx import ActionContext
 from .strings import CARDS, get_message, replace_emojis
-from .views.base import BaseView
-from .views.nope import NopeView
-from .views.selections import DefuseView
+from .base_views import BaseView
+from .nope import NopeView
+from .selections import DefuseView
 
 
 def turn_action(func):

@@ -5,10 +5,8 @@ Contains the views for the short interactions in the game, such as "Defuse".
 from collections.abc import Callable, Coroutine
 import discord
 
-from eggsplode.strings import CARDS, get_message
-
-from ..strings import CARDS
-from ..ctx import ActionContext
+from .strings import CARDS, get_message
+from .ctx import ActionContext
 
 
 class ChoosePlayerView(discord.ui.View):
