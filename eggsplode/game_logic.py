@@ -103,16 +103,16 @@ class Game:
         if card == "eggsplode":
             if "defuse" in self.hands[self.current_player_id]:
                 self.hands[self.current_player_id].remove("defuse")
-                return "defused"
+                return "_defused_"
             self.remove_player(self.current_player_id)
             self.draw_in_turn = 0
             if len(self.players) == 1:
-                return "gameover"
+                return "_gameover_"
         elif card == "radioeggtive_face_up":
             self.remove_player(self.current_player_id)
             self.draw_in_turn = 0
             if len(self.players) == 1:
-                return "gameover"
+                return "_gameover_"
         elif card != "radioeggtive":
             self.hands[self.current_player_id].append(card)
         return card

@@ -132,7 +132,7 @@ class TestGame(unittest.TestCase):
         self.game.start()
         self.game.deck[-1] = "eggsplode"
         self.game.hands[1] = ["defuse"]
-        self.assertEqual(self.game.draw_card(), "defused")
+        self.assertEqual(self.game.draw_card(), "_defused_")
         self.assertEqual(self.game.hands[1], [])
         self.assertEqual(len(self.game.hands), 7)
         self.assertEqual(len(self.game.deck), 40)
@@ -155,7 +155,7 @@ class TestGame(unittest.TestCase):
             self.game.deck[-1] = "eggsplode"
             result = self.game.draw_card()
             self.game.next_turn()
-        self.assertEqual(result, "gameover")
+        self.assertEqual(result, "_gameover_")
 
     def test_draw_card_radioeggtive(self):
         self.game.start()
@@ -185,7 +185,7 @@ class TestGame(unittest.TestCase):
             self.game.next_turn()
         self.game.deck[-1] = "radioeggtive_face_up"
         result = self.game.draw_card()
-        self.assertEqual(result, "gameover")
+        self.assertEqual(result, "_gameover_")
 
     def test_any_player_has_cards(self):
         self.game.start()

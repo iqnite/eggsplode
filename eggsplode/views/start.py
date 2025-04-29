@@ -6,7 +6,7 @@ import discord
 
 from ..strings import EXPANSIONS, get_message, replace_emojis
 from ..ctx import ActionContext, EventController
-from .action import TurnView
+from ..action import TurnView
 
 
 class StartGameView(discord.ui.View):

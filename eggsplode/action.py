@@ -6,11 +6,14 @@ import asyncio
 import random
 from datetime import datetime, timedelta
 import discord
-from .. import cards
-from ..ctx import ActionContext, EventController
-from ..strings import CARDS, get_message, replace_emojis
-from .base import BaseView
-from .nope import NopeView
+
+
+from .cards import base, radioeggtive
+from .ctx import ActionContext, EventController
+from .strings import CARDS, get_message, replace_emojis
+from .views.base import BaseView
+from .views.nope import NopeView
+from .views.selections import DefuseView
 
 
 def turn_action(func):
@@ -33,6 +36,68 @@ def turn_action(func):
         return await func(view, item, interaction)
 
     return wrapper
+
+
+async def draw_card(ctx: ActionContext, interaction: discord.Interaction, index=-1):
+    if not interaction.user:
+        return
+    card: str = ctx.game.draw_card(index)
+    match card:
+        case "_defused_":
+            view = DefuseView(
+                ctx.copy(),
+                lambda: base.defuse_finish(ctx),
+                card="eggsplode",
+            )
+            await interaction.respond(
+                view.generate_move_prompt(),
+                view=view,
+                ephemeral=True,
+                delete_after=60,
+            )
+            return
+        case "eggsplode":
+            await ctx.log(get_message("eggsploded").format(interaction.user.id))
+        case "_gameover_":
+            await ctx.log(
+                get_message("eggsploded").format(interaction.user.id)
+                + "\n"
+                + get_message("game_over").format(ctx.game.players[0]),
+                view=BaseView(ctx.copy()),
+            )
+            await ctx.events.notify(EventController.GAME_END)
+            del ctx.games[ctx.game_id]
+            return
+        case "radioeggtive":
+            view = DefuseView(
+                ctx.copy(),
+                lambda: radioeggtive.radioeggtive_finish(ctx),
+                card="radioeggtive_face_up",
+                prev_card="radioeggtive",
+            )
+            await interaction.respond(
+                view.generate_move_prompt(),
+                view=view,
+                ephemeral=True,
+                delete_after=60,
+            )
+            return
+        case "radioeggtive_face_up":
+            await ctx.log(
+                get_message("radioeggtive_face_up").format(interaction.user.id)
+            )
+        case _:
+            await ctx.log(get_message("user_drew_card").format(interaction.user.id))
+            await interaction.respond(
+                get_message("you_drew_card").format(
+                    replace_emojis(CARDS[card]["emoji"]), CARDS[card]["title"]
+                ),
+                ephemeral=True,
+                delete_after=10,
+            )
+    ctx.game.next_turn()
+    await ctx.events.notify(EventController.ACTION_END)
+    await ctx.events.notify(EventController.TURN_END)
 
 
 class TurnView(BaseView):
@@ -86,14 +151,14 @@ class TurnView(BaseView):
         card: str = self.ctx.game.draw_card()
         response = get_message("timeout")
         match card:
-            case "defused":
+            case "_defused_":
                 self.ctx.game.deck.insert(
                     random.randint(0, len(self.ctx.game.deck)), "eggsplode"
                 )
-                response += get_message("defused").format(turn_player)
+                response += get_message("_defused_").format(turn_player)
             case "eggsplode":
                 response += get_message("eggsploded").format(turn_player)
-            case "gameover":
+            case "_gameover_":
                 await self.ctx.log(
                     get_message("timeout")
                     + get_message("eggsploded").format(turn_player)
@@ -121,13 +186,13 @@ class TurnView(BaseView):
             self.ctx.game.current_player_id,
             len(self.ctx.game.deck),
             self.ctx.game.deck.count("eggsplode"),
-        ) + ("\n" + cards.radioeggtive_warning(self.ctx))
+        ) + ("\n" + radioeggtive.radioeggtive_warning(self.ctx))
 
     @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
     @turn_action
     async def draw_callback(self, _, interaction: discord.Interaction):
         await self.ctx.events.notify(EventController.ACTION_START)
-        await cards.draw_card(self.ctx, interaction)
+        await draw_card(self.ctx, interaction)
 
     @discord.ui.button(label="Play a card", style=discord.ButtonStyle.green, emoji="🎴")
     @turn_action
@@ -147,10 +212,6 @@ class PlayView(discord.ui.View):
         self.ctx = ctx
         self.play_card_select = None
         self.create_card_selection()
-
-    async def deactivate(self, interaction: discord.Interaction):
-        self.disable_all_items()
-        await interaction.edit(view=self)
 
     async def update(self, interaction: discord.Interaction):
         if not interaction.user:
@@ -221,17 +282,15 @@ class PlayView(discord.ui.View):
             raise TypeError("selected is not a str")
         await self.ctx.events.notify(EventController.ACTION_START)
         if CARDS[selected].get("combo", 0) == 1:
-            await cards.food_combo(self.ctx.copy(view=self), interaction, selected)
+            await base.food_combo(self.ctx.copy(view=self), interaction, selected)
         else:
             self.ctx.game.current_player_hand.remove(selected)
             if CARDS[selected].get("explicit", False):
-                await cards.CARD_ACTIONS[selected](
-                    self.ctx.copy(view=self), interaction
-                )
+                await base.CARD_ACTIONS[selected](self.ctx.copy(view=self), interaction)
             else:
                 async with NopeView(
                     self.ctx.copy(view=self),
-                    ok_callback_action=lambda _: cards.CARD_ACTIONS[selected](
+                    ok_callback_action=lambda _: base.CARD_ACTIONS[selected](
                         self.ctx.copy(view=self), interaction
                     ),
                 ) as view:
