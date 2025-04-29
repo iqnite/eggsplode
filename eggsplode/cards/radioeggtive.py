@@ -7,7 +7,7 @@ import discord
 
 from ..action import draw_card
 from ..cards.base import attegg_finish, skip_finish
-from ..ctx import ActionContext, EventController
+from ..ctx import ActionContext
 from ..strings import CARDS, get_message, replace_emojis
 from ..views.nope import ExplicitNopeView
 from ..views.selections import ChoosePlayerView
@@ -68,7 +68,7 @@ async def alter_future_finish(ctx: ActionContext, interaction: discord.Interacti
     if not interaction.user:
         return
     await ctx.log(get_message("altered_future").format(interaction.user.id))
-    await ctx.events.notify(EventController.ACTION_END)
+    await ctx.events.action_end()
 
 
 class AlterFutureView(discord.ui.View):
@@ -194,7 +194,7 @@ async def targeted_attegg(ctx: ActionContext, interaction: discord.Interaction):
 async def radioeggtive_finish(ctx: ActionContext):
     await ctx.log(get_message("radioeggtive").format(ctx.game.current_player_id))
     ctx.game.next_turn()
-    await ctx.events.notify(EventController.TURN_END)
+    await ctx.events.turn_end()
 
 
 CARD_ACTIONS = {

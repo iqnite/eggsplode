@@ -5,7 +5,7 @@ Contains card effects for the base game.
 import random
 import discord
 
-from ..ctx import ActionContext, EventController
+from ..ctx import ActionContext
 from ..views.nope import ExplicitNopeView
 from ..views.selections import ChoosePlayerView
 from ..strings import CARDS, get_message, replace_emojis
@@ -51,7 +51,7 @@ async def shuffle(ctx: ActionContext, interaction: discord.Interaction):
         return
     random.shuffle(ctx.game.deck)
     await ctx.log(get_message("shuffled").format(interaction.user.id))
-    await ctx.events.notify(EventController.ACTION_END)
+    await ctx.events.action_end()
 
 
 async def predict(ctx: ActionContext, interaction: discord.Interaction):
@@ -71,7 +71,7 @@ async def predict(ctx: ActionContext, interaction: discord.Interaction):
         ephemeral=True,
         delete_after=20,
     )
-    await ctx.events.notify(EventController.ACTION_END)
+    await ctx.events.action_end()
 
 
 async def food_combo(
@@ -141,7 +141,7 @@ async def food_combo_finish(
                 ctx.game.current_player_id, target_player_id
             )
         )
-        await ctx.events.notify(EventController.ACTION_END)
+        await ctx.events.action_end()
         return
     stolen_card = random.choice(target_hand)
     ctx.game.hands[target_player_id].remove(stolen_card)
@@ -170,13 +170,13 @@ async def food_combo_finish(
                 delete_after=10,
             )
     finally:
-        await ctx.events.notify(EventController.ACTION_END)
+        await ctx.events.action_end()
 
 
 async def defuse_finish(ctx: ActionContext):
     await ctx.log(get_message("_defused_").format(ctx.game.current_player_id))
     ctx.game.next_turn()
-    await ctx.events.notify(EventController.TURN_END)
+    await ctx.events.turn_end()
 
 
 async def attegg_finish(ctx: ActionContext, target_player_id=None):
@@ -186,12 +186,12 @@ async def attegg_finish(ctx: ActionContext, target_player_id=None):
     while ctx.game.current_player_id != target_player_id:
         ctx.game.next_turn()
     ctx.game.draw_in_turn = prev_to_draw_in_turn + 2
-    await ctx.events.notify(EventController.TURN_END)
+    await ctx.events.turn_end()
 
 
 async def skip_finish(ctx: ActionContext):
     ctx.game.next_turn()
-    await ctx.events.notify(EventController.TURN_END)
+    await ctx.events.turn_end()
 
 
 CARD_ACTIONS = {

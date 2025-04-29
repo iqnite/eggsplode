@@ -5,7 +5,7 @@ Contains the StartGameView class which handles the start game view in the Discor
 import discord
 
 from ..strings import EXPANSIONS, get_message, replace_emojis
-from ..ctx import ActionContext, EventController
+from ..ctx import ActionContext
 from ..action import TurnView
 
 
@@ -97,9 +97,9 @@ class StartGameView(discord.ui.View):
         self.stop()
         self.ctx.game.start()
         await self.ctx.log(get_message("game_started"), view=self, anchor=interaction)
-        await self.ctx.events.notify(self.ctx.events.GAME_START)
+        await self.ctx.events.game_start()
         async with TurnView(self.ctx.copy()):
-            await self.ctx.events.notify(EventController.TURN_START)
+            await self.ctx.events.turn_start()
 
     @discord.ui.button(label="Settings", style=discord.ButtonStyle.grey, emoji="⚙️")
     async def settings(self, _, interaction: discord.Interaction):

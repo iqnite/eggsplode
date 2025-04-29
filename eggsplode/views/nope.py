@@ -4,7 +4,7 @@ Contains the Nope views for the game.
 
 from collections.abc import Callable, Coroutine
 import discord
-from ..ctx import ActionContext, EventController
+from ..ctx import ActionContext
 from ..strings import get_message
 from .base import BaseView
 
@@ -32,7 +32,7 @@ class NopeView(BaseView):
                 if not self.nope_count % 2 and self.ok_callback_action:
                     await self.ok_callback_action(None)
                 else:
-                    await self.ctx.events.notify(EventController.ACTION_END)
+                    await self.ctx.events.action_end()
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         base_check = await super().interaction_check(interaction)

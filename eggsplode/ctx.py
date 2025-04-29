@@ -98,45 +98,39 @@ class ActionLog:
         del self.actions[index]
 
 
-class EventController:
-    GAME_START = 1
-    GAME_END = 2
-    TURN_START = 3
-    TURN_RESET = 4
-    TURN_END = 5
-    ACTION_START = 6
-    ACTION_END = 7
-
+class Event:
     def __init__(self):
-        self.subscribers: dict[int, list[Callable]] = {
-            self.GAME_START: [],
-            self.GAME_END: [],
-            self.TURN_START: [],
-            self.TURN_RESET: [],
-            self.TURN_END: [],
-            self.ACTION_START: [],
-            self.ACTION_END: [],
-        }
+        self.subscribers = []
 
-    def subscribe(self, event: int, callback: Callable):
-        if event not in self.subscribers:
-            raise ValueError(f"Invalid event: {event}")
-        self.subscribers[event].append(callback)
-        return callback
+    def subscribe(self, callback: Callable):
+        self.subscribers.append(callback)
+        return self
 
-    def unsubscribe(self, event: int, callback):
-        if event not in self.subscribers:
-            raise ValueError(f"Invalid event: {event}")
-        if callback in self.subscribers[event]:
-            self.subscribers[event].remove(callback)
+    def unsubscribe(self, callback):
+        if callback in self.subscribers:
+            self.subscribers.remove(callback)
+        return self
 
-    async def notify(self, event: int, *args, **kwargs):
-        if event not in self.subscribers:
-            raise ValueError(f"Invalid event: {event}")
-        for callback in self.subscribers[event]:
+    async def notify(self, *args, **kwargs):
+        for callback in self.subscribers:
             r = callback(*args, **kwargs)
             if isinstance(r, Coroutine):
                 await r
+
+    __call__ = notify
+    __add__ = subscribe
+    __sub__ = unsubscribe
+
+
+class EventSet:
+    def __init__(self):
+        self.game_start = Event()
+        self.game_end = Event()
+        self.turn_start = Event()
+        self.turn_reset = Event()
+        self.turn_end = Event()
+        self.action_start = Event()
+        self.action_end = Event()
 
 
 class ActionContext:
@@ -145,13 +139,12 @@ class ActionContext:
         *,
         app,
         log: ActionLog,
-        events: EventController,
         game_id: int,
         action_id: int | None = None,
     ):
         self.app = app
         self.log = log
-        self.events = events
+        self.events = EventSet()
         self.games: dict[int, Game] = self.app.games
         self.game_id: int = game_id
         self.game: Game = self.games[game_id]
@@ -164,7 +157,6 @@ class ActionContext:
         return ActionContext(
             app=kwargs.get("app", self.app),
             log=kwargs.get("log", self.log),
-            events=kwargs.get("events", self.events),
             game_id=kwargs.get("game_id", self.game_id),
             action_id=kwargs.get("action_id", self.action_id),
         )

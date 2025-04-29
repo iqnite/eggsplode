@@ -9,7 +9,7 @@ import discord
 
 
 from .cards import base, radioeggtive
-from .ctx import ActionContext, EventController
+from .ctx import ActionContext
 from .strings import CARDS, get_message, replace_emojis
 from .views.base import BaseView
 from .views.nope import NopeView
@@ -65,7 +65,7 @@ async def draw_card(ctx: ActionContext, interaction: discord.Interaction, index=
                 + get_message("game_over").format(ctx.game.players[0]),
                 view=BaseView(ctx.copy()),
             )
-            await ctx.events.notify(EventController.GAME_END)
+            await ctx.events.game_end()
             del ctx.games[ctx.game_id]
             return
         case "radioeggtive":
@@ -96,8 +96,8 @@ async def draw_card(ctx: ActionContext, interaction: discord.Interaction, index=
                 delete_after=10,
             )
     ctx.game.next_turn()
-    await ctx.events.notify(EventController.ACTION_END)
-    await ctx.events.notify(EventController.TURN_END)
+    await ctx.events.action_end()
+    await ctx.events.turn_end()
 
 
 class TurnView(BaseView):
@@ -105,12 +105,12 @@ class TurnView(BaseView):
         super().__init__(ctx)
         self.paused = False
         self.inactivity_count = 0
-        self.ctx.events.subscribe(EventController.TURN_START, self.next_turn)
-        self.ctx.events.subscribe(EventController.TURN_RESET, self.resume)
-        self.ctx.events.subscribe(EventController.TURN_END, self.end_turn)
-        self.ctx.events.subscribe(EventController.ACTION_START, self.pause)
-        self.ctx.events.subscribe(EventController.ACTION_END, self.resume)
-        self.ctx.events.subscribe(EventController.GAME_END, self.pause)
+        self.ctx.events.turn_start += self.next_turn
+        self.ctx.events.turn_reset += self.resume
+        self.ctx.events.turn_end += self.end_turn
+        self.ctx.events.action_start += self.pause
+        self.ctx.events.action_end += self.resume
+        self.ctx.events.game_end += self.pause
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         await self.action_timer()
@@ -138,7 +138,7 @@ class TurnView(BaseView):
 
     async def end_turn(self):
         self.ctx.game.action_id += 1
-        await self.ctx.events.notify(EventController.TURN_START)
+        await self.ctx.events.turn_start()
 
     async def on_action_timeout(self):
         self.pause()
@@ -179,7 +179,7 @@ class TurnView(BaseView):
                 response += get_message("user_drew_card").format(turn_player)
         await self.ctx.log(response)
         self.ctx.game.next_turn()
-        await self.ctx.events.notify(EventController.TURN_END)
+        await self.ctx.events.turn_end()
 
     def create_turn_prompt_message(self) -> str:
         return get_message("next_turn").format(
@@ -191,7 +191,7 @@ class TurnView(BaseView):
     @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
     @turn_action
     async def draw_callback(self, _, interaction: discord.Interaction):
-        await self.ctx.events.notify(EventController.ACTION_START)
+        await self.ctx.events.action_start()
         await draw_card(self.ctx, interaction)
 
     @discord.ui.button(label="Play a card", style=discord.ButtonStyle.green, emoji="🎴")
@@ -203,7 +203,7 @@ class TurnView(BaseView):
             view=view,
             ephemeral=True,
         )
-        await self.ctx.events.notify(EventController.TURN_RESET)
+        await self.ctx.events.turn_reset()
 
 
 class PlayView(discord.ui.View):
@@ -242,7 +242,7 @@ class PlayView(discord.ui.View):
             return False
         self.ctx.game.action_id += 1
         self.ctx.action_id = self.ctx.game.action_id
-        await self.ctx.events.notify(EventController.ACTION_START)
+        await self.ctx.events.action_start()
         self.disable_all_items()
         await interaction.edit(view=self, delete_after=0)
         return True
@@ -280,7 +280,7 @@ class PlayView(discord.ui.View):
         selected = self.play_card_select.values[0]
         if not isinstance(selected, str):
             raise TypeError("selected is not a str")
-        await self.ctx.events.notify(EventController.ACTION_START)
+        await self.ctx.events.action_start()
         if CARDS[selected].get("combo", 0) == 1:
             await base.food_combo(self.ctx.copy(view=self), interaction, selected)
         else:

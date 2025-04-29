@@ -5,10 +5,7 @@ Contains the commands for the Eggsplode game.
 from datetime import datetime
 import discord
 from discord.ext import commands
-
-from .ctx import ActionContext, ActionLog, EventController
-
-
+from .ctx import ActionContext, ActionLog
 from .game_logic import Game
 from .strings import VERSION, get_message
 from .views.start import HelpView, StartGameView
@@ -58,9 +55,7 @@ class EggsplodeApp(commands.Bot):
             ),
         )
         action_log = ActionLog(anchor_interaction=interaction)
-        ctx = ActionContext(
-            app=self, game_id=game_id, log=action_log, events=EventController()
-        )
+        ctx = ActionContext(app=self, game_id=game_id, log=action_log)
         view = StartGameView(ctx)
         await interaction.respond(view.generate_game_start_message(), view=view)
 
