@@ -3,7 +3,7 @@ Contains tests for the ctx module.
 """
 
 import unittest
-from eggsplode.ctx import ActionLog
+from eggsplode.game_logic import ActionLog
 
 
 class TestActionLog(unittest.TestCase):

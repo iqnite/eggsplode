@@ -159,7 +159,7 @@
     "stolen_card_you": "You stole: **{} {}**",
     "targeted_attegg_prompt": "Choose a player to attack.",
     "terminal_response": "Running terminal command: `{}`",
-    "timeout": "*Time's up.*\n",
+    "timeout": "*Time's up.*",
     "user_drew_card": "🃏 <@{}> drew a card!",
     "user_not_in_any_games": "❌ You are not in any games! Start a new one with </start:1325457141628141661>!",
     "user_not_in_game": "❌ You are not in this game!",

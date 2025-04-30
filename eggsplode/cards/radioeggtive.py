@@ -2,30 +2,30 @@
 Contains card effects for the Radioeggtive expansion.
 """
 
-from collections.abc import Callable, Coroutine
+from typing import Callable, Coroutine
 import random
 import discord
 
-from ..action import draw_card
+from .base import draw_card
 from ..cards.base import attegg_finish, skip_finish, game_over
-from ..ctx import ActionContext
+from ..game_logic import Game
 from ..strings import CARDS, get_message, replace_emojis
 from ..nope import ExplicitNopeView
-from ..selections import ChoosePlayerView, DefuseView
+from ..selections import ChoosePlayerView, DefuseView, SelectionView
 
 
-async def draw_from_bottom(ctx: ActionContext, interaction: discord.Interaction):
+async def draw_from_bottom(game: Game, interaction: discord.Interaction):
     if not interaction.user:
         return
     target_player_id = (
-        ctx.game.next_player_id if ctx.game.draw_in_turn == 0 else interaction.user.id
+        game.next_player_id if game.draw_in_turn == 0 else interaction.user.id
     )
     async with ExplicitNopeView(
-        ctx=ctx.copy(),
+        game=game,
         target_player_id=target_player_id,
-        ok_callback_action=lambda _: draw_card(ctx, interaction, index=0),
+        ok_callback_action=lambda _: draw_card(game, interaction, index=0),
     ) as view:
-        await ctx.log(
+        await game.log(
             get_message("before_draw_from_bottom").format(
                 interaction.user.id, target_player_id
             ),
@@ -33,8 +33,8 @@ async def draw_from_bottom(ctx: ActionContext, interaction: discord.Interaction)
         )
 
 
-def radioeggtive_warning(ctx: ActionContext) -> str:
-    radioeggtive_countdown = ctx.game.card_comes_in("radioeggtive_face_up")
+def radioeggtive_warning(game: Game) -> str:
+    radioeggtive_countdown = game.card_comes_in("radioeggtive_face_up")
     return (
         ""
         if radioeggtive_countdown is None
@@ -46,42 +46,42 @@ def radioeggtive_warning(ctx: ActionContext) -> str:
     )
 
 
-async def reverse(ctx: ActionContext, interaction: discord.Interaction):
+async def reverse(game: Game, interaction: discord.Interaction):
     if not interaction.user:
         return
-    ctx.game.reverse()
+    game.reverse()
     target_player_id = (
-        ctx.game.next_player_id if ctx.game.draw_in_turn == 0 else interaction.user.id
+        game.next_player_id if game.draw_in_turn == 0 else interaction.user.id
     )
     async with ExplicitNopeView(
-        ctx=ctx.copy(),
+        game=game,
         target_player_id=target_player_id,
-        nope_callback_action=ctx.game.reverse,
-        ok_callback_action=lambda _: skip_finish(ctx),
+        nope_callback_action=game.reverse,
+        ok_callback_action=lambda _: skip_finish(game),
     ) as view:
-        await ctx.log(
+        await game.log(
             get_message("before_reverse").format(interaction.user.id, target_player_id),
             view=view,
         )
 
 
-async def alter_future_finish(ctx: ActionContext, interaction: discord.Interaction):
+async def alter_future_finish(game: Game, interaction: discord.Interaction):
     if not interaction.user:
         return
-    await ctx.log(get_message("altered_future").format(interaction.user.id))
-    await ctx.events.action_end()
+    await game.log(get_message("altered_future").format(interaction.user.id))
+    await game.events.action_end()
 
 
-class AlterFutureView(discord.ui.View):
+class AlterFutureView(SelectionView):
     def __init__(
         self,
-        ctx: ActionContext,
+        game: Game,
         callback_action: Callable[[], Coroutine],
         amount_of_cards: int,
     ):
         super().__init__(timeout=20)
-        self.ctx = ctx
-        self.amount_of_cards = min(amount_of_cards, len(self.ctx.game.deck))
+        self.game = game
+        self.amount_of_cards = min(amount_of_cards, len(self.game.deck))
         self.callback_action = callback_action
         self.selects: list[discord.ui.Select] = []
         self.create_selections()
@@ -95,7 +95,7 @@ class AlterFutureView(discord.ui.View):
                 emoji=replace_emojis(CARDS[card]["emoji"]),
             )
             for i, card in enumerate(
-                self.ctx.game.deck[-1 : -self.amount_of_cards - 1 : -1]
+                self.game.deck[-1 : -self.amount_of_cards - 1 : -1]
             )
         ]
         for select in self.selects:
@@ -103,7 +103,7 @@ class AlterFutureView(discord.ui.View):
         self.selects = []
         for i in range(self.amount_of_cards):
             select = discord.ui.Select(
-                placeholder=f"{i + 1}. card: {CARDS[self.ctx.game.deck[-i - 1]]['title']}",
+                placeholder=f"{i + 1}. card: {CARDS[self.game.deck[-i - 1]]['title']}",
                 min_values=1,
                 max_values=1,
                 options=card_options,
@@ -115,19 +115,6 @@ class AlterFutureView(discord.ui.View):
     async def finish(self):
         await self.callback_action()
 
-    async def on_timeout(self):
-        try:
-            await super().on_timeout()
-        finally:
-            await self.finish()
-
-    @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green, emoji="✅")
-    async def confirm(self, _, interaction: discord.Interaction):
-        self.disable_all_items()
-        await interaction.edit(view=self, delete_after=0)
-        self.on_timeout = super().on_timeout
-        await self.finish()
-
     async def selection_callback(self, interaction: discord.Interaction):
         if not interaction:
             return
@@ -138,49 +125,49 @@ class AlterFutureView(discord.ui.View):
                 raise TypeError("select.values[0] is not a str")
             prev_card_position = -i - 1
             new_card_position = -int(select.values[0].partition(":")[0]) - 1
-            prev_card = self.ctx.game.deck[prev_card_position]
+            prev_card = self.game.deck[prev_card_position]
             new_card = select.values[0].partition(":")[2]
-            self.ctx.game.deck[prev_card_position] = new_card
-            self.ctx.game.deck[new_card_position] = prev_card
+            self.game.deck[prev_card_position] = new_card
+            self.game.deck[new_card_position] = prev_card
             break
         self.create_selections()
         await interaction.edit(view=self)
 
 
-async def alter_future(ctx: ActionContext, interaction: discord.Interaction):
+async def alter_future(game: Game, interaction: discord.Interaction):
     if not interaction.user:
         return
-    view = AlterFutureView(ctx.copy(), lambda: alter_future_finish(ctx, interaction), 3)
+    view = AlterFutureView(game, lambda: alter_future_finish(game, interaction), 3)
     await interaction.respond(view=view, ephemeral=True)
 
 
 async def targeted_attegg_begin(
-    ctx: ActionContext, interaction: discord.Interaction, target_player_id: int
+    game: Game, interaction: discord.Interaction, target_player_id: int
 ):
     if not interaction.user:
         return
     async with ExplicitNopeView(
-        ctx=ctx.copy(),
+        game=game,
         target_player_id=target_player_id,
-        ok_callback_action=lambda _: attegg_finish(ctx, target_player_id),
+        ok_callback_action=lambda _: attegg_finish(game, target_player_id),
     ) as view:
-        await ctx.log(
+        await game.log(
             get_message("before_targeted_attegg").format(
                 interaction.user.id,
                 target_player_id,
-                ctx.game.draw_in_turn + 2,
+                game.draw_in_turn + 2,
             ),
             view=view,
         )
 
 
-async def targeted_attegg(ctx: ActionContext, interaction: discord.Interaction):
+async def targeted_attegg(game: Game, interaction: discord.Interaction):
     if not interaction.user:
         return
     view = ChoosePlayerView(
-        ctx.copy(),
+        game,
         lambda target_player_id: targeted_attegg_begin(
-            ctx, interaction, target_player_id
+            game, interaction, target_player_id
         ),
     )
     await view.create_user_selection()
@@ -192,24 +179,21 @@ async def targeted_attegg(ctx: ActionContext, interaction: discord.Interaction):
     )
 
 
-async def radioeggtive_finish(ctx: ActionContext):
-    await ctx.log(get_message("radioeggtive").format(ctx.game.current_player_id))
-    ctx.game.next_turn()
-    await ctx.events.turn_end()
+async def radioeggtive_finish(game: Game):
+    await game.log(get_message("radioeggtive").format(game.current_player_id))
+    await game.events.turn_end()
 
 
 async def radioeggtive(
-    ctx: ActionContext, interaction: discord.Interaction, timed_out: bool = False
+    game: Game, interaction: discord.Interaction, timed_out: bool = False
 ):
     if timed_out:
-        ctx.game.deck.insert(
-            random.randint(0, len(ctx.game.deck)), "radioeggtive_face_up"
-        )
-        await ctx.log(get_message("radioeggtive").format(ctx.game.current_player_id))
+        game.deck.insert(random.randint(0, len(game.deck)), "radioeggtive_face_up")
+        await game.log(get_message("radioeggtive").format(game.current_player_id))
     else:
         view = DefuseView(
-            ctx.copy(),
-            lambda: radioeggtive_finish(ctx),
+            game,
+            lambda: radioeggtive_finish(game),
             card="radioeggtive_face_up",
             prev_card="radioeggtive",
         )
@@ -221,17 +205,17 @@ async def radioeggtive(
         )
 
 
-async def radioeggtive_face_up(ctx: ActionContext, interaction: discord.Interaction, _):
+async def radioeggtive_face_up(game: Game, interaction: discord.Interaction, _):
     if not interaction.user:
         return
-    ctx.game.remove_player(ctx.game.current_player_id)
-    ctx.game.draw_in_turn = 0
-    await ctx.log(get_message("radioeggtive_face_up").format(interaction.user.id))
-    if len(ctx.game.players) == 1:
-        await game_over(ctx, interaction)
+    game.remove_player(game.current_player_id)
+    game.draw_in_turn = 0
+    await game.log(get_message("radioeggtive_face_up").format(interaction.user.id))
+    if len(game.players) == 1:
+        await game_over(game, interaction)
 
 
-CARD_ACTIONS = {
+PLAY_ACTIONS = {
     "draw_from_bottom": draw_from_bottom,
     "targeted_attegg": targeted_attegg,
     "alter_future": alter_future,

@@ -5,8 +5,7 @@ Contains the commands for the Eggsplode game.
 from datetime import datetime
 import discord
 from discord.ext import commands
-from .ctx import ActionContext, ActionLog
-from .game_logic import Game
+from .game_logic import ActionLog, Game
 from .strings import VERSION, get_message
 from .start import HelpView, StartGameView
 
@@ -39,13 +38,14 @@ class EggsplodeApp(commands.Bot):
         game_id = interaction.channel_id
         if not (game_id and interaction.user):
             return
-        if game_id in self.games:
+        if self.games.get(game_id, None):
             await interaction.respond(
                 get_message("game_already_exists"), ephemeral=True
             )
             return
         await interaction.response.defer()
-        self.games[game_id] = Game(
+        game = self.games[game_id] = Game(
+            self,
             (
                 {
                     "players": [interaction.user.id],
@@ -54,9 +54,8 @@ class EggsplodeApp(commands.Bot):
                 else config
             ),
         )
-        action_log = ActionLog(anchor_interaction=interaction)
-        ctx = ActionContext(app=self, game_id=game_id, log=action_log)
-        view = StartGameView(ctx)
+        game.log = ActionLog(anchor_interaction=interaction)
+        view = StartGameView(game)
         await interaction.respond(view.generate_game_start_message(), view=view)
 
     async def show_help(self, interaction: discord.Interaction, ephemeral=False):

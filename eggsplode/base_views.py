@@ -3,14 +3,14 @@ Contains the BaseView class which is used to create a Discord UI view for the ga
 """
 
 import discord
-from .ctx import ActionContext
+from .game_logic import Game
 from .strings import get_message
 
 
 class BaseView(discord.ui.View):
-    def __init__(self, ctx: ActionContext, timeout=None):
+    def __init__(self, game: Game, timeout=None):
         super().__init__(timeout=timeout, disable_on_timeout=True)
-        self.ctx = ctx
+        self.game = game
         self.ephemeral_full_log = True
 
     async def __aenter__(self):
@@ -29,21 +29,21 @@ class BaseView(discord.ui.View):
     async def full_log(self, _, interaction: discord.Interaction):
         view = UpDownView(
             lambda interaction, index: None,  # Placeholder lambda
-            len(self.ctx.log.pages),
+            len(self.game.log.pages),
         )
         view.callback = lambda interaction, index: interaction.edit(
             content=self.get_page_with_count(index),
             view=view,
         )
         await interaction.respond(
-            self.get_page_with_count(len(self.ctx.log.pages) - 1),
+            self.get_page_with_count(len(self.game.log.pages) - 1),
             view=view,
             ephemeral=self.ephemeral_full_log,
         )
 
     def get_page_with_count(self, index):
-        return self.ctx.log.pages[index] + get_message("page_count").format(
-            index + 1, len(self.ctx.log.pages)
+        return self.game.log.pages[index] + get_message("page_count").format(
+            index + 1, len(self.game.log.pages)
         )
 
 
