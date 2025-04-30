@@ -52,7 +52,7 @@ class Game:
             )
         )
         self.deck += ["defuse"] * int(self.config.get("deck_defuse_cards", 0))
-        random.shuffle(self.deck)
+        self.shuffle_deck()
 
     def trim_deck(self, min_part, max_part):
         deck_size = len(self.deck)

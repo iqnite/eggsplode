@@ -51,7 +51,7 @@ async def skip(ctx: ActionContext, interaction: discord.Interaction):
 async def shuffle(ctx: ActionContext, interaction: discord.Interaction):
     if not interaction.user:
         return
-    random.shuffle(ctx.game.deck)
+    ctx.game.shuffle_deck()
     await ctx.log(get_message("shuffled").format(interaction.user.id))
     await ctx.events.action_end()
 
