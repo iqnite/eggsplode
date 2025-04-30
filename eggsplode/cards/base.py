@@ -5,9 +5,11 @@ Contains card effects for the base game.
 import random
 import discord
 
+
+from ..base_views import BaseView
 from ..ctx import ActionContext
 from ..nope import ExplicitNopeView
-from ..selections import ChoosePlayerView
+from ..selections import ChoosePlayerView, DefuseView
 from ..strings import CARDS, get_message, replace_emojis
 
 
@@ -174,7 +176,7 @@ async def food_combo_finish(
 
 
 async def defuse_finish(ctx: ActionContext):
-    await ctx.log(get_message("_defused_").format(ctx.game.current_player_id))
+    await ctx.log(get_message("defused").format(ctx.game.current_player_id))
     ctx.game.next_turn()
     await ctx.events.turn_end()
 
@@ -194,9 +196,55 @@ async def skip_finish(ctx: ActionContext):
     await ctx.events.turn_end()
 
 
-CARD_ACTIONS = {
+async def eggsplode(
+    ctx: ActionContext, interaction: discord.Interaction, timed_out: bool = False
+):
+    if not interaction.user:
+        return
+    if "defuse" in ctx.game.hands[ctx.game.current_player_id]:
+        ctx.game.hands[ctx.game.current_player_id].remove("defuse")
+        if timed_out:
+            ctx.game.deck.insert(random.randint(0, len(ctx.game.deck)), "eggsplode")
+            await ctx.log(get_message("defused").format(ctx.game.current_player_id))
+        else:
+            view = DefuseView(
+                ctx.copy(),
+                lambda: defuse_finish(ctx),
+                card="eggsplode",
+            )
+            await interaction.respond(
+                view.generate_move_prompt(),
+                view=view,
+                ephemeral=True,
+                delete_after=60,
+            )
+        return
+    ctx.game.remove_player(ctx.game.current_player_id)
+    ctx.game.draw_in_turn = 0
+    if len(ctx.game.players) == 1:
+        await game_over(ctx, interaction)
+        return
+    await ctx.log(get_message("eggsploded").format(interaction.user.id))
+
+
+async def game_over(ctx, interaction):
+    await ctx.log(
+        get_message("eggsploded").format(interaction.user.id)
+        + "\n"
+        + get_message("game_over").format(ctx.game.players[0]),
+        view=BaseView(ctx.copy()),
+    )
+    await ctx.events.game_end()
+    del ctx.games[ctx.game_id]
+
+
+PLAY_ACTIONS = {
     "attegg": attegg,
     "skip": skip,
     "shuffle": shuffle,
     "predict": predict,
+}
+
+DRAW_ACTIONS = {
+    "eggsplode": eggsplode,
 }

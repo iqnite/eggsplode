@@ -3,7 +3,6 @@ Contains the PlayView and TurnView classes which handle the game actions in the 
 """
 
 import asyncio
-import random
 from datetime import datetime, timedelta
 import discord
 
@@ -13,7 +12,6 @@ from .ctx import ActionContext
 from .strings import CARDS, get_message, replace_emojis
 from .base_views import BaseView
 from .nope import NopeView
-from .selections import DefuseView
 
 
 def turn_action(func):
@@ -41,60 +39,16 @@ def turn_action(func):
 async def draw_card(ctx: ActionContext, interaction: discord.Interaction, index=-1):
     if not interaction.user:
         return
-    card: str = ctx.game.draw_card(index)
-    match card:
-        case "_defused_":
-            view = DefuseView(
-                ctx.copy(),
-                lambda: base.defuse_finish(ctx),
-                card="eggsplode",
-            )
-            await interaction.respond(
-                view.generate_move_prompt(),
-                view=view,
-                ephemeral=True,
-                delete_after=60,
-            )
-            return
-        case "eggsplode":
-            await ctx.log(get_message("eggsploded").format(interaction.user.id))
-        case "_gameover_":
-            await ctx.log(
-                get_message("eggsploded").format(interaction.user.id)
-                + "\n"
-                + get_message("game_over").format(ctx.game.players[0]),
-                view=BaseView(ctx.copy()),
-            )
-            await ctx.events.game_end()
-            del ctx.games[ctx.game_id]
-            return
-        case "radioeggtive":
-            view = DefuseView(
-                ctx.copy(),
-                lambda: radioeggtive.radioeggtive_finish(ctx),
-                card="radioeggtive_face_up",
-                prev_card="radioeggtive",
-            )
-            await interaction.respond(
-                view.generate_move_prompt(),
-                view=view,
-                ephemeral=True,
-                delete_after=60,
-            )
-            return
-        case "radioeggtive_face_up":
-            await ctx.log(
-                get_message("radioeggtive_face_up").format(interaction.user.id)
-            )
-        case _:
-            await ctx.log(get_message("user_drew_card").format(interaction.user.id))
-            await interaction.respond(
-                get_message("you_drew_card").format(
-                    replace_emojis(CARDS[card]["emoji"]), CARDS[card]["title"]
-                ),
-                ephemeral=True,
-                delete_after=10,
-            )
+    card, hold = await ctx.game.draw_from(interaction, index=index)
+    if hold:
+        await ctx.log(get_message("user_drew_card").format(interaction.user.id))
+        await interaction.respond(
+            get_message("you_drew_card").format(
+                replace_emojis(CARDS[card]["emoji"]), CARDS[card]["title"]
+            ),
+            ephemeral=True,
+            delete_after=10,
+        )
     ctx.game.next_turn()
     await ctx.events.action_end()
     await ctx.events.turn_end()
@@ -141,6 +95,7 @@ class TurnView(BaseView):
         await self.ctx.events.turn_start()
 
     async def on_action_timeout(self):
+        assert self.ctx.log.anchor_interaction is not None
         self.pause()
         self.inactivity_count += 1
         if self.inactivity_count > 5:
@@ -148,36 +103,12 @@ class TurnView(BaseView):
             del self.ctx.games[self.ctx.game_id]
             return
         turn_player: int = self.ctx.game.current_player_id
-        card: str = self.ctx.game.draw_card()
-        response = get_message("timeout")
-        match card:
-            case "_defused_":
-                self.ctx.game.deck.insert(
-                    random.randint(0, len(self.ctx.game.deck)), "eggsplode"
-                )
-                response += get_message("_defused_").format(turn_player)
-            case "eggsplode":
-                response += get_message("eggsploded").format(turn_player)
-            case "_gameover_":
-                await self.ctx.log(
-                    get_message("timeout")
-                    + get_message("eggsploded").format(turn_player)
-                    + "\n"
-                    + get_message("game_over").format(self.ctx.game.players[0]),
-                    view=BaseView(self.ctx.copy()),
-                )
-                del self.ctx.games[self.ctx.game_id]
-                return
-            case "radioeggtive":
-                self.ctx.game.deck.insert(
-                    random.randint(0, len(self.ctx.game.deck)), "radioeggtive_face_up"
-                )
-                response += get_message("radioeggtive").format(turn_player)
-            case "radioeggtive_face_up":
-                response += get_message("radioeggtive_face_up").format(turn_player)
-            case _:
-                response += get_message("user_drew_card").format(turn_player)
-        await self.ctx.log(response)
+        await self.ctx.log(get_message("timeout"))
+        _, hold = await self.ctx.game.draw_from(
+            self.ctx.log.anchor_interaction, timed_out=True
+        )
+        if hold:
+            await self.ctx.log(get_message("user_drew_card").format(turn_player))
         self.ctx.game.next_turn()
         await self.ctx.events.turn_end()
 
@@ -282,16 +213,16 @@ class PlayView(discord.ui.View):
             raise TypeError("selected is not a str")
         await self.ctx.events.action_start()
         if CARDS[selected].get("combo", 0) == 1:
-            await base.food_combo(self.ctx.copy(view=self), interaction, selected)
+            await base.food_combo(self.ctx, interaction, selected)
         else:
             self.ctx.game.current_player_hand.remove(selected)
             if CARDS[selected].get("explicit", False):
-                await base.CARD_ACTIONS[selected](self.ctx.copy(view=self), interaction)
+                await self.ctx.game.play(interaction, selected)
             else:
                 async with NopeView(
                     self.ctx.copy(view=self),
-                    ok_callback_action=lambda _: base.CARD_ACTIONS[selected](
-                        self.ctx.copy(view=self), interaction
+                    ok_callback_action=lambda _: self.ctx.game.play(
+                        interaction, selected
                     ),
                 ) as view:
                     await self.ctx.log(

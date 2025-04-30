@@ -3,7 +3,11 @@ Contains the game logic for the Eggsplode game.
 """
 
 from datetime import datetime
+from importlib import import_module
 import random
+from typing import Callable, Coroutine
+
+import discord
 from .strings import CARDS, replace_emojis
 
 
@@ -17,32 +21,27 @@ class Game:
         self.action_id: int = 0
         self.draw_in_turn: int = 0
         self.last_activity = datetime.now()
+        self.play_actions: dict[str, Callable[[discord.Interaction], Coroutine]]
+        self.draw_actions: dict[str, Callable[[discord.Interaction, bool], Coroutine]]
 
     def start(self):
         self.last_activity = datetime.now()
         self.deck = []
         self.players = list(self.config["players"])
+        self.load_cards()
         for card in CARDS:
-            self.deck += (
-                [card]
-                * CARDS[card].get("count", 0)
-                * (
-                    CARDS[card].get("expansion", "base")
-                    in self.config.get("expansions", []) + ["base"]
-                )
-            )
-        self.deck = self.deck * (1 + len(self.players) // 5)
-        random.shuffle(self.deck)
+            if CARDS[card].get("expansion", "base") in self.config.get(
+                "expansions", []
+            ) + ["base"]:
+                self.deck += [card] * CARDS[card].get("count", 0)
+        self.expand_deck()
+        self.shuffle_deck()
         self.hands = {
             player: ["defuse"] + [self.deck.pop() for _ in range(7)]
             for player in self.players
         }
         if self.config.get("short", not len(self.players) > 2):
-            # Remove a random number of cards from the deck
-            deck_size = len(self.deck)
-            cards_to_remove = random.randint(deck_size // 3, deck_size // 2)
-            for _ in range(cards_to_remove):
-                self.deck.pop(random.randint(0, len(self.deck) - 1))
+            self.trim_deck(3, 2)
         self.deck += ["radioeggtive"] * (
             "radioeggtive" in self.config.get("expansions", [])
         )
@@ -54,6 +53,27 @@ class Game:
         )
         self.deck += ["defuse"] * int(self.config.get("deck_defuse_cards", 0))
         random.shuffle(self.deck)
+
+    def trim_deck(self, min_part, max_part):
+        deck_size = len(self.deck)
+        cards_to_remove = random.randint(deck_size // min_part, deck_size // max_part)
+        for _ in range(cards_to_remove):
+            self.deck.pop(random.randint(0, len(self.deck) - 1))
+
+    def shuffle_deck(self):
+        random.shuffle(self.deck)
+
+    def expand_deck(self):
+        self.deck = self.deck * (1 + len(self.players) // 5)
+
+    def load_cards(self):
+        for card_set in self.config.get("expansions", ["base"]):
+            try:
+                module = import_module(f".cards.{card_set}", __package__)
+                self.play_actions = module.PLAY_ACTIONS
+                self.draw_actions = module.DRAW_ACTIONS
+            except ImportError as e:
+                raise ImportError(f"Card set {card_set} not found.") from e
 
     @property
     def current_player_id(self) -> int:
@@ -98,24 +118,26 @@ class Game:
             result[card] = player_cards.count(card)
         return result
 
-    def draw_card(self, index: int = -1) -> str:
-        card = self.deck.pop(index)
-        if card == "eggsplode":
-            if "defuse" in self.hands[self.current_player_id]:
-                self.hands[self.current_player_id].remove("defuse")
-                return "_defused_"
-            self.remove_player(self.current_player_id)
-            self.draw_in_turn = 0
-            if len(self.players) == 1:
-                return "_gameover_"
-        elif card == "radioeggtive_face_up":
-            self.remove_player(self.current_player_id)
-            self.draw_in_turn = 0
-            if len(self.players) == 1:
-                return "_gameover_"
-        elif card != "radioeggtive":
+    async def play(self, interaction: discord.Interaction, card: str):
+        if card in self.play_actions:
+            await self.play_actions[card](interaction)
+
+    async def draw(
+        self, interaction: discord.Interaction, card: str, timed_out: bool = False
+    ) -> tuple[str, bool]:
+        if card in self.draw_actions:
+            await self.draw_actions[card](interaction, timed_out)
+            hold = False
+        else:
             self.hands[self.current_player_id].append(card)
-        return card
+            hold = True
+        return card, hold
+
+    async def draw_from(
+        self, interaction: discord.Interaction, index: int = -1, timed_out: bool = False
+    ):
+        card = self.deck.pop(index)
+        return await self.draw(interaction, card, timed_out)
 
     def remove_player(self, user_id: int):
         del self.players[self.players.index(user_id)]

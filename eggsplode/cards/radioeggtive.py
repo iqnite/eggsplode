@@ -3,14 +3,15 @@ Contains card effects for the Radioeggtive expansion.
 """
 
 from collections.abc import Callable, Coroutine
+import random
 import discord
 
 from ..action import draw_card
-from ..cards.base import attegg_finish, skip_finish
+from ..cards.base import attegg_finish, skip_finish, game_over
 from ..ctx import ActionContext
 from ..strings import CARDS, get_message, replace_emojis
 from ..nope import ExplicitNopeView
-from ..selections import ChoosePlayerView
+from ..selections import ChoosePlayerView, DefuseView
 
 
 async def draw_from_bottom(ctx: ActionContext, interaction: discord.Interaction):
@@ -197,9 +198,47 @@ async def radioeggtive_finish(ctx: ActionContext):
     await ctx.events.turn_end()
 
 
+async def radioeggtive(
+    ctx: ActionContext, interaction: discord.Interaction, timed_out: bool = False
+):
+    if timed_out:
+        ctx.game.deck.insert(
+            random.randint(0, len(ctx.game.deck)), "radioeggtive_face_up"
+        )
+        await ctx.log(get_message("radioeggtive").format(ctx.game.current_player_id))
+    else:
+        view = DefuseView(
+            ctx.copy(),
+            lambda: radioeggtive_finish(ctx),
+            card="radioeggtive_face_up",
+            prev_card="radioeggtive",
+        )
+        await interaction.respond(
+            view.generate_move_prompt(),
+            view=view,
+            ephemeral=True,
+            delete_after=60,
+        )
+
+
+async def radioeggtive_face_up(ctx: ActionContext, interaction: discord.Interaction, _):
+    if not interaction.user:
+        return
+    ctx.game.remove_player(ctx.game.current_player_id)
+    ctx.game.draw_in_turn = 0
+    await ctx.log(get_message("radioeggtive_face_up").format(interaction.user.id))
+    if len(ctx.game.players) == 1:
+        await game_over(ctx, interaction)
+
+
 CARD_ACTIONS = {
     "draw_from_bottom": draw_from_bottom,
     "targeted_attegg": targeted_attegg,
     "alter_future": alter_future,
     "reverse": reverse,
+}
+
+DRAW_ACTIONS = {
+    "radioeggtive": radioeggtive,
+    "radioeggtive_face_up": radioeggtive_face_up,
 }
