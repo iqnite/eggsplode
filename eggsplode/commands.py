@@ -6,7 +6,7 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 from .game_logic import ActionLog, Game
-from .strings import VERSION, get_message
+from .strings import CONFIG, get_message
 from .start import HelpView, StartGameView
 
 
@@ -64,7 +64,7 @@ class EggsplodeApp(commands.Bot):
             + "\n"
             + get_message("status").format(
                 self.latency * 1000,
-                VERSION,
+                CONFIG["version"],
                 get_message("maintenance") if self.admin_maintenance else "",
             ),
             view=HelpView(),
