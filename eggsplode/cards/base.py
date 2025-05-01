@@ -209,8 +209,6 @@ async def skip_finish(game: Game):
 async def eggsplode(
     game: Game, interaction: discord.Interaction, timed_out: bool = False
 ):
-    if not interaction.user:
-        return
     if "defuse" in game.hands[game.current_player_id]:
         game.hands[game.current_player_id].remove("defuse")
         if timed_out:
@@ -229,9 +227,10 @@ async def eggsplode(
                 delete_after=60,
             )
         return
-    game.remove_player(game.current_player_id)
+    prev_player = game.current_player_id
+    game.remove_player(prev_player)
     game.draw_in_turn = 0
-    await game.log(get_message("eggsploded").format(interaction.user.id))
+    await game.log(get_message("eggsploded").format(prev_player))
     if len(game.players) == 1:
         await game_over(game, interaction)
 

@@ -206,11 +206,10 @@ async def radioeggtive(
 
 
 async def radioeggtive_face_up(game: Game, interaction: discord.Interaction, _):
-    if not interaction.user:
-        return
-    game.remove_player(game.current_player_id)
+    prev_player = game.current_player_id
+    game.remove_player(prev_player)
     game.draw_in_turn = 0
-    await game.log(get_message("radioeggtive_face_up").format(interaction.user.id))
+    await game.log(get_message("radioeggtive_face_up").format(prev_player))
     if len(game.players) == 1:
         await game_over(game, interaction)
 
