@@ -6,9 +6,6 @@ import asyncio
 from datetime import datetime, timedelta
 import discord
 
-from eggsplode.cards.base import draw_card
-
-
 from .cards import base
 from .game_logic import Game
 from .strings import CARDS, get_message, replace_emojis
@@ -65,7 +62,7 @@ class TurnView(BaseView):
     async def resume(self):
         self.game.last_activity = datetime.now()
         self.paused = False
-        await self.game.log.temporary(self.create_turn_prompt_message(), view=self)
+        await self.game.log.temporary(self.game.create_turn_prompt_message(), view=self)
 
     async def next_turn(self):
         await self.resume()
@@ -95,7 +92,7 @@ class TurnView(BaseView):
     @turn_action
     async def draw_callback(self, _, interaction: discord.Interaction):
         await self.game.events.action_start()
-        await draw_card(self.game, interaction)
+        await base.draw_card(self.game, interaction)
 
     @discord.ui.button(label="Play a card", style=discord.ButtonStyle.green, emoji="🎴")
     @turn_action

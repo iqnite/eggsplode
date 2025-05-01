@@ -226,3 +226,7 @@ DRAW_ACTIONS = {
     "radioeggtive": radioeggtive,
     "radioeggtive_face_up": radioeggtive_face_up,
 }
+
+TURN_WARNINGS = [
+    radioeggtive_warning,
+]

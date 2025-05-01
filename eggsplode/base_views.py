@@ -4,7 +4,6 @@ Contains the BaseView class which is used to create a Discord UI view for the ga
 
 import discord
 
-from .cards.radioeggtive import radioeggtive_warning
 from .game_logic import Game
 from .strings import get_message
 
@@ -46,19 +45,6 @@ class BaseView(discord.ui.View):
     def get_page_with_count(self, index):
         return self.game.log.pages[index] + get_message("page_count").format(
             index + 1, len(self.game.log.pages)
-        )
-
-    def create_turn_prompt_message(self) -> str:
-        return (
-            get_message("next_turn").format(
-                self.game.current_player_id,
-            )
-            + "\n"
-            + get_message("turn_warning").format(
-                len(self.game.deck),
-                self.game.deck.count("eggsplode"),
-            )
-            + ("\n" + radioeggtive_warning(self.game))
         )
 
 

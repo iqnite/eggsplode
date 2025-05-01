@@ -8,7 +8,7 @@ import random
 from typing import Callable, Coroutine
 
 import discord
-from .strings import CARDS, replace_emojis
+from .strings import CARDS, get_message, replace_emojis
 
 
 class Game:
@@ -29,6 +29,7 @@ class Game:
         self.draw_actions: dict[
             str, Callable[[Game, discord.Interaction, bool], Coroutine]
         ]
+        self.turn_warnings: list[Callable[[Game], str]]
         self.events.turn_end += self.next_turn
         self.events.game_end += self.end
 
@@ -77,11 +78,13 @@ class Game:
     def load_cards(self):
         self.play_actions = {}
         self.draw_actions = {}
+        self.turn_warnings = []
         for card_set in self.config.get("expansions", []) + ["base"]:
             try:
                 module = import_module(f".cards.{card_set}", __package__)
-                self.play_actions.update(module.PLAY_ACTIONS)
-                self.draw_actions.update(module.DRAW_ACTIONS)
+                self.play_actions.update(getattr(module, "PLAY_ACTIONS", {}))
+                self.draw_actions.update(getattr(module, "DRAW_ACTIONS", {}))
+                self.turn_warnings.extend(getattr(module, "TURN_WARNINGS", []))
             except ImportError as e:
                 raise ImportError(f"Card set {card_set} not found.") from e
 
@@ -198,6 +201,18 @@ class Game:
             )
             for card, count in grouped_hand.items()
         )
+
+    def create_turn_prompt_message(self) -> str:
+        return (
+            get_message("next_turn").format(
+                self.current_player_id,
+            )
+            + "\n"
+            + self.warnings()
+        )
+
+    def warnings(self) -> str:
+        return "\n".join(warning(self) for warning in self.turn_warnings)
 
     def __bool__(self):
         return self.running

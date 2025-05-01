@@ -5,7 +5,6 @@ Contains card effects for the base game.
 import random
 import discord
 
-
 from ..base_views import BaseView
 from ..game_logic import Game
 from ..nope import ExplicitNopeView
@@ -232,22 +231,26 @@ async def eggsplode(
         return
     game.remove_player(game.current_player_id)
     game.draw_in_turn = 0
+    await game.log(get_message("eggsploded").format(interaction.user.id))
     if len(game.players) == 1:
         await game_over(game, interaction)
-        return
-    await game.log(get_message("eggsploded").format(interaction.user.id))
 
 
 async def game_over(game: Game, interaction: discord.Interaction):
     if not interaction.user:
         return
     await game.log(
-        get_message("eggsploded").format(interaction.user.id)
-        + "\n"
-        + get_message("game_over").format(game.players[0]),
+        get_message("game_over").format(game.players[0]),
         view=BaseView(game),
     )
     await game.events.game_end()
+
+
+def deck_count(game: Game) -> str:
+    return get_message("turn_warning").format(
+        len(game.deck),
+        game.deck.count("eggsplode"),
+    )
 
 
 PLAY_ACTIONS = {
@@ -260,3 +263,7 @@ PLAY_ACTIONS = {
 DRAW_ACTIONS = {
     "eggsplode": eggsplode,
 }
+
+TURN_WARNINGS = [
+    deck_count,
+]
