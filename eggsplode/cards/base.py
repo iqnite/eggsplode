@@ -198,7 +198,7 @@ async def attegg_finish(game: Game, target_player_id=None):
     prev_to_draw_in_turn = game.draw_in_turn
     game.draw_in_turn = 0
     game.current_player_id = target_player_id
-    game.draw_in_turn = prev_to_draw_in_turn + 2
+    game.draw_in_turn = prev_to_draw_in_turn + 3
     await game.events.turn_end()
 
 
