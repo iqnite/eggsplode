@@ -9,7 +9,7 @@ import discord
 from eggsplode.cards.base import draw_card
 
 
-from .cards import base, radioeggtive
+from .cards import base
 from .game_logic import Game
 from .strings import CARDS, get_message, replace_emojis
 from .base_views import BaseView
@@ -90,13 +90,6 @@ class TurnView(BaseView):
         if len(self.game.players) == 1:
             return
         await self.game.events.turn_end()
-
-    def create_turn_prompt_message(self) -> str:
-        return get_message("next_turn").format(
-            self.game.current_player_id,
-            len(self.game.deck),
-            self.game.deck.count("eggsplode"),
-        ) + ("\n" + radioeggtive.radioeggtive_warning(self.game))
 
     @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
     @turn_action
