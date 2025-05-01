@@ -17,9 +17,7 @@ from ..selections import ChoosePlayerView, DefuseView, SelectionView
 async def draw_from_bottom(game: Game, interaction: discord.Interaction):
     if not interaction.user:
         return
-    target_player_id = (
-        game.next_player_id if game.draw_in_turn == 0 else interaction.user.id
-    )
+    target_player_id = game.next_turn_player_id
     async with ExplicitNopeView(
         game=game,
         target_player_id=target_player_id,
@@ -50,9 +48,7 @@ async def reverse(game: Game, interaction: discord.Interaction):
     if not interaction.user:
         return
     game.reverse()
-    target_player_id = (
-        game.next_player_id if game.draw_in_turn == 0 else interaction.user.id
-    )
+    target_player_id = game.next_turn_player_id
     async with ExplicitNopeView(
         game=game,
         target_player_id=target_player_id,

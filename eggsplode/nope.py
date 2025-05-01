@@ -112,5 +112,6 @@ class ExplicitNopeView(NopeView):
             return
         self.game.log.anchor_interaction = interaction
         self.disabled = True
+        await interaction.edit(view=None)
         if self.ok_callback_action:
             await self.ok_callback_action(interaction)

@@ -115,6 +115,10 @@ class Game:
     def next_player_id(self) -> int:
         return self.players[self.next_player]
 
+    @property
+    def next_turn_player_id(self) -> int:
+        return self.next_player_id if self.draw_in_turn == 0 else self.current_player_id
+
     async def next_turn(self):
         self.action_id += 1
         self.last_activity = datetime.now()

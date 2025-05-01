@@ -49,9 +49,7 @@ async def attegg(game: Game, interaction: discord.Interaction):
 async def skip(game: Game, interaction: discord.Interaction):
     if not interaction.user:
         return
-    target_player_id = (
-        game.next_player_id if game.draw_in_turn == 0 else interaction.user.id
-    )
+    target_player_id = game.next_turn_player_id
     async with ExplicitNopeView(
         game=game,
         target_player_id=target_player_id,
@@ -212,7 +210,7 @@ async def eggsplode(
     if "defuse" in game.hands[game.current_player_id]:
         game.hands[game.current_player_id].remove("defuse")
         if timed_out:
-            game.deck.insert(random.randint(0, len(game.deck)), "eggsplode")
+            game.deck.insert(random.randint(1, len(game.deck)), "eggsplode")
             await game.log(get_message("defused").format(game.current_player_id))
         else:
             view = DefuseView(
