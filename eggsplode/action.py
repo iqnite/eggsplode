@@ -84,7 +84,7 @@ class TurnView(BaseView):
         )
         if hold:
             await self.game.log(get_message("user_drew_card").format(turn_player))
-        if len(self.game.players) == 1:
+        if not self.game.running:
             return
         await self.game.events.turn_end()
 
