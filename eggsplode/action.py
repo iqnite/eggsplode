@@ -2,7 +2,6 @@
 Contains the PlayView and TurnView classes which handle the game actions in the Discord bot.
 """
 
-import asyncio
 from datetime import datetime, timedelta
 import discord
 
@@ -14,7 +13,7 @@ from .nope import NopeView
 
 
 def turn_action(func):
-    async def wrapper(view, item, interaction: discord.Interaction):
+    async def wrapper(view: "TurnView", item, interaction: discord.Interaction):
         if not interaction.user:
             raise TypeError("interaction.user is None")
         if interaction.user.id != view.game.current_player_id:
@@ -22,13 +21,13 @@ def turn_action(func):
                 get_message("not_your_turn"), ephemeral=True, delete_after=5
             )
             return
-        if view.paused:
+        if view.game.paused:
             await interaction.respond(
                 get_message("awaiting_prompt"), ephemeral=True, delete_after=5
             )
             return
         view.game.log.anchor_interaction = interaction
-        view.inactivity_count = 0
+        view.game.inactivity_count = 0
         return await func(view, item, interaction)
 
     return wrapper
@@ -37,56 +36,18 @@ def turn_action(func):
 class TurnView(BaseView):
     def __init__(self, game: Game):
         super().__init__(game)
-        self.paused = False
-        self.inactivity_count = 0
-        self.game.events.turn_start += self.next_turn
         self.game.events.turn_reset += self.resume
-        self.game.events.action_start += self.pause
         self.game.events.action_end += self.resume
-        self.game.events.game_end += self.pause
-
-    async def __aexit__(self, exc_type, exc_value, traceback):
-        await self.action_timer()
-
-    async def action_timer(self):
-        while (
-            datetime.now() - self.game.last_activity
-            < timedelta(seconds=self.game.config.get("turn_timeout", 60))
-        ) or self.paused:
-            await asyncio.sleep(1)
-        await self.on_action_timeout()
-
-    def pause(self):
-        self.paused = True
+        self.game.events.turn_start += self.next_turn
 
     async def resume(self):
         self.game.last_activity = datetime.now()
-        self.paused = False
+        self.game.paused = False
         await self.game.log.temporary(self.game.create_turn_prompt_message(), view=self)
 
     async def next_turn(self):
         await self.resume()
-        async with self:
-            pass
-
-    async def on_action_timeout(self):
-        assert self.game.log.anchor_interaction is not None
-        self.pause()
-        self.inactivity_count += 1
-        if self.inactivity_count > 5:
-            await self.game.log(get_message("game_timeout"))
-            await self.game.events.game_end()
-            return
-        turn_player: int = self.game.current_player_id
-        await self.game.log(get_message("timeout"))
-        _, hold = await self.game.draw_from(
-            self.game.log.anchor_interaction, timed_out=True
-        )
-        if hold:
-            await self.game.log(get_message("user_drew_card").format(turn_player))
-        if not self.game.running:
-            return
-        await self.game.events.turn_end()
+        await self.game.action_timer()
 
     @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
     @turn_action

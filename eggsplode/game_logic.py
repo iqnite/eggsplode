@@ -2,7 +2,8 @@
 Contains the game logic for the Eggsplode game.
 """
 
-from datetime import datetime
+import asyncio
+from datetime import datetime, timedelta
 from importlib import import_module
 import random
 from typing import Callable, Coroutine
@@ -25,6 +26,8 @@ class Game:
         self.events = EventSet()
         self.last_activity = datetime.now()
         self.running = True
+        self.paused = False
+        self.inactivity_count = 0
         self.play_actions: dict[str, Callable[[Game, discord.Interaction], Coroutine]]
         self.draw_actions: dict[
             str, Callable[[Game, discord.Interaction, bool], Coroutine]
@@ -32,6 +35,7 @@ class Game:
         self.turn_warnings: list[Callable[[Game], str]]
         self.events.turn_end += self.next_turn
         self.events.game_end += self.end
+        self.events.action_start += self.pause
 
     def start(self):
         self.last_activity = datetime.now()
@@ -185,8 +189,39 @@ class Game:
         self.players = self.players[::-1]
         self.current_player = len(self.players) - self.current_player - 1
 
+    async def action_timer(self):
+        while (
+            datetime.now() - self.last_activity
+            < timedelta(seconds=self.config.get("turn_timeout", 60))
+        ) or self.paused:
+            await asyncio.sleep(1)
+        await self.on_action_timeout()
+
+    async def on_action_timeout(self):
+        assert self.log.anchor_interaction is not None
+        self.pause()
+        self.inactivity_count += 1
+        if self.inactivity_count > 5:
+            await self.log(get_message("game_timeout"))
+            await self.events.game_end()
+            return
+        turn_player: int = self.current_player_id
+        await self.log(get_message("timeout"))
+        _, hold = await self.draw_from(
+            self.log.anchor_interaction, timed_out=True
+        )
+        if hold:
+            await self.log(get_message("user_drew_card").format(turn_player))
+        if not self.running:
+            return
+        await self.events.turn_end()
+
+    def pause(self):
+        self.paused = True
+
     async def end(self):
         self.running = False
+        self.paused = False
         self.current_player = 0
         self.players = []
         self.hands = {}
