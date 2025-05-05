@@ -46,21 +46,6 @@ async def attegg(game: Game, interaction: discord.Interaction):
         )
 
 
-async def skip(game: Game, interaction: discord.Interaction):
-    if not interaction.user:
-        return
-    target_player_id = game.next_turn_player_id
-    async with ExplicitNopeView(
-        game=game,
-        target_player_id=target_player_id,
-        ok_callback_action=lambda _: skip_finish(game),
-    ) as view:
-        await game.log(
-            get_message("before_skip").format(interaction.user.id, target_player_id),
-            view=view,
-        )
-
-
 async def shuffle(game: Game, interaction: discord.Interaction):
     if not interaction.user:
         return
@@ -115,17 +100,14 @@ async def food_combo(game: Game, interaction: discord.Interaction, selected: str
 
 
 async def food_combo_begin(
-    game: Game,
-    interaction: discord.Interaction,
-    target_player_id: int,
-    food_card: str,
+    game: Game, interaction: discord.Interaction, target_player_id: int, food_card: str
 ):
     if not interaction.user:
         return
     async with ExplicitNopeView(
-        game=game,
-        target_player_id=target_player_id,
-        ok_callback_action=lambda target_interaction: food_combo_finish(
+        game,
+        target_player_id,
+        lambda target_interaction: food_combo_finish(
             game, interaction, target_interaction, target_player_id
         ),
     ) as view:
@@ -200,7 +182,8 @@ async def attegg_finish(game: Game, target_player_id=None):
     await game.events.turn_end()
 
 
-async def skip_finish(game: Game):
+async def skip(game: Game, _):
+    await game.log(get_message("skipped").format(game.current_player_id))
     await game.events.turn_end()
 
 
@@ -218,12 +201,7 @@ async def eggsplode(
                 lambda: defuse_finish(game),
                 card="eggsplode",
             )
-            await interaction.respond(
-                view.generate_move_prompt(),
-                view=view,
-                ephemeral=True,
-                delete_after=60,
-            )
+            await view.send(interaction)
         return
     prev_player = game.current_player_id
     game.remove_player(prev_player)

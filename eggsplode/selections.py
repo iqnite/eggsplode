@@ -139,3 +139,11 @@ class DefuseView(SelectionView):
                 for player in self.game.players
             ),
         )
+
+    async def send(self, interaction: discord.Interaction):
+        await interaction.respond(
+            self.generate_move_prompt(),
+            view=self,
+            ephemeral=True,
+            delete_after=60,
+        )

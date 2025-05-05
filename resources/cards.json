@@ -28,8 +28,7 @@
         "description": "End your turn without drawing.",
         "emoji": "🏃‍➡️",
         "count": 4,
-        "usable": true,
-        "explicit": true
+        "usable": true
     },
     "shuffle": {
         "title": "Shuffle",
@@ -108,7 +107,6 @@
         "emoji": "🔽",
         "count": 4,
         "usable": true,
-        "explicit": true,
         "expansion": "radioeggtive"
     },
     "targeted_attegg": {
@@ -134,7 +132,6 @@
         "emoji": "🔄",
         "count": 4,
         "usable": true,
-        "explicit": true,
         "expansion": "radioeggtive"
     }
 }
