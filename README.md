@@ -51,13 +51,13 @@ First, we need to create a Bot on Discord's side.
 
 Clone the Git repo and go to the folder you cloned the repo into.
 
-> [!IMPORTANT]
-> I strongly recommend to look into Git and version control before contributing to Eggsplode, as it's important knowledge. There are easy-to-understand tutorials about Git on YouTube, which is why I will not explain it here.
-
 ```bash
 git clone https://github.com/iqnite/eggsplode
 cd eggsplode
 ```
+
+> [!IMPORTANT]
+> I strongly recommend to look into Git and version control before contributing to Eggsplode, as it's important knowledge. There are easy-to-understand tutorials about Git on YouTube, which is why I will not explain it here.
 
 1. Copy the `.env.example` file and rename it to `.env`.
 2. Open the new `.env` file in a text editor.
@@ -71,6 +71,9 @@ cd eggsplode
 ### 3. Installation
 
 Time to install the dependencies!
+
+> [!WARNING]
+> Eggsplode requires Python 3.10 or higher.
 
 > [!TIP]
 > Although it is best practice to create a virtual environment, it is not strictly necessary. If your operating system enforces it, please google "python virtual environment" and go by a tutorial.
