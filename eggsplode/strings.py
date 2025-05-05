@@ -6,7 +6,7 @@ import os
 import json
 from dotenv import load_dotenv
 
-with open("resources/config.json", encoding="utf-8") as f:
+with open("resources/info.json", encoding="utf-8") as f:
     CONFIG = json.load(f)
 with open("resources/messages.json", encoding="utf-8") as f:
     MESSAGES = json.load(f)
