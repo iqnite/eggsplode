@@ -30,7 +30,7 @@ class Game:
         self.inactivity_count = 0
         self.play_actions: dict[str, Callable[[Game, discord.Interaction], Coroutine]]
         self.draw_actions: dict[
-            str, Callable[[Game, discord.Interaction, bool], Coroutine]
+            str, Callable[[Game, discord.Interaction, bool | None], Coroutine]
         ]
         self.turn_warnings: list[Callable[[Game], str]]
         self.events.turn_end += self.next_turn
