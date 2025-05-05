@@ -207,9 +207,7 @@ class Game:
             return
         turn_player: int = self.current_player_id
         await self.log(get_message("timeout"))
-        _, hold = await self.draw_from(
-            self.log.anchor_interaction, timed_out=True
-        )
+        _, hold = await self.draw_from(self.log.anchor_interaction, timed_out=True)
         if hold:
             await self.log(get_message("user_drew_card").format(turn_player))
         if not self.running:
