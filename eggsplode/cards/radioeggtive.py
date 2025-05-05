@@ -7,7 +7,7 @@ import random
 import discord
 
 from .base import draw_card
-from ..cards.base import attegg_finish, skip_finish, game_over
+from ..cards.base import attegg_finish, game_over
 from ..game_logic import Game
 from ..strings import CARDS, get_message, replace_emojis
 from ..nope import ExplicitNopeView
@@ -17,18 +17,8 @@ from ..selections import ChoosePlayerView, DefuseView, SelectionView
 async def draw_from_bottom(game: Game, interaction: discord.Interaction):
     if not interaction.user:
         return
-    target_player_id = game.next_turn_player_id
-    async with ExplicitNopeView(
-        game=game,
-        target_player_id=target_player_id,
-        ok_callback_action=lambda _: draw_card(game, interaction, index=0),
-    ) as view:
-        await game.log(
-            get_message("before_draw_from_bottom").format(
-                interaction.user.id, target_player_id
-            ),
-            view=view,
-        )
+    await draw_card(game, interaction, index=0)
+    await game.events.turn_end()
 
 
 def radioeggtive_warning(game: Game) -> str:
@@ -48,17 +38,8 @@ async def reverse(game: Game, interaction: discord.Interaction):
     if not interaction.user:
         return
     game.reverse()
-    target_player_id = game.next_turn_player_id
-    async with ExplicitNopeView(
-        game=game,
-        target_player_id=target_player_id,
-        nope_callback_action=game.reverse,
-        ok_callback_action=lambda _: skip_finish(game),
-    ) as view:
-        await game.log(
-            get_message("before_reverse").format(interaction.user.id, target_player_id),
-            view=view,
-        )
+    await game.log(get_message("reversed").format(interaction.user.id))
+    await game.events.turn_end()
 
 
 async def alter_future_finish(game: Game, interaction: discord.Interaction):
@@ -143,9 +124,7 @@ async def targeted_attegg_begin(
     if not interaction.user:
         return
     async with ExplicitNopeView(
-        game=game,
-        target_player_id=target_player_id,
-        ok_callback_action=lambda _: attegg_finish(game, target_player_id),
+        game, target_player_id, lambda _: attegg_finish(game, target_player_id)
     ) as view:
         await game.log(
             get_message("before_targeted_attegg").format(
@@ -193,12 +172,7 @@ async def radioeggtive(
             card="radioeggtive_face_up",
             prev_card="radioeggtive",
         )
-        await interaction.respond(
-            view.generate_move_prompt(),
-            view=view,
-            ephemeral=True,
-            delete_after=60,
-        )
+        await view.send(interaction)
 
 
 async def radioeggtive_face_up(game: Game, interaction: discord.Interaction, _):

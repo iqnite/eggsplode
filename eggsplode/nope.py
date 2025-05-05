@@ -17,7 +17,7 @@ class NopeView(BaseView):
             Callable[[discord.Interaction | None], Coroutine] | None
         ) = None,
         nope_callback_action: Callable[[], None] | None = None,
-        timeout=5,
+        timeout=10,
     ):
         super().__init__(game, timeout=timeout)
         self.ok_callback_action = ok_callback_action

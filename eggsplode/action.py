@@ -41,6 +41,8 @@ class TurnView(BaseView):
         self.game.events.turn_start += self.next_turn
 
     async def resume(self):
+        if not self.game.running:
+            return
         self.game.last_activity = datetime.now()
         self.game.paused = False
         await self.game.log.temporary(self.game.create_turn_prompt_message(), view=self)
@@ -159,7 +161,7 @@ class PlayView(discord.ui.View):
                             interaction.user.id,
                             CARDS[selected]["emoji"],
                             CARDS[selected]["title"],
-                            int((datetime.now() + timedelta(seconds=5)).timestamp()),
+                            int((datetime.now() + timedelta(seconds=10)).timestamp()),
                         ),
                         view=view,
                     )
