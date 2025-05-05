@@ -161,7 +161,7 @@ class PlayView(discord.ui.View):
                             interaction.user.id,
                             CARDS[selected]["emoji"],
                             CARDS[selected]["title"],
-                            int((datetime.now() + timedelta(seconds=5)).timestamp()),
+                            int((datetime.now() + timedelta(seconds=10)).timestamp()),
                         ),
                         view=view,
                     )
