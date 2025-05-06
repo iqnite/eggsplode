@@ -17,4 +17,4 @@ generated-members=
 
 ignore=
     *.pyc,
-    .venv/,
+    .venv*/,

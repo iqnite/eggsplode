@@ -59,7 +59,7 @@ class EggsplodeApp(commands.Bot):
         )
         game.log = ActionLog(anchor_interaction=interaction)
         view = StartGameView(game)
-        await interaction.respond(view.generate_game_start_message(), view=view)
+        await interaction.respond(view=view)
 
     async def show_help(self, interaction: discord.Interaction, ephemeral=False):
         await interaction.respond(

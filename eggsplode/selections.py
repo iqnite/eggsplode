@@ -24,6 +24,7 @@ class SelectionView(discord.ui.View):
         self.disable_all_items()
         await interaction.edit(view=self, delete_after=0)
         self.on_timeout = super().on_timeout
+        self.stop()
         await self.finish()
 
 
@@ -70,6 +71,7 @@ class ChoosePlayerView(discord.ui.View):
         if not (interaction and self.user_select):
             return
         self.on_timeout = super().on_timeout
+        self.stop()
         self.disable_all_items()
         await interaction.edit(view=self, delete_after=0)
         if not isinstance(self.user_select.values[0], str):
