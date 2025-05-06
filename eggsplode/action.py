@@ -12,27 +12,6 @@ from .base_views import BaseView
 from .nope import NopeView
 
 
-def turn_action(func):
-    async def wrapper(view: "TurnView", item, interaction: discord.Interaction):
-        if not interaction.user:
-            raise TypeError("interaction.user is None")
-        if interaction.user.id != view.game.current_player_id:
-            await interaction.respond(
-                get_message("not_your_turn"), ephemeral=True, delete_after=5
-            )
-            return
-        if view.game.paused:
-            await interaction.respond(
-                get_message("awaiting_prompt"), ephemeral=True, delete_after=5
-            )
-            return
-        view.game.log.anchor_interaction = interaction
-        view.game.inactivity_count = 0
-        return await func(view, item, interaction)
-
-    return wrapper
-
-
 class TurnView(BaseView):
     def __init__(self, game: Game):
         super().__init__(game)
@@ -51,14 +30,30 @@ class TurnView(BaseView):
         await self.resume()
         await self.game.action_timer()
 
+    async def interaction_check(self, interaction: discord.Interaction):
+        await super().interaction_check(interaction)
+        if not interaction.user:
+            raise TypeError("interaction.user is None")
+        if interaction.user.id != self.game.current_player_id:
+            await interaction.respond(
+                get_message("not_your_turn"), ephemeral=True, delete_after=5
+            )
+            return False
+        if self.game.paused:
+            await interaction.respond(
+                get_message("awaiting_prompt"), ephemeral=True, delete_after=5
+            )
+            return False
+        self.game.log.anchor_interaction = interaction
+        self.game.inactivity_count = 0
+        return True
+
     @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
-    @turn_action
     async def draw_callback(self, _, interaction: discord.Interaction):
         await self.game.events.action_start()
         await base.draw_card(self.game, interaction)
 
     @discord.ui.button(label="Play a card", style=discord.ButtonStyle.green, emoji="🎴")
-    @turn_action
     async def play(self, _, interaction: discord.Interaction):
         view = PlayView(self.game)
         await interaction.respond(
