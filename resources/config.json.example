@@ -1,0 +1,6 @@
+{
+    "test_guild_id": "",
+    "log_path": "logs/eggsplode.log",
+    "restart_command": "",
+    "update_command": "git fetch && git pull && pip install --upgrade -r requirements.txt && echo 'Done!'"
+}

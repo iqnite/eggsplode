@@ -6,8 +6,16 @@ import os
 import json
 from dotenv import load_dotenv
 
+load_dotenv()
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+
 with open("resources/info.json", encoding="utf-8") as f:
-    CONFIG = json.load(f)
+    INFO = json.load(f)
+try:
+    with open("resources/config.json", encoding="utf-8") as f:
+        CONFIG = json.load(f)
+except FileNotFoundError:
+    CONFIG = {}
 with open("resources/messages.json", encoding="utf-8") as f:
     MESSAGES = json.load(f)
 with open("resources/cards.json", encoding="utf-8") as f:
@@ -19,6 +27,8 @@ try:
         EMOJIS = json.load(f)
 except FileNotFoundError:
     EMOJIS = {}
+
+TEST_GUILD_ID = CONFIG.get("test_guild_id", 0)
 
 
 def replace_emojis(text: str) -> str:
@@ -34,12 +44,3 @@ def get_message(key: str) -> str:
     if isinstance(message, list):
         return "\n".join([replace_emojis(m) for m in message])
     raise ValueError(f"Invalid message format for key: {key}")
-
-
-load_dotenv()
-DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-LOG_PATH = os.getenv("LOG_PATH")
-try:
-    TEST_GUILD_ID = int(os.getenv("TEST_GUILD_ID", "0"))
-except ValueError as e:
-    TEST_GUILD_ID = 0

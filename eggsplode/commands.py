@@ -6,7 +6,7 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 from .game_logic import ActionLog, Game
-from .strings import CONFIG, get_message
+from .strings import INFO, get_message
 from .start import HelpView, StartGameView
 
 
@@ -19,6 +19,9 @@ class EggsplodeApp(commands.Bot):
         self.load_extension("eggsplode.cogs.mini_games")
         self.load_extension("eggsplode.cogs.misc")
         self.load_extension("eggsplode.cogs.owner")
+
+    async def on_ready(self):
+        print("APP READY!")
 
     def games_with_user(self, user_id: int) -> list[int]:
         return [i for i, game in self.games.items() if user_id in game.players]
@@ -64,7 +67,7 @@ class EggsplodeApp(commands.Bot):
             + "\n"
             + get_message("status").format(
                 self.latency * 1000,
-                CONFIG["version"],
+                INFO["version"],
                 get_message("maintenance") if self.admin_maintenance else "",
             ),
             view=HelpView(),

@@ -4,3 +4,4 @@
 logs/
 .coverage
 emojis.json
+resources/config.json

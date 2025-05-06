@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 
 from ..commands import EggsplodeApp
-from ..strings import get_message, TEST_GUILD_ID
+from ..strings import get_message, TEST_GUILD_ID, CONFIG
 
 
 class Owner(commands.Cog):
@@ -25,7 +25,21 @@ class Owner(commands.Cog):
         while self.bot.games and self.bot.admin_maintenance:
             await asyncio.sleep(10)
         print("RESTARTING VIA ADMIN COMMAND")
-        await asyncio.create_subprocess_shell("sudo reboot")
+        await asyncio.create_subprocess_shell(CONFIG.get("restart_command", ""))
+
+    @discord.slash_command(
+        name="update",
+        description="Download the latest version, install dependencies, and restart the bot.",
+        guild_ids=[TEST_GUILD_ID],
+    )
+    @commands.is_owner()
+    async def update(self, ctx: discord.ApplicationContext):
+        update_command = CONFIG.get("update_command", "")
+        if not update_command:
+            await ctx.respond("Update command is not configured.", ephemeral=True)
+            return
+        await self.terminal(ctx, update_command)
+        await self.restart(ctx)
 
     @discord.slash_command(
         name="maintenance",
@@ -61,9 +75,7 @@ class Owner(commands.Cog):
     )
     @commands.is_owner()
     async def terminal(self, ctx: discord.ApplicationContext, command: str):
-        await ctx.respond(
-            get_message("terminal_response").format(command), ephemeral=True
-        )
+        await ctx.response.defer(ephemeral=True)
         process = await asyncio.create_subprocess_shell(
             command,
             stdout=asyncio.subprocess.PIPE,
@@ -72,12 +84,12 @@ class Owner(commands.Cog):
         stdout, stderr = await process.communicate()
 
         if process.returncode == 0:
-            await ctx.respond(
-                f"Command executed successfully:\n`{stdout.decode()}`", ephemeral=True
+            await ctx.edit(
+                content=f"Command executed successfully:\n```{stdout.decode()[1800:]}```"
             )
         else:
-            await ctx.respond(
-                f"Command failed with error:\n`{stderr.decode()}`", ephemeral=True
+            await ctx.edit(
+                content=f"Command failed with error:\n```{stderr.decode()[1800:]}```"
             )
 
     @discord.slash_command(
