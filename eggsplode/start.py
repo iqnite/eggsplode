@@ -36,14 +36,16 @@ class StartGameView(discord.ui.View):
         self.header.accessory = self.start_game_button
         self.add_item(self.header)
         self.players_container = discord.ui.Container()
-        self.players_container.add_text(get_message("players"))
-        self.players_display = discord.ui.TextDisplay(self.game.player_list)
-        self.players_container.add_item(self.players_display)
         self.join_game_button = discord.ui.Button(
             label="Join", style=discord.ButtonStyle.blurple, emoji="👋"
         )
         self.join_game_button.callback = self.join_game
-        self.players_container.add_item(self.join_game_button)
+        self.players_container.add_section(
+            discord.ui.TextDisplay(get_message("players")),
+            accessory=self.join_game_button,
+        )
+        self.players_display = discord.ui.TextDisplay(self.game.player_list)
+        self.players_container.add_item(self.players_display)
         self.add_item(self.players_container)
         self.help_button = discord.ui.Button(
             label="Help", style=discord.ButtonStyle.grey, emoji="❓"
@@ -53,7 +55,6 @@ class StartGameView(discord.ui.View):
         self.settings_container.add_section(
             discord.ui.TextDisplay(get_message("settings")), accessory=self.help_button
         )
-        self.settings_container.add_separator()
         self.settings_container.add_text(get_message("expansions"))
         self.settings_container.add_text(get_message("expansions_description"))
         self.settings_container.add_item(self.expansion_select)
