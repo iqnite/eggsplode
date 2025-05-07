@@ -74,6 +74,8 @@ class StartGameView(discord.ui.View):
 
     async def on_timeout(self):
         await self.game.events.game_end()
+        self.terminate_view()
+        self.title.content = get_message("game_timeout")
         await super().on_timeout()
 
     async def join_game(self, interaction: discord.Interaction):
@@ -83,13 +85,7 @@ class StartGameView(discord.ui.View):
             self.game.config["players"].remove(interaction.user.id)
             if not self.game.config["players"]:
                 await self.game.events.game_end()
-                self.on_timeout = super().on_timeout
-                self.stop()
-                self.remove_item(self.players_container)
-                self.remove_item(self.settings_container)
-                self.remove_item(self.join_game_button)
-                self.remove_item(self.start_game_button)
-                self.remove_item(self.help_button)
+                self.terminate_view()
                 self.title.content = get_message("game_cancelled")
                 await interaction.edit(view=self)
                 return
@@ -97,6 +93,14 @@ class StartGameView(discord.ui.View):
             self.game.config["players"].append(interaction.user.id)
         self.players_display.content = self.get_players()
         await interaction.edit(view=self)
+
+    def terminate_view(self):
+        self.stop()
+        self.remove_item(self.players_container)
+        self.remove_item(self.settings_container)
+        self.remove_item(self.join_game_button)
+        self.remove_item(self.start_game_button)
+        self.remove_item(self.help_button)
 
     def get_players(self):
         return "\n".join(
