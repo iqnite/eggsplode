@@ -6,9 +6,8 @@ from datetime import datetime, timedelta
 import discord
 
 from .cards import base
-from .game_logic import Game
+from .core import BaseView, Game
 from .strings import CARDS, get_message, replace_emojis
-from .base_views import BaseView
 from .nope import NopeView
 
 

@@ -8,7 +8,7 @@ import discord
 
 from .base import draw_card
 from ..cards.base import attegg_finish, game_over
-from ..game_logic import Game
+from ..core import Game
 from ..strings import CARDS, get_message, replace_emojis
 from ..nope import ExplicitNopeView
 from ..selections import ChoosePlayerView, DefuseView, SelectionView

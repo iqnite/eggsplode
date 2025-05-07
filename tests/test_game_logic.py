@@ -4,7 +4,7 @@ Contains tests for the game logic of the Eggsplode game.
 
 import unittest
 from datetime import datetime, timedelta
-from eggsplode.game_logic import Game
+from eggsplode.core import Game
 
 
 class TestGame(unittest.TestCase):

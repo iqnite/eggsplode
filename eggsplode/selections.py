@@ -6,7 +6,7 @@ from typing import Callable, Coroutine
 import discord
 
 from .strings import CARDS, get_message
-from .game_logic import Game
+from .core import Game
 
 
 class SelectionView(discord.ui.View):

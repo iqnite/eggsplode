@@ -5,8 +5,7 @@ Contains card effects for the base game.
 import random
 import discord
 
-from ..base_views import BaseView
-from ..game_logic import Game
+from ..core import BaseView, Game
 from ..nope import ExplicitNopeView
 from ..selections import ChoosePlayerView, DefuseView
 from ..strings import CARDS, get_message, replace_emojis

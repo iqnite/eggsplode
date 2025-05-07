@@ -5,7 +5,7 @@ Contains the StartGameView class which handles the start game view in the Discor
 import discord
 
 from .strings import EXPANSIONS, get_message, replace_emojis
-from .game_logic import Game
+from .core import Game
 from .action import TurnView
 
 
