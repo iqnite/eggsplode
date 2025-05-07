@@ -6,7 +6,6 @@ import discord
 
 from .strings import EXPANSIONS, get_message, replace_emojis
 from .core import Game
-from .action import TurnView
 
 
 async def check_permissions(game: Game, interaction: discord.Interaction):
@@ -27,15 +26,33 @@ class StartGameView(discord.ui.View):
         super().__init__(timeout=600, disable_on_timeout=True)
         self.game = game
         self.create_settings()
+        self.header = discord.ui.Section()
         self.title = discord.ui.TextDisplay(get_message("start"))
-        self.add_item(self.title)
+        self.header.add_item(self.title)
+        self.start_game_button = discord.ui.Button(
+            label="Start", style=discord.ButtonStyle.green, emoji="🚀"
+        )
+        self.start_game_button.callback = self.start_game
+        self.header.accessory = self.start_game_button
+        self.add_item(self.header)
         self.players_container = discord.ui.Container()
         self.players_container.add_text(get_message("players"))
-        self.players_display = discord.ui.TextDisplay(self.get_players())
+        self.players_display = discord.ui.TextDisplay(self.game.player_list)
         self.players_container.add_item(self.players_display)
+        self.join_game_button = discord.ui.Button(
+            label="Join", style=discord.ButtonStyle.blurple, emoji="👋"
+        )
+        self.join_game_button.callback = self.join_game
+        self.players_container.add_item(self.join_game_button)
         self.add_item(self.players_container)
+        self.help_button = discord.ui.Button(
+            label="Help", style=discord.ButtonStyle.grey, emoji="❓"
+        )
+        self.help_button.callback = self.help
         self.settings_container = discord.ui.Container()
-        self.settings_container.add_text(get_message("settings"))
+        self.settings_container.add_section(
+            discord.ui.TextDisplay(get_message("settings")), accessory=self.help_button
+        )
         self.settings_container.add_separator()
         self.settings_container.add_text(get_message("expansions"))
         self.settings_container.add_text(get_message("expansions_description"))
@@ -56,21 +73,6 @@ class StartGameView(discord.ui.View):
             accessory=self.advanced_settings_button,
         )
         self.add_item(self.settings_container)
-        self.join_game_button = discord.ui.Button(
-            label="Join", style=discord.ButtonStyle.blurple, emoji="👋"
-        )
-        self.join_game_button.callback = self.join_game
-        self.add_item(self.join_game_button)
-        self.start_game_button = discord.ui.Button(
-            label="Start Game", style=discord.ButtonStyle.green, emoji="🚀"
-        )
-        self.start_game_button.callback = self.start_game
-        self.add_item(self.start_game_button)
-        self.help_button = discord.ui.Button(
-            label="Help", style=discord.ButtonStyle.grey, emoji="❓"
-        )
-        self.help_button.callback = self.help
-        self.add_item(self.help_button)
 
     async def on_timeout(self):
         await self.game.events.game_end()
@@ -91,7 +93,7 @@ class StartGameView(discord.ui.View):
                 return
         else:
             self.game.config["players"].append(interaction.user.id)
-        self.players_display.content = self.get_players()
+        self.players_display.content = self.game.player_list
         await interaction.edit(view=self)
 
     def terminate_view(self):
@@ -99,32 +101,7 @@ class StartGameView(discord.ui.View):
         self.remove_item(self.players_container)
         self.remove_item(self.settings_container)
         self.remove_item(self.join_game_button)
-        self.remove_item(self.start_game_button)
-        self.remove_item(self.help_button)
-
-    def get_players(self):
-        return "\n".join(
-            get_message("players_list_item").format(player)
-            for player in self.game.config["players"]
-        )
-
-    def get_expansions(self):
-        return "\n".join(
-            (
-                *(
-                    get_message("bold_list_item").format(
-                        replace_emojis(EXPANSIONS[expansion]["emoji"]),
-                        EXPANSIONS[expansion]["name"],
-                    )
-                    for expansion in self.game.config.get("expansions", [])
-                ),
-                (
-                    ""
-                    if self.game.config.get("expansions", [])
-                    else get_message("no_expansions")
-                ),
-            )
-        )
+        self.header.accessory = discord.ui.Button(emoji="🚫", disabled=True)
 
     async def start_game(self, interaction: discord.Interaction):
         if not await check_permissions(self.game, interaction):
@@ -138,23 +115,7 @@ class StartGameView(discord.ui.View):
             return
         await interaction.response.defer()
         self.stop()
-        self.game.start()
-        await self.game.log(
-            "\n".join(
-                (
-                    get_message("game_started"),
-                    get_message("players"),
-                    self.get_players(),
-                    get_message("expansions"),
-                    self.get_expansions(),
-                )
-            ),
-            view=self,
-            anchor=interaction,
-        )
-        await self.game.events.game_start()
-        async with TurnView(self.game):
-            await self.game.events.turn_start()
+        await self.game.start(interaction)
 
     async def help(self, interaction: discord.Interaction):
         await self.game.app.show_help(interaction, ephemeral=True)

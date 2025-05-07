@@ -4,11 +4,11 @@ Contains the Nope views for the game.
 
 from typing import Callable, Coroutine
 import discord
-from .core import Game, BaseView
+from .core import Game, MainView
 from .strings import get_message
 
 
-class NopeView(BaseView):
+class NopeView(MainView):
     def __init__(
         self,
         game: Game,

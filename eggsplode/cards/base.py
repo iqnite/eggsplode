@@ -5,7 +5,7 @@ Contains card effects for the base game.
 import random
 import discord
 
-from ..core import BaseView, Game
+from ..core import MainView, Game
 from ..nope import ExplicitNopeView
 from ..selections import ChoosePlayerView, DefuseView
 from ..strings import CARDS, get_message, replace_emojis
@@ -215,7 +215,7 @@ async def game_over(game: Game, interaction: discord.Interaction):
         return
     await game.log(
         get_message("game_over").format(game.players[0]),
-        view=BaseView(game),
+        view=MainView(game),
     )
     await game.events.game_end()
 

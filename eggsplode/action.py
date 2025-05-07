@@ -6,31 +6,26 @@ from datetime import datetime, timedelta
 import discord
 
 from .cards import base
-from .core import BaseView, Game
+from .core import Game
 from .strings import CARDS, get_message, replace_emojis
 from .nope import NopeView
 
 
-class TurnView(BaseView):
+class TurnContainer(discord.ui.Container):
     def __init__(self, game: Game):
-        super().__init__(game)
+        super().__init__()
+        self.game = game
         self.game.events.turn_reset += self.resume
         self.game.events.action_end += self.resume
-        self.game.events.turn_start += self.next_turn
 
     async def resume(self):
-        if not self.game.running:
-            return
-        self.game.last_activity = datetime.now()
-        self.game.paused = False
-        await self.game.log.temporary(self.game.create_turn_prompt_message(), view=self)
-
-    async def next_turn(self):
-        await self.resume()
-        await self.game.action_timer()
+        self.game.view.current_action = self
+        self.game.view.current_action_text.content = (
+            self.game.create_turn_prompt_message()
+        )
+        await self.game.log()
 
     async def interaction_check(self, interaction: discord.Interaction):
-        await super().interaction_check(interaction)
         if not interaction.user:
             raise TypeError("interaction.user is None")
         if interaction.user.id != self.game.current_player_id:
@@ -146,16 +141,15 @@ class PlayView(discord.ui.View):
             if CARDS[selected].get("explicit", False):
                 await self.game.play(interaction, selected)
             else:
-                async with NopeView(
+                view = NopeView(
                     self.game,
                     ok_callback_action=lambda _: self.game.play(interaction, selected),
-                ) as view:
-                    await self.game.log(
-                        get_message("play_card").format(
-                            interaction.user.id,
-                            CARDS[selected]["emoji"],
-                            CARDS[selected]["title"],
-                            int((datetime.now() + timedelta(seconds=10)).timestamp()),
-                        ),
-                        view=view,
-                    )
+                )
+                await self.game.log(
+                    get_message("play_card").format(
+                        interaction.user.id,
+                        CARDS[selected]["emoji"],
+                        CARDS[selected]["title"],
+                        int((datetime.now() + timedelta(seconds=10)).timestamp()),
+                    ),
+                )

@@ -11,7 +11,7 @@ from typing import Callable, Coroutine
 import discord
 
 from .additional_views import UpDownView
-from .strings import CARDS, get_message, replace_emojis
+from .strings import CARDS, EXPANSIONS, get_message, replace_emojis
 
 
 class Game:
@@ -24,8 +24,8 @@ class Game:
         self.current_player: int = 0
         self.action_id: int = 0
         self.draw_in_turn: int = 0
-        self.log = ActionLog()
         self.events = EventSet()
+        self.log = ActionLog()
         self.last_activity = datetime.now()
         self.running = True
         self.paused = False
@@ -38,8 +38,11 @@ class Game:
         self.events.turn_end += self.next_turn
         self.events.game_end += self.end
         self.events.action_start += self.pause
+        self.events.turn_reset += self.resume
+        self.events.action_end += self.resume
+        self.events.turn_start += self.start_next_turn
 
-    def start(self):
+    async def start(self, interaction: discord.Interaction):
         self.last_activity = datetime.now()
         self.deck = []
         self.players = list(self.config["players"])
@@ -68,6 +71,21 @@ class Game:
         )
         self.deck += ["defuse"] * int(self.config.get("deck_defuse_cards", 0))
         self.shuffle_deck()
+        self.view = MainView(self)
+        self.log.main_view = self.view
+        await self.log(
+            "\n".join(
+                (
+                    get_message("players"),
+                    self.player_list,
+                    get_message("expansions"),
+                    self.expansion_list,
+                    get_message("game_started"),
+                )
+            ),
+            anchor=interaction,
+        )
+        await self.events.turn_start()
 
     def trim_deck(self, min_part, max_part):
         deck_size = len(self.deck)
@@ -124,6 +142,32 @@ class Game:
     @property
     def next_turn_player_id(self) -> int:
         return self.next_player_id if self.draw_in_turn == 0 else self.current_player_id
+
+    @property
+    def player_list(self):
+        return "\n".join(
+            get_message("players_list_item").format(player)
+            for player in self.config["players"]
+        )
+
+    @property
+    def expansion_list(self):
+        return "\n".join(
+            (
+                *(
+                    get_message("bold_list_item").format(
+                        replace_emojis(EXPANSIONS[expansion]["emoji"]),
+                        EXPANSIONS[expansion]["name"],
+                    )
+                    for expansion in self.config.get("expansions", [])
+                ),
+                (
+                    ""
+                    if self.config.get("expansions", [])
+                    else get_message("no_expansions")
+                ),
+            )
+        )
 
     async def next_turn(self):
         self.action_id += 1
@@ -219,6 +263,16 @@ class Game:
     def pause(self):
         self.paused = True
 
+    async def start_next_turn(self):
+        await self.resume()
+        await self.action_timer()
+
+    async def resume(self):
+        if not self.running:
+            return
+        self.last_activity = datetime.now()
+        self.paused = False
+
     async def end(self):
         self.running = False
         self.paused = False
@@ -257,18 +311,63 @@ class Game:
         return self.running
 
 
+class MainView(discord.ui.View):
+    def __init__(self, game: Game):
+        super().__init__(timeout=None)
+        self.game = game
+        self.full_log_button = discord.ui.Button(
+            label="Full game log", style=discord.ButtonStyle.gray, emoji="📜"
+        )
+        self.full_log_button.callback = self.full_log
+        self.add_item(self.full_log_button)
+        self.log_text = discord.ui.TextDisplay(self.game.log.pages[-1])
+        self.add_item(self.log_text)
+        self.current_action_text = discord.ui.TextDisplay(
+            self.game.create_turn_prompt_message()
+        )
+        self.add_item(self.current_action_text)
+        self.current_action = discord.ui.Container(discord.ui.TextDisplay("Starting..."))
+        self.add_item(self.current_action)
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        await interaction.response.defer(invisible=True)
+        return True
+
+    async def full_log(self, interaction: discord.Interaction):
+        view = UpDownView(
+            lambda interaction, index: None,  # Placeholder lambda
+            len(self.game.log.pages),
+        )
+        view.callback = lambda interaction, index: interaction.edit(
+            content=self.get_page_with_count(index),
+            view=view,
+        )
+        await interaction.respond(
+            self.get_page_with_count(len(self.game.log.pages) - 1),
+            view=view,
+            ephemeral=True,
+        )
+
+    def get_page_with_count(self, index):
+        return self.game.log.pages[index] + get_message("page_count").format(
+            index + 1, len(self.game.log.pages)
+        )
+
+
 class ActionLog:
     def __init__(
         self,
         actions=None,
         anchor_interaction: discord.Interaction | None = None,
         anchor_message: discord.Message | None = None,
+        view: MainView | None = None,
         character_limit: int | None = 1800,
     ):
         self.actions: list[str] = list(actions) if actions else []
         self.character_limit = character_limit
         self.anchor_interaction = anchor_interaction
         self.anchor_message = anchor_message
+        self.main_view = view
 
     def add(self, action: str):
         self.actions.append(action)
@@ -295,35 +394,26 @@ class ActionLog:
             action = next_action
         return [next_action] + result
 
-    async def temporary(
-        self,
-        message: str,
-        view: discord.ui.View | None = None,
-        anchor: discord.Interaction | None = None,
-    ):
-        await self(message, view, anchor)
-        del self[-1]
-
     async def __call__(
         self,
-        message: str,
-        view: discord.ui.View | None = None,
+        message: str | None = None,
         anchor: discord.Interaction | None = None,
     ):
-        self.add(message)
+        if message is not None:
+            self.add(message)
+        if self.main_view is not None:
+            self.main_view.log_text.content = self.pages[-1]
         if anchor is not None:
             self.anchor_interaction = anchor
         if self.anchor_interaction is None:
             raise ValueError("anchor_interaction is None")
-        args = {"content": self.pages[-1], "view": view}
         try:
-            await self.anchor_interaction.response.edit_message(**args)
+            await self.anchor_interaction.response.edit_message(view=self.main_view)
         except discord.errors.InteractionResponded:
             if self.anchor_message is None:
                 self.anchor_message = await self.anchor_interaction.original_response()
             await self.anchor_interaction.followup.edit_message(
-                self.anchor_message.id,
-                **args,
+                self.anchor_message.id, view=self.main_view
             )
         else:
             if self.anchor_message is None:
@@ -381,43 +471,3 @@ class EventSet:
         self.turn_end = Event()
         self.action_start = Event()
         self.action_end = Event()
-
-
-class BaseView(discord.ui.View):
-    def __init__(self, game: Game, timeout=None):
-        super().__init__(timeout=timeout, disable_on_timeout=True)
-        self.game = game
-        self.ephemeral_full_log = True
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc_value, traceback):
-        pass
-
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        await interaction.response.defer(invisible=True)
-        return True
-
-    @discord.ui.button(
-        label="Full game log", style=discord.ButtonStyle.gray, emoji="📜", row=4
-    )
-    async def full_log(self, _, interaction: discord.Interaction):
-        view = UpDownView(
-            lambda interaction, index: None,  # Placeholder lambda
-            len(self.game.log.pages),
-        )
-        view.callback = lambda interaction, index: interaction.edit(
-            content=self.get_page_with_count(index),
-            view=view,
-        )
-        await interaction.respond(
-            self.get_page_with_count(len(self.game.log.pages) - 1),
-            view=view,
-            ephemeral=self.ephemeral_full_log,
-        )
-
-    def get_page_with_count(self, index):
-        return self.game.log.pages[index] + get_message("page_count").format(
-            index + 1, len(self.game.log.pages)
-        )
