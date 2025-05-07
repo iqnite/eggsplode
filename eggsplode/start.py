@@ -34,12 +34,13 @@ class StartGameView(discord.ui.View):
         self.players_display = discord.ui.TextDisplay(self.get_players())
         self.players_container.add_item(self.players_display)
         self.add_item(self.players_container)
-        self.expansions_container = discord.ui.Container()
-        self.expansions_container.add_text(get_message("expansions"))
-        self.expansions_container.add_item(self.expansion_select)
-        self.add_item(self.expansions_container)
         self.settings_container = discord.ui.Container()
         self.settings_container.add_text(get_message("settings"))
+        self.settings_container.add_separator()
+        self.settings_container.add_text(get_message("expansions"))
+        self.settings_container.add_text(get_message("expansions_description"))
+        self.settings_container.add_item(self.expansion_select)
+        self.settings_container.add_separator()
         self.settings_container.add_section(
             discord.ui.TextDisplay(get_message("short_mode")),
             discord.ui.TextDisplay(get_message("short_mode_description")),
@@ -85,7 +86,6 @@ class StartGameView(discord.ui.View):
                 self.on_timeout = super().on_timeout
                 self.stop()
                 self.remove_item(self.players_container)
-                self.remove_item(self.expansions_container)
                 self.remove_item(self.settings_container)
                 self.remove_item(self.join_game_button)
                 self.remove_item(self.start_game_button)
@@ -195,13 +195,11 @@ class StartGameView(discord.ui.View):
         ]
 
     async def expansion_callback(self, interaction: discord.Interaction):
-        if not self.expansion_select or not await check_permissions(
-            self.game, interaction
-        ):
-            return
-        self.game.config["expansions"] = self.expansion_select.values
-        self.expansion_select.options = self.generate_expansion_options()
         await interaction.edit(view=self)
+        if await check_permissions(self.game, interaction):
+            self.game.config["expansions"] = self.expansion_select.values
+        self.expansion_select.options = self.generate_expansion_options()
+        await interaction.edit_original_response(view=self)
 
     async def short_mode_callback(self, interaction: discord.Interaction):
         if not await check_permissions(self.game, interaction):
