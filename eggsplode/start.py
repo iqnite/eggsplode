@@ -268,7 +268,7 @@ class HelpView(discord.ui.View):
         self.add_item(
             discord.ui.Button(
                 label="Website",
-                url="https://iqnite.github.io/eggsplode",
+                url="https://iqnite.github.io/",
                 style=discord.ButtonStyle.link,
                 emoji=replace_emojis("🌐"),
             )
