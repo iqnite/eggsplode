@@ -5,9 +5,9 @@ Contains the commands for the Eggsplode game.
 from datetime import datetime
 import discord
 from discord.ext import commands
-from .game_logic import ActionLog, Game
-from .strings import INFO, get_message
-from .start import HelpView, StartGameView
+from eggsplode.core import Game
+from eggsplode.strings import INFO, get_message
+from eggsplode.start import HelpView, StartGameView
 
 
 class EggsplodeApp(commands.Bot):
@@ -57,9 +57,9 @@ class EggsplodeApp(commands.Bot):
                 else config
             ),
         )
-        game.log = ActionLog(anchor_interaction=interaction)
+        game.log.anchor_interaction = interaction
         view = StartGameView(game)
-        await interaction.respond(view.generate_game_start_message(), view=view)
+        await interaction.respond(view=view)
 
     async def show_help(self, interaction: discord.Interaction, ephemeral=False):
         await interaction.respond(
