@@ -3,12 +3,10 @@ Contains the StartGameView class which handles the start game view in the Discor
 """
 
 import discord
-
-from .strings import EXPANSIONS, get_message, replace_emojis
-from .core import Game
+from eggsplode.strings import EXPANSIONS, get_message, replace_emojis
 
 
-async def check_permissions(game: Game, interaction: discord.Interaction):
+async def check_permissions(game, interaction: discord.Interaction):
     if not interaction.user:
         return
     if interaction.user.id != game.config["players"][0]:
@@ -22,7 +20,7 @@ async def check_permissions(game: Game, interaction: discord.Interaction):
 
 
 class StartGameView(discord.ui.View):
-    def __init__(self, game: Game):
+    def __init__(self, game):
         super().__init__(timeout=600, disable_on_timeout=True)
         self.game = game
         self.create_settings()
@@ -181,7 +179,7 @@ class StartGameView(discord.ui.View):
 
 
 class SettingsModal(discord.ui.Modal):
-    def __init__(self, game: Game, *args, **kwargs) -> None:
+    def __init__(self, game, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.game = game
         self.inputs = {
@@ -193,6 +191,7 @@ class SettingsModal(discord.ui.Modal):
                     required=False,
                 ),
                 "min": 1,
+                "max": 100,
             },
             "deck_defuse_cards": {
                 "input": discord.ui.InputText(
@@ -201,6 +200,8 @@ class SettingsModal(discord.ui.Modal):
                     value=self.game.config.get("deck_defuse_cards", None),
                     required=False,
                 ),
+                "min": 0,
+                "max": 100,
             },
             # "turn_timeout": {
             #     "input": discord.ui.InputText(

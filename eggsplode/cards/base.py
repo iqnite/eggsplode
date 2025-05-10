@@ -5,47 +5,29 @@ Contains card effects for the base game.
 import random
 import discord
 
-from ..core import MainView, Game
-from ..nope import ExplicitNopeView
-from ..selections import ChoosePlayerView, DefuseView
-from ..strings import CARDS, get_message, replace_emojis
+from eggsplode.nope import ExplicitNopeView
+from eggsplode.strings import CARDS, get_message, replace_emojis
 
 
-async def draw_card(game: Game, interaction: discord.Interaction, index=-1):
+async def attegg(game, interaction: discord.Interaction):
     if not interaction.user:
         return
-    card, hold = await game.draw_from(interaction, index=index)
-    if hold:
-        await game.log(get_message("user_drew_card").format(interaction.user.id))
-        await interaction.respond(
-            get_message("you_drew_card").format(
-                replace_emojis(CARDS[card]["emoji"]), CARDS[card]["title"]
-            ),
-            ephemeral=True,
-            delete_after=10,
-        )
-        await game.events.turn_end()
-
-
-async def attegg(game: Game, interaction: discord.Interaction):
-    if not interaction.user:
-        return
-    async with ExplicitNopeView(
+    view = ExplicitNopeView(
         game=game,
         target_player_id=game.next_player_id,
         ok_callback_action=lambda _: attegg_finish(game),
-    ) as view:
-        await game.log(
-            get_message("before_attegg").format(
-                interaction.user.id,
-                game.next_player_id,
-                game.draw_in_turn + 2,
-            ),
-            view=view,
-        )
+    )
+    await game.log(
+        get_message("before_attegg").format(
+            interaction.user.id,
+            game.next_player_id,
+            game.draw_in_turn + 2,
+        ),
+        view=view,
+    )
 
 
-async def shuffle(game: Game, interaction: discord.Interaction):
+async def shuffle(game, interaction: discord.Interaction):
     if not interaction.user:
         return
     game.shuffle_deck()
@@ -53,7 +35,7 @@ async def shuffle(game: Game, interaction: discord.Interaction):
     await game.events.action_end()
 
 
-async def predict(game: Game, interaction: discord.Interaction):
+async def predict(game, interaction: discord.Interaction):
     if not interaction.user:
         return
     next_cards = "\n".join(
@@ -73,7 +55,9 @@ async def predict(game: Game, interaction: discord.Interaction):
     await game.events.action_end()
 
 
-async def food_combo(game: Game, interaction: discord.Interaction, selected: str):
+async def food_combo(game, interaction: discord.Interaction, selected: str):
+    from eggsplode.selections import ChoosePlayerView
+
     if not interaction.user:
         return
     if not game.any_player_has_cards():
@@ -99,29 +83,29 @@ async def food_combo(game: Game, interaction: discord.Interaction, selected: str
 
 
 async def food_combo_begin(
-    game: Game, interaction: discord.Interaction, target_player_id: int, food_card: str
+    game, interaction: discord.Interaction, target_player_id: int, food_card: str
 ):
     if not interaction.user:
         return
-    async with ExplicitNopeView(
+    view = ExplicitNopeView(
         game,
         target_player_id,
         lambda target_interaction: food_combo_finish(
             game, interaction, target_interaction, target_player_id
         ),
-    ) as view:
-        await game.log(
-            get_message("before_steal").format(
-                replace_emojis(CARDS[food_card]["emoji"]),
-                interaction.user.id,
-                target_player_id,
-            ),
-            view=view,
-        )
+    )
+    await game.log(
+        get_message("before_steal").format(
+            replace_emojis(CARDS[food_card]["emoji"]),
+            interaction.user.id,
+            target_player_id,
+        ),
+        view=view,
+    )
 
 
 async def food_combo_finish(
-    game: Game,
+    game,
     interaction: discord.Interaction,
     target_interaction: discord.Interaction | None,
     target_player_id: int,
@@ -167,12 +151,12 @@ async def food_combo_finish(
         await game.events.action_end()
 
 
-async def defuse_finish(game: Game):
+async def defuse_finish(game):
     await game.log(get_message("defused").format(game.current_player_id))
     await game.events.turn_end()
 
 
-async def attegg_finish(game: Game, target_player_id=None):
+async def attegg_finish(game, target_player_id=None):
     target_player_id = target_player_id or game.next_player_id
     prev_to_draw_in_turn = game.draw_in_turn
     game.draw_in_turn = 0
@@ -181,14 +165,14 @@ async def attegg_finish(game: Game, target_player_id=None):
     await game.events.turn_end()
 
 
-async def skip(game: Game, _):
+async def skip(game, _):
     await game.log(get_message("skipped").format(game.current_player_id))
     await game.events.turn_end()
 
 
-async def eggsplode(
-    game: Game, interaction: discord.Interaction, timed_out: bool = False
-):
+async def eggsplode(game, interaction: discord.Interaction, timed_out: bool = False):
+    from eggsplode.selections import DefuseView
+
     if "defuse" in game.hands[game.current_player_id]:
         game.hands[game.current_player_id].remove("defuse")
         if timed_out:
@@ -208,19 +192,22 @@ async def eggsplode(
     await game.log(get_message("eggsploded").format(prev_player))
     if len(game.players) == 1:
         await game_over(game, interaction)
+    await game.events.turn_end()
 
 
-async def game_over(game: Game, interaction: discord.Interaction):
+async def game_over(game, interaction: discord.Interaction):
     if not interaction.user:
         return
     await game.log(
         get_message("game_over").format(game.players[0]),
-        view=MainView(game),
     )
     await game.events.game_end()
+    await game.update_action(
+        discord.ui.Container(discord.ui.TextDisplay(get_message("start_game_tip")))
+    )
 
 
-def deck_count(game: Game) -> str:
+def deck_count(game) -> str:
     return get_message("turn_warning").format(
         len(game.deck),
         game.deck.count("eggsplode"),
@@ -232,6 +219,7 @@ PLAY_ACTIONS = {
     "skip": skip,
     "shuffle": shuffle,
     "predict": predict,
+    "food_combo": food_combo,
 }
 
 DRAW_ACTIONS = {

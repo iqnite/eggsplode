@@ -4,21 +4,21 @@ Contains the Nope views for the game.
 
 from typing import Callable, Coroutine
 import discord
-from .core import Game, MainView
-from .strings import get_message
+from eggsplode.strings import get_message
 
 
-class NopeView(MainView):
+class NopeContainer(discord.ui.Container):
     def __init__(
         self,
-        game: Game,
+        game,
         ok_callback_action: (
             Callable[[discord.Interaction | None], Coroutine] | None
         ) = None,
         nope_callback_action: Callable[[], None] | None = None,
         timeout=10,
     ):
-        super().__init__(game, timeout=timeout)
+        super().__init__(timeout=timeout)
+        self.game = game
         self.ok_callback_action = ok_callback_action
         self.nope_callback_action = nope_callback_action
         self.nope_count = 0
@@ -33,10 +33,9 @@ class NopeView(MainView):
                 await self.game.events.action_end()
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        base_check = await super().interaction_check(interaction)
+        await interaction.response.defer(invisible=True)
         return (
-            base_check
-            and interaction.user is not None
+            interaction.user is not None
             and interaction.user.id in self.game.players
             and not self.disabled
         )
@@ -81,10 +80,10 @@ class NopeView(MainView):
         )
 
 
-class ExplicitNopeView(NopeView):
+class ExplicitNopeView(NopeContainer):
     def __init__(
         self,
-        game: Game,
+        game,
         target_player_id: int,
         ok_callback_action: Callable[[discord.Interaction | None], Coroutine],
         nope_callback_action: Callable[[], None] | None = None,

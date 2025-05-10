@@ -6,8 +6,8 @@ import asyncio
 import discord
 from discord.ext import commands
 
-from ..commands import EggsplodeApp
-from ..strings import get_message, TEST_GUILD_ID, CONFIG
+from eggsplode.commands import EggsplodeApp
+from eggsplode.strings import get_message, TEST_GUILD_ID, CONFIG
 
 
 class Owner(commands.Cog):

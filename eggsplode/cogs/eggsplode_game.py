@@ -5,8 +5,8 @@ Contains commands for the main Eggsplode game.
 import discord
 from discord.ext import commands
 
-from ..commands import EggsplodeApp
-from ..strings import get_message
+from eggsplode.commands import EggsplodeApp
+from eggsplode.strings import get_message
 
 
 class MainGame(commands.Cog):

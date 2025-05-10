@@ -4,7 +4,7 @@ Contains additional utility commands.
 
 import discord
 from discord.ext import commands
-from ..commands import EggsplodeApp
+from eggsplode.commands import EggsplodeApp
 
 
 class Misc(commands.Cog):

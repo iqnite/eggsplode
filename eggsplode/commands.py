@@ -5,9 +5,9 @@ Contains the commands for the Eggsplode game.
 from datetime import datetime
 import discord
 from discord.ext import commands
-from .core import Game
-from .strings import INFO, get_message
-from .start import HelpView, StartGameView
+from eggsplode.core import Game
+from eggsplode.strings import INFO, get_message
+from eggsplode.start import HelpView, StartGameView
 
 
 class EggsplodeApp(commands.Bot):

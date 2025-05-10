@@ -4,7 +4,7 @@ Contains commands for minigames.
 
 import discord
 from discord.ext import commands
-from ..commands import EggsplodeApp
+from eggsplode.commands import EggsplodeApp
 
 
 class MiniGames(commands.Cog):

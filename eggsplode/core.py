@@ -10,14 +10,14 @@ from typing import Callable, Coroutine
 
 import discord
 
-from .additional_views import UpDownView
-from .strings import CARDS, EXPANSIONS, get_message, replace_emojis
+from eggsplode.additional_views import UpDownView
+from eggsplode.strings import CARDS, EXPANSIONS, get_message, replace_emojis
 
 
 class Game:
     def __init__(self, app, config: dict):
-        self.config = config
         self.app = app
+        self.config = config
         self.players: list[int] = []
         self.hands: dict[int, list[str]] = {}
         self.deck: list[str] = []
@@ -211,8 +211,19 @@ class Game:
     async def draw_from(
         self, interaction: discord.Interaction, index: int = -1, timed_out: bool = False
     ):
-        card = self.deck.pop(index)
-        return await self.draw(interaction, card, timed_out)
+        turn_player: int = self.current_player_id
+        card, hold = await self.draw(interaction, self.deck.pop(index), timed_out)
+        if hold:
+            await self.log(get_message("user_drew_card").format(turn_player))
+            if not timed_out:
+                await interaction.respond(
+                    get_message("you_drew_card").format(
+                        replace_emojis(CARDS[card]["emoji"]), CARDS[card]["title"]
+                    ),
+                    ephemeral=True,
+                    delete_after=10,
+                )
+        return card, hold
 
     def remove_player(self, user_id: int):
         del self.players[self.players.index(user_id)]
@@ -251,11 +262,8 @@ class Game:
             await self.log(get_message("game_timeout"))
             await self.events.game_end()
             return
-        turn_player: int = self.current_player_id
         await self.log(get_message("timeout"))
-        _, hold = await self.draw_from(self.log.anchor_interaction, timed_out=True)
-        if hold:
-            await self.log(get_message("user_drew_card").format(turn_player))
+        await self.draw_from(self.log.anchor_interaction, timed_out=True)
         if not self.running:
             return
         await self.events.turn_end()
@@ -272,6 +280,15 @@ class Game:
             return
         self.last_activity = datetime.now()
         self.paused = False
+        await self.update_action(TurnContainer(self))
+
+    async def update_action(self, new_container):
+        self.view.remove_item(self.view.current_action_container)
+        self.view.current_action_container = new_container
+        if self.running:
+            self.view.current_action_text.content = self.create_turn_prompt_message()
+        self.view.add_item(self.view.current_action_container)
+        await self.log()
 
     async def end(self):
         self.running = False
@@ -326,8 +343,10 @@ class MainView(discord.ui.View):
             self.game.create_turn_prompt_message()
         )
         self.add_item(self.current_action_text)
-        self.current_action = discord.ui.Container(discord.ui.TextDisplay("Starting..."))
-        self.add_item(self.current_action)
+        self.current_action_container = discord.ui.Container(
+            discord.ui.TextDisplay("Starting...")
+        )
+        self.add_item(self.current_action_container)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         await interaction.response.defer(invisible=True)
@@ -339,18 +358,13 @@ class MainView(discord.ui.View):
             len(self.game.log.pages),
         )
         view.callback = lambda interaction, index: interaction.edit(
-            content=self.get_page_with_count(index),
+            content=self.game.log.get_page_with_count(index),
             view=view,
         )
         await interaction.respond(
-            self.get_page_with_count(len(self.game.log.pages) - 1),
+            self.game.log.get_page_with_count(len(self.game.log.pages) - 1),
             view=view,
             ephemeral=True,
-        )
-
-    def get_page_with_count(self, index):
-        return self.game.log.pages[index] + get_message("page_count").format(
-            index + 1, len(self.game.log.pages)
         )
 
 
@@ -393,6 +407,11 @@ class ActionLog:
             line -= 1
             action = next_action
         return [next_action] + result
+
+    def get_page_with_count(self, index):
+        return self.pages[index] + get_message("page_count").format(
+            index + 1, len(self.pages)
+        )
 
     async def __call__(
         self,
@@ -471,3 +490,49 @@ class EventSet:
         self.turn_end = Event()
         self.action_start = Event()
         self.action_end = Event()
+
+
+class TurnContainer(discord.ui.Container):
+    def __init__(self, game: Game):
+        super().__init__()
+        self.game = game
+
+    async def interaction_check(self, interaction: discord.Interaction):
+        if not interaction.user:
+            raise TypeError("interaction.user is None")
+        if interaction.user.id != self.game.current_player_id:
+            await interaction.respond(
+                get_message("not_your_turn"), ephemeral=True, delete_after=5
+            )
+            return False
+        if self.game.paused:
+            await interaction.respond(
+                get_message("awaiting_prompt"), ephemeral=True, delete_after=5
+            )
+            return False
+        self.game.log.anchor_interaction = interaction
+        self.game.inactivity_count = 0
+        return True
+
+    @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
+    async def draw_callback(self, _, interaction: discord.Interaction):
+        if not await self.interaction_check(interaction):
+            return
+        await self.game.events.action_start()
+        _, hold = await self.game.draw_from(interaction)
+        if hold:
+            await self.game.events.turn_end()
+
+    @discord.ui.button(label="Play a card", style=discord.ButtonStyle.green, emoji="🎴")
+    async def play(self, _, interaction: discord.Interaction):
+        from eggsplode.selections import PlayView
+
+        if not await self.interaction_check(interaction):
+            return
+        view = PlayView(self.game)
+        await interaction.respond(
+            view.create_play_prompt_message(self.game.current_player_id),
+            view=view,
+            ephemeral=True,
+        )
+        await self.game.events.turn_reset()
