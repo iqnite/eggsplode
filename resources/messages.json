@@ -159,6 +159,7 @@
     "skipped": "⏩ <@{}> skipped their turn without drawing!",
     "start": "# New game",
     "start_game_tip": "Start a new game with </start:1325457141628141661>!",
+    "started": "Game started!",
     "status": "-# Ping: {:.0f}ms | Version: {} {}",
     "steal_prompt": "Choose a player to steal a card from.",
     "stolen_card_public": "🎭 <@{}> stole a card from <@{}>!",

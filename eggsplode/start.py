@@ -114,6 +114,9 @@ class StartGameView(discord.ui.View):
             return
         await interaction.response.defer()
         self.stop()
+        self.disable_all_items()
+        self.start_game_button.label = get_message("started")
+        await interaction.edit(view=self)
         await self.game.start(interaction)
 
     async def help(self, interaction: discord.Interaction):
