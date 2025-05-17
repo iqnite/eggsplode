@@ -6,16 +6,17 @@ import asyncio
 from datetime import datetime, timedelta
 from importlib import import_module
 import random
-from typing import Callable, Coroutine
-
+from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
-
-from eggsplode.additional_views import UpDownView
+from eggsplode.selections import PlayView
 from eggsplode.strings import CARDS, EXPANSIONS, get_message, replace_emojis
+
+if TYPE_CHECKING:
+    from eggsplode.commands import EggsplodeApp
 
 
 class Game:
-    def __init__(self, app, config: dict):
+    def __init__(self, app: "EggsplodeApp", config: dict):
         self.app = app
         self.config = config
         self.players: list[int] = []
@@ -25,7 +26,6 @@ class Game:
         self.action_id: int = 0
         self.draw_in_turn: int = 0
         self.events = EventSet()
-        self.log = ActionLog()
         self.last_activity = datetime.now()
         self.running = True
         self.paused = False
@@ -40,7 +40,7 @@ class Game:
         self.events.action_start += self.pause
         self.events.turn_reset += self.resume
         self.events.action_end += self.resume
-        self.events.turn_start += self.start_next_turn
+        self.events.turn_start += self.resume
 
     async def start(self, interaction: discord.Interaction):
         self.last_activity = datetime.now()
@@ -71,21 +71,9 @@ class Game:
         )
         self.deck += ["defuse"] * int(self.config.get("deck_defuse_cards", 0))
         self.shuffle_deck()
-        self.view = MainView(self)
-        self.log.main_view = self.view
-        await self.log(
-            "\n".join(
-                (
-                    get_message("players"),
-                    self.player_list,
-                    get_message("expansions"),
-                    self.expansion_list,
-                    get_message("game_started"),
-                )
-            ),
-            anchor=interaction,
-        )
+        await self.send(get_message("game_started"), anchor=interaction)
         await self.events.turn_start()
+        await self.action_timer()
 
     def trim_deck(self, min_part, max_part):
         deck_size = len(self.deck)
@@ -144,14 +132,14 @@ class Game:
         return self.next_player_id if self.draw_in_turn == 0 else self.current_player_id
 
     @property
-    def player_list(self):
+    def player_list(self) -> str:
         return "\n".join(
             get_message("players_list_item").format(player)
             for player in self.config["players"]
         )
 
     @property
-    def expansion_list(self):
+    def expansion_list(self) -> str:
         return "\n".join(
             (
                 *(
@@ -210,11 +198,11 @@ class Game:
 
     async def draw_from(
         self, interaction: discord.Interaction, index: int = -1, timed_out: bool = False
-    ):
+    ) -> tuple[str, bool]:
         turn_player: int = self.current_player_id
         card, hold = await self.draw(interaction, self.deck.pop(index), timed_out)
         if hold:
-            await self.log(get_message("user_drew_card").format(turn_player))
+            await self.send(get_message("user_drew_card").format(turn_player))
             if not timed_out:
                 await interaction.respond(
                     get_message("you_drew_card").format(
@@ -247,23 +235,25 @@ class Game:
         self.current_player = len(self.players) - self.current_player - 1
 
     async def action_timer(self):
-        while (
-            datetime.now() - self.last_activity
-            < timedelta(seconds=self.config.get("turn_timeout", 60))
-        ) or self.paused:
-            await asyncio.sleep(1)
-        await self.on_action_timeout()
+        while self.running:
+            if (
+                datetime.now() - self.last_activity
+                > timedelta(seconds=float(self.config.get("turn_timeout", 60)))
+            ) and not self.paused:
+                await self.on_action_timeout()
+            await asyncio.sleep(5)
 
     async def on_action_timeout(self):
-        assert self.log.anchor_interaction is not None
+        assert self.anchor_interaction is not None
         self.pause()
         self.inactivity_count += 1
         if self.inactivity_count > 5:
-            await self.log(get_message("game_timeout"))
+            await self.send(get_message("game_timeout"))
             await self.events.game_end()
             return
-        await self.log(get_message("timeout"))
-        await self.draw_from(self.log.anchor_interaction, timed_out=True)
+        self.last_activity = datetime.now()
+        await self.send(get_message("timeout"))
+        await self.draw_from(self.anchor_interaction, timed_out=True)
         if not self.running:
             return
         await self.events.turn_end()
@@ -271,24 +261,13 @@ class Game:
     def pause(self):
         self.paused = True
 
-    async def start_next_turn(self):
-        await self.resume()
-        await self.action_timer()
-
     async def resume(self):
         if not self.running:
             return
         self.last_activity = datetime.now()
+        self.action_id += 1
         self.paused = False
-        await self.update_action(TurnContainer(self))
-
-    async def update_action(self, new_container):
-        self.view.remove_item(self.view.current_action_container)
-        self.view.current_action_container = new_container
-        if self.running:
-            self.view.current_action_text.content = self.create_turn_prompt_message()
-        self.view.add_item(self.view.current_action_container)
-        await self.log()
+        await self.send(view=TurnView(self))
 
     async def end(self):
         self.running = False
@@ -299,6 +278,26 @@ class Game:
         self.deck = []
         self.action_id = 0
         self.draw_in_turn = 0
+
+    async def send(
+        self,
+        message: str | None = None,
+        view: discord.ui.View | None = None,
+        anchor: discord.Interaction | None = None,
+    ):
+        use_view = view
+        if message is not None:
+            use_view = discord.ui.View(discord.ui.TextDisplay(message))
+        if use_view is None:
+            raise ValueError("Either message or view must be provided")
+        if anchor is not None:
+            self.anchor_interaction = anchor
+        if self.anchor_interaction is None:
+            raise ValueError("anchor_interaction is None")
+        try:
+            await self.anchor_interaction.response.send_message(view=use_view)
+        except discord.errors.InteractionResponded:
+            await self.anchor_interaction.followup.send(view=use_view)
 
     def cards_help(self, user_id: int, template: str = "") -> str:
         grouped_hand = self.group_hand(user_id)
@@ -312,166 +311,34 @@ class Game:
             for card, count in grouped_hand.items()
         )
 
-    def create_turn_prompt_message(self) -> str:
-        return (
-            get_message("next_turn").format(
-                self.current_player_id,
-            )
-            + "\n"
-            + self.warnings()
-        )
+    @property
+    def turn_prompt(self) -> str:
+        return get_message("next_turn").format(self.current_player_id)
 
+    @property
     def warnings(self) -> str:
         return "\n".join(warning(self) for warning in self.turn_warnings)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.running
-
-
-class MainView(discord.ui.View):
-    def __init__(self, game: Game):
-        super().__init__(timeout=None)
-        self.game = game
-        self.full_log_button = discord.ui.Button(
-            label="Full game log", style=discord.ButtonStyle.gray, emoji="📜"
-        )
-        self.full_log_button.callback = self.full_log
-        self.add_item(self.full_log_button)
-        self.log_text = discord.ui.TextDisplay(self.game.log.pages[-1])
-        self.add_item(self.log_text)
-        self.current_action_text = discord.ui.TextDisplay(
-            self.game.create_turn_prompt_message()
-        )
-        self.add_item(self.current_action_text)
-        self.current_action_container = discord.ui.Container(
-            discord.ui.TextDisplay("Starting...")
-        )
-        self.add_item(self.current_action_container)
-
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        await interaction.response.defer(invisible=True)
-        return True
-
-    async def full_log(self, interaction: discord.Interaction):
-        view = UpDownView(
-            lambda interaction, index: None,  # Placeholder lambda
-            len(self.game.log.pages),
-        )
-        view.callback = lambda interaction, index: interaction.edit(
-            content=self.game.log.get_page_with_count(index),
-            view=view,
-        )
-        await interaction.respond(
-            self.game.log.get_page_with_count(len(self.game.log.pages) - 1),
-            view=view,
-            ephemeral=True,
-        )
-
-
-class ActionLog:
-    def __init__(
-        self,
-        actions=None,
-        anchor_interaction: discord.Interaction | None = None,
-        anchor_message: discord.Message | None = None,
-        view: MainView | None = None,
-        character_limit: int | None = 1800,
-    ):
-        self.actions: list[str] = list(actions) if actions else []
-        self.character_limit = character_limit
-        self.anchor_interaction = anchor_interaction
-        self.anchor_message = anchor_message
-        self.main_view = view
-
-    def add(self, action: str):
-        self.actions.append(action)
-
-    def clear(self):
-        self.actions.clear()
-
-    @property
-    def pages(self):
-        if self.character_limit is None:
-            return [str(self)]
-        if len(self) == 0:
-            return [""]
-        result = []
-        line = len(self) - 1
-        action = next_action = ""
-        while line >= 0:
-            next_action = self[line] + "\n" + action
-            if len(next_action) > self.character_limit:
-                result.insert(0, action)
-                action = ""
-                continue
-            line -= 1
-            action = next_action
-        return [next_action] + result
-
-    def get_page_with_count(self, index):
-        return self.pages[index] + get_message("page_count").format(
-            index + 1, len(self.pages)
-        )
-
-    async def __call__(
-        self,
-        message: str | None = None,
-        anchor: discord.Interaction | None = None,
-    ):
-        if message is not None:
-            self.add(message)
-        if self.main_view is not None:
-            self.main_view.log_text.content = self.pages[-1]
-        if anchor is not None:
-            self.anchor_interaction = anchor
-        if self.anchor_interaction is None:
-            raise ValueError("anchor_interaction is None")
-        try:
-            await self.anchor_interaction.response.edit_message(view=self.main_view)
-        except discord.errors.InteractionResponded:
-            if self.anchor_message is None:
-                self.anchor_message = await self.anchor_interaction.original_response()
-            await self.anchor_interaction.followup.edit_message(
-                self.anchor_message.id, view=self.main_view
-            )
-        else:
-            if self.anchor_message is None:
-                self.anchor_message = await self.anchor_interaction.original_response()
-
-    def __str__(self):
-        return "\n".join(self.actions)
-
-    def __len__(self):
-        return len(self.actions)
-
-    def __iter__(self):
-        return self.actions.__iter__()
-
-    def __getitem__(self, index):
-        return self.actions[index]
-
-    def __setitem__(self, index, value):
-        self.actions[index] = value
-
-    def __delitem__(self, index):
-        del self.actions[index]
 
 
 class Event:
     def __init__(self):
-        self.subscribers = []
+        self._subscribers = []
 
-    def subscribe(self, callback: Callable):
-        self.subscribers.append(callback)
+    def subscribe(self, callback: Callable, index=-1):
+        self._subscribers.insert(index, callback)
         return self
 
     def unsubscribe(self, callback):
-        if callback in self.subscribers:
-            self.subscribers.remove(callback)
+        if callback in self._subscribers:
+            self._subscribers.remove(callback)
         return self
 
     async def notify(self, *args, **kwargs):
-        for callback in self.subscribers:
+        callbacks = self._subscribers.copy()
+        for callback in callbacks:
             r = callback(*args, **kwargs)
             if isinstance(r, Coroutine):
                 await r
@@ -492,12 +359,41 @@ class EventSet:
         self.action_end = Event()
 
 
-class TurnContainer(discord.ui.Container):
+class BaseView(discord.ui.View):
     def __init__(self, game: Game):
-        super().__init__()
+        super().__init__(timeout=None)
         self.game = game
 
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if not await super().interaction_check(interaction):
+            return False
+        await interaction.response.defer(invisible=True)
+        return True
+
+
+class TurnView(BaseView):
+    def __init__(self, game: Game):
+        super().__init__(game)
+        self.turn_prompt = discord.ui.TextDisplay(game.turn_prompt)
+        self.add_item(self.turn_prompt)
+        self.draw_button = discord.ui.Button(
+            label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚"
+        )
+        self.draw_button.callback = self.draw_callback
+        self.add_item(self.draw_button)
+        self.play_button = discord.ui.Button(
+            label="Play a card", style=discord.ButtonStyle.green, emoji="🎴"
+        )
+        self.play_button.callback = self.play_callback
+        self.add_item(self.play_button)
+        self.warnings = discord.ui.TextDisplay(self.game.warnings)
+        self.add_item(self.warnings)
+        self.game.events.turn_end.subscribe(self.deactivate, 0)
+        self.game.events.game_end.subscribe(self.deactivate, 0)
+
     async def interaction_check(self, interaction: discord.Interaction):
+        if not await super().interaction_check(interaction):
+            return False
         if not interaction.user:
             raise TypeError("interaction.user is None")
         if interaction.user.id != self.game.current_player_id:
@@ -510,25 +406,17 @@ class TurnContainer(discord.ui.Container):
                 get_message("awaiting_prompt"), ephemeral=True, delete_after=5
             )
             return False
-        self.game.log.anchor_interaction = interaction
+        self.game.anchor_interaction = interaction
         self.game.inactivity_count = 0
         return True
 
-    @discord.ui.button(label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚")
-    async def draw_callback(self, _, interaction: discord.Interaction):
-        if not await self.interaction_check(interaction):
-            return
+    async def draw_callback(self, interaction: discord.Interaction):
         await self.game.events.action_start()
         _, hold = await self.game.draw_from(interaction)
         if hold:
             await self.game.events.turn_end()
 
-    @discord.ui.button(label="Play a card", style=discord.ButtonStyle.green, emoji="🎴")
-    async def play(self, _, interaction: discord.Interaction):
-        from eggsplode.selections import PlayView
-
-        if not await self.interaction_check(interaction):
-            return
+    async def play_callback(self, interaction: discord.Interaction):
         view = PlayView(self.game)
         await interaction.respond(
             view.create_play_prompt_message(self.game.current_player_id),
@@ -536,3 +424,12 @@ class TurnContainer(discord.ui.Container):
             ephemeral=True,
         )
         await self.game.events.turn_reset()
+
+    async def deactivate(self):
+        self.stop()
+        self.disable_all_items()
+        self.game.events.turn_end.unsubscribe(self.deactivate)
+        for item in (self.draw_button, self.play_button, self.warnings):
+            self.remove_item(item)
+        if self.game.anchor_interaction:
+            await self.game.anchor_interaction.edit_original_response(view=self)

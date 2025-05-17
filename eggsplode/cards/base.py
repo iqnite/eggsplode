@@ -3,13 +3,17 @@ Contains card effects for the base game.
 """
 
 import random
+from typing import TYPE_CHECKING
 import discord
-
 from eggsplode.nope import ExplicitNopeView
+from eggsplode.selections import ChoosePlayerView
 from eggsplode.strings import CARDS, get_message, replace_emojis
 
+if TYPE_CHECKING:
+    from eggsplode.core import Game
 
-async def attegg(game, interaction: discord.Interaction):
+
+async def attegg(game: "Game", interaction: discord.Interaction):
     if not interaction.user:
         return
     view = ExplicitNopeView(
@@ -17,7 +21,7 @@ async def attegg(game, interaction: discord.Interaction):
         target_player_id=game.next_player_id,
         ok_callback_action=lambda _: attegg_finish(game),
     )
-    await game.log(
+    await game.send(
         get_message("before_attegg").format(
             interaction.user.id,
             game.next_player_id,
@@ -27,15 +31,15 @@ async def attegg(game, interaction: discord.Interaction):
     )
 
 
-async def shuffle(game, interaction: discord.Interaction):
+async def shuffle(game: "Game", interaction: discord.Interaction):
     if not interaction.user:
         return
     game.shuffle_deck()
-    await game.log(get_message("shuffled").format(interaction.user.id))
+    await game.send(get_message("shuffled").format(interaction.user.id))
     await game.events.action_end()
 
 
-async def predict(game, interaction: discord.Interaction):
+async def predict(game: "Game", interaction: discord.Interaction):
     if not interaction.user:
         return
     next_cards = "\n".join(
@@ -44,7 +48,7 @@ async def predict(game, interaction: discord.Interaction):
         )
         for card in game.deck[-1:-4:-1]
     )
-    await game.log(
+    await game.send(
         get_message("predicted").format(interaction.user.id),
     )
     await interaction.respond(
@@ -55,9 +59,7 @@ async def predict(game, interaction: discord.Interaction):
     await game.events.action_end()
 
 
-async def food_combo(game, interaction: discord.Interaction, selected: str):
-    from eggsplode.selections import ChoosePlayerView
-
+async def food_combo(game: "Game", interaction: discord.Interaction, selected: str):
     if not interaction.user:
         return
     if not game.any_player_has_cards():
@@ -83,7 +85,10 @@ async def food_combo(game, interaction: discord.Interaction, selected: str):
 
 
 async def food_combo_begin(
-    game, interaction: discord.Interaction, target_player_id: int, food_card: str
+    game: "Game",
+    interaction: discord.Interaction,
+    target_player_id: int,
+    food_card: str,
 ):
     if not interaction.user:
         return
@@ -94,7 +99,7 @@ async def food_combo_begin(
             game, interaction, target_interaction, target_player_id
         ),
     )
-    await game.log(
+    await game.send(
         get_message("before_steal").format(
             replace_emojis(CARDS[food_card]["emoji"]),
             interaction.user.id,
@@ -105,7 +110,7 @@ async def food_combo_begin(
 
 
 async def food_combo_finish(
-    game,
+    game: "Game",
     interaction: discord.Interaction,
     target_interaction: discord.Interaction | None,
     target_player_id: int,
@@ -114,7 +119,7 @@ async def food_combo_finish(
         return
     target_hand = game.hands[target_player_id]
     if not target_hand:
-        await game.log(
+        await game.send(
             get_message("no_cards_to_steal").format(
                 game.current_player_id, target_player_id
             )
@@ -124,7 +129,7 @@ async def food_combo_finish(
     stolen_card = random.choice(target_hand)
     game.hands[target_player_id].remove(stolen_card)
     game.current_player_hand.append(stolen_card)
-    await game.log(
+    await game.send(
         get_message("stolen_card_public").format(
             game.current_player_id, target_player_id
         )
@@ -151,12 +156,12 @@ async def food_combo_finish(
         await game.events.action_end()
 
 
-async def defuse_finish(game):
-    await game.log(get_message("defused").format(game.current_player_id))
+async def defuse_finish(game: "Game"):
+    await game.send(get_message("defused").format(game.current_player_id))
     await game.events.turn_end()
 
 
-async def attegg_finish(game, target_player_id=None):
+async def attegg_finish(game: "Game", target_player_id=None):
     target_player_id = target_player_id or game.next_player_id
     prev_to_draw_in_turn = game.draw_in_turn
     game.draw_in_turn = 0
@@ -165,19 +170,21 @@ async def attegg_finish(game, target_player_id=None):
     await game.events.turn_end()
 
 
-async def skip(game, _):
-    await game.log(get_message("skipped").format(game.current_player_id))
+async def skip(game: "Game", _):
+    await game.send(get_message("skipped").format(game.current_player_id))
     await game.events.turn_end()
 
 
-async def eggsplode(game, interaction: discord.Interaction, timed_out: bool = False):
+async def eggsplode(
+    game: "Game", interaction: discord.Interaction, timed_out: bool = False
+):
     from eggsplode.selections import DefuseView
 
     if "defuse" in game.hands[game.current_player_id]:
         game.hands[game.current_player_id].remove("defuse")
         if timed_out:
             game.deck.insert(random.randint(1, len(game.deck)), "eggsplode")
-            await game.log(get_message("defused").format(game.current_player_id))
+            await game.send(get_message("defused").format(game.current_player_id))
         else:
             view = DefuseView(
                 game,
@@ -189,25 +196,22 @@ async def eggsplode(game, interaction: discord.Interaction, timed_out: bool = Fa
     prev_player = game.current_player_id
     game.remove_player(prev_player)
     game.draw_in_turn = 0
-    await game.log(get_message("eggsploded").format(prev_player))
+    await game.send(get_message("eggsploded").format(prev_player))
     if len(game.players) == 1:
         await game_over(game, interaction)
     await game.events.turn_end()
 
 
-async def game_over(game, interaction: discord.Interaction):
+async def game_over(game: "Game", interaction: discord.Interaction):
     if not interaction.user:
         return
-    await game.log(
+    await game.send(
         get_message("game_over").format(game.players[0]),
     )
     await game.events.game_end()
-    await game.update_action(
-        discord.ui.Container(discord.ui.TextDisplay(get_message("start_game_tip")))
-    )
 
 
-def deck_count(game) -> str:
+def deck_count(game: "Game") -> str:
     return get_message("turn_warning").format(
         len(game.deck),
         game.deck.count("eggsplode"),

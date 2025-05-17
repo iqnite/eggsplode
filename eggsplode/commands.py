@@ -57,7 +57,7 @@ class EggsplodeApp(commands.Bot):
                 else config
             ),
         )
-        game.log.anchor_interaction = interaction
+        game.anchor_interaction = interaction
         view = StartGameView(game)
         await interaction.respond(view=view)
 

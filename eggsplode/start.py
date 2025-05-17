@@ -203,16 +203,16 @@ class SettingsModal(discord.ui.Modal):
                 "min": 0,
                 "max": 100,
             },
-            # "turn_timeout": {
-            #     "input": discord.ui.InputText(
-            #         label="Turn timer (in seconds; 40-600)",
-            #         placeholder="60",
-            #         value=self.game.config.get("turn_timeout", None),
-            #         required=False,
-            #     ),
-            #     "min": 40,
-            #     "max": 600,
-            # },
+            "turn_timeout": {
+                "input": discord.ui.InputText(
+                    label="[Experimental] Turn timeout (seconds)",
+                    placeholder="60",
+                    value=self.game.config.get("turn_timeout", None),
+                    required=False,
+                ),
+                "min": 10,
+                "max": 600,
+            },
         }
         for _, i in self.inputs.items():
             self.add_item(i["input"])
