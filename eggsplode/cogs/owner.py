@@ -93,7 +93,7 @@ class Owner(commands.Cog):
             )
 
     @discord.slash_command(
-        name="listgames",
+        name="all_games",
         description="List all games.",
         guild_ids=[TEST_GUILD_ID],
     )
