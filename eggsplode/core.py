@@ -39,7 +39,7 @@ class Game:
         self.events.turn_end += self.next_turn
         self.events.game_end += self.end
         self.events.action_start += self.pause
-        self.events.turn_reset += self.resume
+        self.events.turn_reset += self.reset_timer
         self.events.action_end += self.resume
         self.events.turn_start += self.resume
 
@@ -169,7 +169,7 @@ class Game:
             self.current_player = self.next_player
         await self.events.turn_start()
 
-    def group_hand(self, user_id: int, usable_only: bool = False) -> dict:
+    def group_hand(self, user_id: int, usable_only: bool = False) -> dict[str, int]:
         player_cards = self.hands[user_id]
         result = {}
         for card in player_cards:
@@ -265,10 +265,13 @@ class Game:
     async def resume(self):
         if not self.running:
             return
-        self.last_activity = datetime.now()
+        self.reset_timer()
         self.action_id += 1
         self.paused = False
         await self.send(view=TurnView(self))
+
+    def reset_timer(self):
+        self.last_activity = datetime.now()
 
     async def end(self):
         self.running = False
@@ -379,16 +382,16 @@ class TurnView(BaseView):
         super().__init__(game)
         self.turn_prompt = discord.ui.TextDisplay(game.turn_prompt)
         self.add_item(self.turn_prompt)
-        self.draw_button = discord.ui.Button(
-            label="Draw", style=discord.ButtonStyle.blurple, emoji="🤚"
-        )
-        self.draw_button.callback = self.draw_callback
-        self.add_item(self.draw_button)
         self.play_button = discord.ui.Button(
-            label="Play a card", style=discord.ButtonStyle.green, emoji="🎴"
+            label="Play a card", style=discord.ButtonStyle.primary, emoji="🎴"
         )
         self.play_button.callback = self.play_callback
         self.add_item(self.play_button)
+        self.draw_button = discord.ui.Button(
+            label="Draw", style=discord.ButtonStyle.secondary, emoji="🤚"
+        )
+        self.draw_button.callback = self.draw_callback
+        self.add_item(self.draw_button)
         self.warnings = discord.ui.TextDisplay(self.game.warnings)
         self.add_item(self.warnings)
         self.game.events.turn_end.subscribe(self.deactivate, 0)
@@ -421,11 +424,7 @@ class TurnView(BaseView):
 
     async def play_callback(self, interaction: discord.Interaction):
         view = PlayView(self.game)
-        await interaction.respond(
-            view.create_play_prompt_message(self.game.current_player_id),
-            view=view,
-            ephemeral=True,
-        )
+        await interaction.respond(view=view, ephemeral=True)
         await self.game.events.turn_reset()
 
     async def deactivate(self):

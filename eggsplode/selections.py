@@ -6,7 +6,7 @@ from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 
 from eggsplode.nope import NopeView
-from eggsplode.strings import CARDS, get_message, replace_emojis
+from eggsplode.strings import CARDS, get_message
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
@@ -158,91 +158,88 @@ class PlayView(discord.ui.View):
         super().__init__(timeout=60)
         self.game = game
         self.action_id = game.action_id
-        self.play_card_select = None
+        self.card_selects = []
+        self.play_prompt = discord.ui.TextDisplay(get_message("play_prompt"))
+        self.add_item(self.play_prompt)
         self.create_card_selection()
-
-    async def update(self, interaction: discord.Interaction):
-        if not interaction.user:
-            return
-        self.create_card_selection()
-        await interaction.edit(
-            content=self.create_play_prompt_message(interaction.user.id),
-            view=self,
-        )
-
-    def create_play_prompt_message(self, user_id: int) -> str:
-        return get_message("play_prompt").format(
-            self.game.cards_help(user_id, template=get_message("hand_list"))
-        )
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if not interaction.user:
             raise TypeError("interaction.user is None")
         if interaction.user.id != self.game.current_player_id:
             await interaction.edit(
-                content=get_message("not_your_turn"), view=None, delete_after=5
+                view=discord.ui.View(
+                    discord.ui.TextDisplay(get_message("not_your_turn"))
+                ),
+                delete_after=5,
             )
             return False
         if self.action_id != self.game.action_id:
             await interaction.edit(
-                content=get_message("invalid_turn"), view=None, delete_after=10
+                view=discord.ui.View(
+                    discord.ui.TextDisplay(get_message("invalid_turn"))
+                ),
+                delete_after=10,
             )
             return False
         self.game.action_id += 1
         self.action_id = self.game.action_id
         await self.game.events.action_start()
-        self.disable_all_items()
+        self.stop()
         await interaction.edit(view=self, delete_after=0)
         return True
 
     def create_card_selection(self):
-        if self.play_card_select:
-            self.remove_item(self.play_card_select)
-        user_cards: dict = self.game.group_hand(
-            self.game.current_player_id, usable_only=True
+        user_cards = self.game.group_hand(
+            self.game.current_player_id, usable_only=False
         )
         if not user_cards:
             return
-        self.play_card_select = discord.ui.Select(
-            placeholder="Select a card to play",
-            min_values=1,
-            max_values=1,
-            options=[
-                discord.SelectOption(
-                    value=card,
-                    label=f"{CARDS[card]['title']} ({user_cards[card]}x)",
-                    description=CARDS[card]["description"],
-                    emoji=replace_emojis(CARDS[card]["emoji"]),
-                )
-                for card in user_cards
-            ],
-        )
-        self.play_card_select.callback = lambda interaction: self.play_card(
-            None, interaction
-        )
-        self.add_item(self.play_card_select)
+        for card, count in user_cards.items():
+            playable = CARDS[card].get("usable", False) and (
+                CARDS[card].get("combo", 0) == 0 or count > 1
+            )
+            section = discord.ui.Section(
+                discord.ui.TextDisplay(
+                    get_message("play_section").format(
+                        CARDS[card]["emoji"],
+                        CARDS[card]["title"],
+                        CARDS[card]["description"],
+                    )
+                ),
+                accessory=discord.ui.Button(
+                    label=("Play " if playable else "") + f"({count}x)",
+                    style=discord.ButtonStyle.secondary,
+                    emoji=CARDS[card]["emoji"],
+                    disabled=not playable,
+                ),
+            )
+            assert isinstance(section.accessory, discord.ui.Button)
 
-    async def play_card(self, _, interaction: discord.Interaction):
-        if not (interaction.message and interaction.user and self.play_card_select):
+            def make_callback(card_value):
+                return lambda interaction: self.play_card(card_value, interaction)
+
+            section.accessory.callback = make_callback(card)
+            self.card_selects.append(section)
+            if section in self.children:
+                self.remove_item(section)
+            self.add_item(section)
+
+    async def play_card(self, card: str, interaction: discord.Interaction):
+        if not interaction.user:
             return
-        selected = self.play_card_select.values[0]
-        if not isinstance(selected, str):
-            raise TypeError("selected is not a str")
         await self.game.events.action_start()
-        if CARDS[selected].get("combo", 0) == 1:
-            await self.game.play(interaction, "food_combo")
+        self.game.current_player_hand.remove(card)
+        if CARDS[card].get("explicit", False):
+            await self.game.play(interaction, card)
         else:
-            self.game.current_player_hand.remove(selected)
-            if CARDS[selected].get("explicit", False):
-                await self.game.play(interaction, selected)
-            else:
-                view = NopeView(
-                    self.game,
-                    ok_callback_action=lambda _: self.game.play(interaction, selected),
-                    message=get_message("play_card").format(
-                        interaction.user.id,
-                        CARDS[selected]["emoji"],
-                        CARDS[selected]["title"],
-                    ),
-                )
-                await self.game.send(view=view)
+            view = NopeView(
+                self.game,
+                ok_callback_action=lambda _: self.game.play(interaction, card),
+                message=get_message("play_card").format(
+                    interaction.user.id,
+                    CARDS[card]["emoji"],
+                    CARDS[card]["title"],
+                ),
+            )
+            await self.game.send(view=view)

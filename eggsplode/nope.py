@@ -31,19 +31,20 @@ class NopeView(discord.ui.View):
         self.disabled = False
         self.action_text_display = discord.ui.TextDisplay(message)
         self.add_item(self.action_text_display)
+        self.button_container = discord.ui.Container()
         self.nope_button = discord.ui.Button(
             label="Nope!", style=discord.ButtonStyle.red, emoji="🛑"
         )
         self.nope_button.callback = self.nope_callback
-        self.add_item(self.nope_button)
-        self.timer_display = discord.ui.TextDisplay(self.timer_text, id=100)
+        self.button_container.add_item(self.nope_button)
+        self.add_item(self.button_container)
+        self.timer_display = discord.ui.TextDisplay(self.timer_text)
         self.add_item(self.timer_display)
 
     @property
     def timer_text(self) -> str:
         return (
             get_message("timer").format(
-                ("OK" if self.nope_count % 2 == 0 else "Nope"),
                 int((datetime.now() + timedelta(seconds=self.timeout)).timestamp()),
             )
             if self.timeout
@@ -93,18 +94,19 @@ class NopeView(discord.ui.View):
             await interaction.respond(
                 get_message("no_nope_cards"), ephemeral=True, delete_after=5
             )
-            return
-        self.nope_count += 1
-        self.nope_button.label = "Nope!" if not self.nope_count % 2 else "Yup!"
-        self.toggle_strike_through()
-        self.action_messages.append(
-            get_message("message_edit_on_nope").format(interaction.user.id)
-            if self.nope_count % 2
-            else get_message("message_edit_on_yup").format(interaction.user.id)
-        )
-        self.action_text_display.content = "\n".join(self.action_messages)
+        else:
+            self.nope_count += 1
+            self.nope_button.label = "Nope!" if not self.nope_count % 2 else "Yup!"
+            self.toggle_strike_through()
+            self.action_messages.append(
+                get_message("message_edit_on_nope").format(interaction.user.id)
+                if self.nope_count % 2
+                else get_message("message_edit_on_yup").format(interaction.user.id)
+            )
+            self.action_text_display.content = "\n".join(self.action_messages)
         self.timer_display.content = self.timer_text
-        await self.game.send(view=self, anchor=interaction)
+        self.game.anchor_interaction = interaction
+        await interaction.edit(view=self)
 
 
 class ExplicitNopeView(NopeView):
@@ -125,7 +127,7 @@ class ExplicitNopeView(NopeView):
             label="OK!", style=discord.ButtonStyle.green, emoji="✅"
         )
         self.ok_button.callback = self.ok_callback
-        self.add_item(self.ok_button)
+        self.button_container.add_item(self.ok_button)
 
     async def ok_callback(self, interaction: discord.Interaction):
         if not interaction.user:

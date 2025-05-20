@@ -57,7 +57,7 @@ async def predict(game: "Game", interaction: discord.Interaction):
     await game.events.action_end()
 
 
-async def food_combo(game: "Game", interaction: discord.Interaction, selected: str):
+async def food_combo(game: "Game", interaction: discord.Interaction, card: str):
     if not interaction.user:
         return
     if not game.any_player_has_cards():
@@ -65,13 +65,11 @@ async def food_combo(game: "Game", interaction: discord.Interaction, selected: s
             get_message("no_players_have_cards"), ephemeral=True, delete_after=10
         )
         return
-    assert game.current_player_hand.count(selected) >= 2
-    for _ in range(2):
-        game.current_player_hand.remove(selected)
+    game.current_player_hand.remove(card)
     view = ChoosePlayerView(
         game,
         lambda target_player_id: food_combo_begin(
-            game, interaction, target_player_id, selected
+            game, interaction, target_player_id, card
         ),
         condition=lambda user_id: user_id != game.current_player_id
         and len(game.hands[user_id]) > 0,
@@ -218,7 +216,9 @@ PLAY_ACTIONS = {
     "skip": skip,
     "shuffle": shuffle,
     "predict": predict,
-    "food_combo": food_combo,
+} | {
+    f"food{i}": lambda game, interaction, i=i: food_combo(game, interaction, f"food{i}")
+    for i in range(5)
 }
 
 DRAW_ACTIONS = {
