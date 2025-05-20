@@ -30,6 +30,7 @@ class Game:
         self.running = True
         self.paused = False
         self.inactivity_count = 0
+        self.anchor_interaction: discord.Interaction | None = None
         self.play_actions: dict[str, Callable[[Game, discord.Interaction], Coroutine]]
         self.draw_actions: dict[
             str, Callable[[Game, discord.Interaction, bool | None], Coroutine]
@@ -287,7 +288,9 @@ class Game:
     ):
         use_view = view
         if message is not None:
-            use_view = discord.ui.View(discord.ui.TextDisplay(message))
+            if use_view is None:
+                use_view = discord.ui.View()
+            use_view.add_item(discord.ui.TextDisplay(message))
         if use_view is None:
             raise ValueError("Either message or view must be provided")
         if anchor is not None:

@@ -125,16 +125,16 @@ async def targeted_attegg_begin(
     if not interaction.user:
         return
     view = ExplicitNopeView(
-        game, target_player_id, lambda _: attegg_finish(game, target_player_id)
-    )
-    await game.send(
-        get_message("before_targeted_attegg").format(
+        game,
+        message=get_message("before_targeted_attegg").format(
             interaction.user.id,
             target_player_id,
             game.draw_in_turn + 2,
         ),
-        view=view,
+        target_player_id=target_player_id,
+        ok_callback_action=lambda _: attegg_finish(game, target_player_id),
     )
+    await game.send(view=view)
 
 
 async def targeted_attegg(game: "Game", interaction: discord.Interaction):

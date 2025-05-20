@@ -6,7 +6,7 @@ import random
 from typing import TYPE_CHECKING
 import discord
 from eggsplode.nope import ExplicitNopeView
-from eggsplode.selections import ChoosePlayerView
+from eggsplode.selections import ChoosePlayerView, DefuseView
 from eggsplode.strings import CARDS, get_message, replace_emojis
 
 if TYPE_CHECKING:
@@ -18,17 +18,15 @@ async def attegg(game: "Game", interaction: discord.Interaction):
         return
     view = ExplicitNopeView(
         game=game,
-        target_player_id=game.next_player_id,
-        ok_callback_action=lambda _: attegg_finish(game),
-    )
-    await game.send(
-        get_message("before_attegg").format(
+        message=get_message("before_attegg").format(
             interaction.user.id,
             game.next_player_id,
             game.draw_in_turn + 2,
         ),
-        view=view,
+        target_player_id=game.next_player_id,
+        ok_callback_action=lambda _: attegg_finish(game),
     )
+    await game.send(view=view)
 
 
 async def shuffle(game: "Game", interaction: discord.Interaction):
@@ -94,19 +92,17 @@ async def food_combo_begin(
         return
     view = ExplicitNopeView(
         game,
-        target_player_id,
-        lambda target_interaction: food_combo_finish(
-            game, interaction, target_interaction, target_player_id
-        ),
-    )
-    await game.send(
-        get_message("before_steal").format(
+        message=get_message("before_steal").format(
             replace_emojis(CARDS[food_card]["emoji"]),
             interaction.user.id,
             target_player_id,
         ),
-        view=view,
+        target_player_id=target_player_id,
+        ok_callback_action=lambda target_interaction: food_combo_finish(
+            game, interaction, target_interaction, target_player_id
+        ),
     )
+    await game.send(view=view)
 
 
 async def food_combo_finish(
@@ -178,7 +174,6 @@ async def skip(game: "Game", _):
 async def eggsplode(
     game: "Game", interaction: discord.Interaction, timed_out: bool = False
 ):
-    from eggsplode.selections import DefuseView
 
     if "defuse" in game.hands[game.current_player_id]:
         game.hands[game.current_player_id].remove("defuse")

@@ -2,12 +2,14 @@
 Contains the views for the short interactions in the game, such as "Defuse".
 """
 
-from datetime import datetime, timedelta
-from typing import Callable, Coroutine
+from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 
-from eggsplode.nope import NopeContainer
+from eggsplode.nope import NopeView
 from eggsplode.strings import CARDS, get_message, replace_emojis
+
+if TYPE_CHECKING:
+    from eggsplode.core import Game
 
 
 class SelectionView(discord.ui.View):
@@ -24,7 +26,6 @@ class SelectionView(discord.ui.View):
     async def confirm(self, _, interaction: discord.Interaction):
         self.disable_all_items()
         await interaction.edit(view=self, delete_after=0)
-        self.on_timeout = super().on_timeout
         self.stop()
         await self.finish()
 
@@ -32,7 +33,7 @@ class SelectionView(discord.ui.View):
 class ChoosePlayerView(discord.ui.View):
     def __init__(
         self,
-        game,
+        game: "Game",
         callback_action: Callable[[int], Coroutine],
         condition: Callable[[int], bool] = lambda _: True,
     ):
@@ -83,7 +84,7 @@ class ChoosePlayerView(discord.ui.View):
 class DefuseView(SelectionView):
     def __init__(
         self,
-        game,
+        game: "Game",
         callback_action: Callable[[], Coroutine],
         card="eggsplode",
         prev_card=None,
@@ -153,7 +154,7 @@ class DefuseView(SelectionView):
 
 
 class PlayView(discord.ui.View):
-    def __init__(self, game):
+    def __init__(self, game: "Game"):
         super().__init__(timeout=60)
         self.game = game
         self.action_id = game.action_id
@@ -235,15 +236,13 @@ class PlayView(discord.ui.View):
             if CARDS[selected].get("explicit", False):
                 await self.game.play(interaction, selected)
             else:
-                view = NopeContainer(
+                view = NopeView(
                     self.game,
                     ok_callback_action=lambda _: self.game.play(interaction, selected),
-                )
-                await self.game.log(
-                    get_message("play_card").format(
+                    message=get_message("play_card").format(
                         interaction.user.id,
                         CARDS[selected]["emoji"],
                         CARDS[selected]["title"],
-                        int((datetime.now() + timedelta(seconds=10)).timestamp()),
                     ),
                 )
+                await self.game.send(view=view)
