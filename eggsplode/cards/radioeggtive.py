@@ -81,7 +81,9 @@ class AlterFutureView(SelectionView):
         self.selects = []
         for i in range(self.amount_of_cards):
             select = discord.ui.Select(
-                placeholder=f"{i + 1}. card: {CARDS[self.game.deck[-i - 1]]['title']}",
+                placeholder=get_message("alter_future_placeholder").format(
+                    i + 1, CARDS[self.game.deck[-i - 1]]["title"]
+                ),
                 min_values=1,
                 max_values=1,
                 options=card_options,

@@ -6,12 +6,13 @@ from datetime import datetime, timedelta
 from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 from eggsplode.strings import get_message
+from eggsplode.base_views import BaseView
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-class NopeView(discord.ui.View):
+class NopeView(BaseView):
     def __init__(
         self,
         game: "Game",
@@ -22,7 +23,7 @@ class NopeView(discord.ui.View):
         nope_callback_action: Callable[[], None] | None = None,
         timeout=10,
     ):
-        super().__init__(timeout=timeout, disable_on_timeout=True)
+        super().__init__(game, timeout=timeout)
         self.game = game
         self.action_messages = [message]
         self.ok_callback_action = ok_callback_action
@@ -64,9 +65,9 @@ class NopeView(discord.ui.View):
                     await self.game.events.action_end()
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        await interaction.response.defer(invisible=True)
         return (
-            interaction.user is not None
+            await super().interaction_check(interaction)
+            and interaction.user is not None
             and interaction.user.id in self.game.players
             and not self.disabled
         )

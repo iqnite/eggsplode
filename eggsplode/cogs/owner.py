@@ -85,11 +85,11 @@ class Owner(commands.Cog):
 
         if process.returncode == 0:
             await ctx.edit(
-                content=f"Command executed successfully:\n```{stdout.decode()[1800:]}```"
+                content=get_message("command_success").format(stdout.decode()[1800:])
             )
         else:
             await ctx.edit(
-                content=f"Command failed with error:\n```{stderr.decode()[1800:]}```"
+                content=get_message("command_failed").format(stderr.decode()[1800:])
             )
 
     @discord.slash_command(

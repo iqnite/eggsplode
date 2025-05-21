@@ -1,10 +1,11 @@
 """
-Contains additional utility commands.
+Contains additional commands.
 """
 
 import discord
 from discord.ext import commands
 from eggsplode.commands import EggsplodeApp
+from eggsplode.strings import get_message
 
 
 class Misc(commands.Cog):
@@ -21,6 +22,31 @@ class Misc(commands.Cog):
     )
     async def show_help_command(self, ctx: discord.ApplicationContext):
         await self.bot.show_help(ctx.interaction)
+
+    @discord.message_command(
+        name="Eggify",
+        description="Eggify a message!",
+        integration_types={
+            discord.IntegrationType.guild_install,
+            discord.IntegrationType.user_install,
+        },
+    )
+    async def eggify(self, ctx: discord.ApplicationContext, message: discord.Message):
+        await ctx.defer(invisible=True)
+        try:
+            await ctx.respond(
+                message.content.replace("eg", "egg")
+                .replace("egg", "**egg**")
+                .replace("Egg", "**EGG**")
+                .replace("EGG", "**__EGG__**")
+                .replace("ex", "eggs")
+                .replace("ack", "egg")
+                .replace("ac", "egg")
+                .replace("O", "🥚")
+                .replace("0", "🥚")
+            )
+        except discord.HTTPException:
+            await ctx.respond(get_message("eggify_error"), ephemeral=True)
 
 
 def setup(bot: EggsplodeApp):

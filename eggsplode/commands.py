@@ -16,7 +16,6 @@ class EggsplodeApp(commands.Bot):
         self.admin_maintenance: bool = False
         self.games: dict[int, Game] = {}
         self.load_extension("eggsplode.cogs.eggsplode_game")
-        self.load_extension("eggsplode.cogs.mini_games")
         self.load_extension("eggsplode.cogs.misc")
         self.load_extension("eggsplode.cogs.owner")
 
@@ -33,7 +32,7 @@ class EggsplodeApp(commands.Bot):
             ).total_seconds() > 1800:
                 del self.games[game_id]
 
-    async def start_game(self, interaction: discord.Interaction, config=None):
+    async def create_game(self, interaction: discord.Interaction, config=None):
         self.cleanup()
         if self.admin_maintenance:
             await interaction.respond(get_message("maintenance"), ephemeral=True)
