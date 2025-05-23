@@ -32,15 +32,13 @@ class NopeView(BaseView):
         self.disabled = False
         self.action_text_display = discord.ui.TextDisplay(message)
         self.add_item(self.action_text_display)
-        self.button_container = discord.ui.Container()
+        self.timer_display = discord.ui.TextDisplay(self.timer_text)
+        self.add_item(self.timer_display)
         self.nope_button = discord.ui.Button(
             label="Nope!", style=discord.ButtonStyle.red, emoji="🛑"
         )
         self.nope_button.callback = self.nope_callback
-        self.button_container.add_item(self.nope_button)
-        self.add_item(self.button_container)
-        self.timer_display = discord.ui.TextDisplay(self.timer_text)
-        self.add_item(self.timer_display)
+        self.add_item(self.nope_button)
 
     @property
     def timer_text(self) -> str:
@@ -128,7 +126,7 @@ class ExplicitNopeView(NopeView):
             label="OK!", style=discord.ButtonStyle.green, emoji="✅"
         )
         self.ok_button.callback = self.ok_callback
-        self.button_container.add_item(self.ok_button)
+        self.add_item(self.ok_button)
 
     async def ok_callback(self, interaction: discord.Interaction):
         if not interaction.user:
