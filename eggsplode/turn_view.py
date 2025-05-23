@@ -4,7 +4,7 @@ Contains the TurnView class, which is a Discord UI view for managing player turn
 
 from typing import TYPE_CHECKING
 import discord
-from eggsplode.base_views import BaseView
+from eggsplode.base_view import BaseView
 from eggsplode.selections import PlayView
 from eggsplode.strings import get_message
 
