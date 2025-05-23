@@ -3,10 +3,14 @@ Contains the StartGameView class which handles the start game view in the Discor
 """
 
 import discord
+from typing import TYPE_CHECKING
 from eggsplode.strings import EXPANSIONS, get_message, replace_emojis
 
+if TYPE_CHECKING:
+    from eggsplode.core import Game
 
-async def check_permissions(game, interaction: discord.Interaction):
+
+async def check_permissions(game: "Game", interaction: discord.Interaction):
     if not interaction.user:
         return
     if interaction.user.id != game.config["players"][0]:
@@ -20,7 +24,7 @@ async def check_permissions(game, interaction: discord.Interaction):
 
 
 class StartGameView(discord.ui.View):
-    def __init__(self, game):
+    def __init__(self, game: "Game"):
         super().__init__(timeout=600, disable_on_timeout=True)
         self.game = game
         self.create_settings()
@@ -120,7 +124,7 @@ class StartGameView(discord.ui.View):
         await self.game.start(interaction)
 
     async def help(self, interaction: discord.Interaction):
-        await self.game.app.show_help(interaction, ephemeral=True)
+        await interaction.respond(view=HelpView(), ephemeral=True)
 
     def create_settings(self):
         self.expansion_select = discord.ui.Select(
@@ -182,7 +186,7 @@ class StartGameView(discord.ui.View):
 
 
 class SettingsModal(discord.ui.Modal):
-    def __init__(self, game, *args, **kwargs) -> None:
+    def __init__(self, game: "Game", *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.game = game
         self.inputs = {
@@ -269,6 +273,24 @@ class SettingsModal(discord.ui.Modal):
 class HelpView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
+        self.section_select = discord.ui.Select(
+            placeholder="Section",
+            options=[
+                discord.SelectOption(label="Getting started", emoji="🚀", value="0"),
+                discord.SelectOption(label="Cards (1)", emoji="🎴", value="1"),
+                discord.SelectOption(label="Cards (2)", emoji="🎴", value="2"),
+                discord.SelectOption(
+                    label="Radioeggtive Eggspansion", emoji="🧩", value="3"
+                ),
+                discord.SelectOption(label="Credits", emoji="👏", value="4"),
+            ],
+            max_values=1,
+            min_values=1,
+        )
+        self.section_select.callback = self.section_callback
+        self.add_item(self.section_select)
+        self.help_text = discord.ui.TextDisplay(get_message("help0"))
+        self.add_item(self.help_text)
         self.add_item(
             discord.ui.Button(
                 label="Website",
@@ -310,20 +332,7 @@ class HelpView(discord.ui.View):
             )
         )
 
-    @discord.ui.select(
-        placeholder="Section",
-        options=[
-            discord.SelectOption(label="Getting started", emoji="🚀", value="0"),
-            discord.SelectOption(label="Cards (1)", emoji="🎴", value="1"),
-            discord.SelectOption(label="Cards (2)", emoji="🎴", value="2"),
-            discord.SelectOption(label="Eggspansions", emoji="🧩", value="3"),
-            discord.SelectOption(label="Credits", emoji="👏", value="4"),
-        ],
-        max_values=1,
-        min_values=1,
-    )
-    async def section_callback(
-        self, select: discord.ui.Select, interaction: discord.Interaction
-    ):
-        assert isinstance(select.values[0], str)
-        await interaction.edit(content=get_message(f"help{int(select.values[0])}"))
+    async def section_callback(self, interaction: discord.Interaction):
+        assert isinstance(self.section_select.values[0], str)
+        self.help_text.content = get_message(f"help{int(self.section_select.values[0])}")
+        await interaction.edit(view=self)

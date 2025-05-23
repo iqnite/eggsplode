@@ -6,8 +6,8 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 from eggsplode.core import Game
-from eggsplode.strings import INFO, get_message
-from eggsplode.start import HelpView, StartGameView
+from eggsplode.strings import get_message
+from eggsplode.start import StartGameView
 
 
 class EggsplodeApp(commands.Bot):
@@ -59,16 +59,3 @@ class EggsplodeApp(commands.Bot):
         game.anchor_interaction = interaction
         view = StartGameView(game)
         await interaction.respond(view=view)
-
-    async def show_help(self, interaction: discord.Interaction, ephemeral=False):
-        await interaction.respond(
-            get_message("help0")
-            + "\n"
-            + get_message("status").format(
-                self.latency * 1000,
-                INFO["version"],
-                get_message("maintenance") if self.admin_maintenance else "",
-            ),
-            view=HelpView(),
-            ephemeral=ephemeral,
-        )
