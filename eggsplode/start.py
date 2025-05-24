@@ -2,89 +2,112 @@
 Contains the StartGameView class which handles the start game view in the Discord bot.
 """
 
+from typing import TYPE_CHECKING
 import discord
+from eggsplode.strings import EXPANSIONS, get_message, replace_emojis
 
-from .strings import EXPANSIONS, get_message, replace_emojis
-from .game_logic import Game
-from .action import TurnView
+if TYPE_CHECKING:
+    from eggsplode.core import Game
+
+
+async def check_permissions(game: "Game", interaction: discord.Interaction):
+    if not interaction.user:
+        return
+    if interaction.user.id != game.config["players"][0]:
+        await interaction.respond(
+            get_message("not_game_creator"),
+            ephemeral=True,
+            delete_after=5,
+        )
+        return False
+    return True
 
 
 class StartGameView(discord.ui.View):
-    def __init__(self, game: Game):
+    def __init__(self, game: "Game"):
         super().__init__(timeout=600, disable_on_timeout=True)
         self.game = game
+        self.create_settings()
+        self.header = discord.ui.Section()
+        self.title = discord.ui.TextDisplay(get_message("start"))
+        self.header.add_item(self.title)
+        self.start_game_button = discord.ui.Button(
+            label="Start", style=discord.ButtonStyle.green, emoji="🚀"
+        )
+        self.start_game_button.callback = self.start_game
+        self.header.accessory = self.start_game_button
+        self.add_item(self.header)
+        self.players_container = discord.ui.Container()
+        self.join_game_button = discord.ui.Button(
+            label="Join", style=discord.ButtonStyle.blurple, emoji="👋"
+        )
+        self.join_game_button.callback = self.join_game
+        self.players_container.add_section(
+            discord.ui.TextDisplay(get_message("players")),
+            accessory=self.join_game_button,
+        )
+        self.players_display = discord.ui.TextDisplay(self.game.player_list)
+        self.players_container.add_item(self.players_display)
+        self.add_item(self.players_container)
+        self.help_button = discord.ui.Button(
+            label="Help", style=discord.ButtonStyle.grey, emoji="❓"
+        )
+        self.help_button.callback = self.help
+        self.settings_container = discord.ui.Container()
+        self.settings_container.add_section(
+            discord.ui.TextDisplay(get_message("settings")), accessory=self.help_button
+        )
+        self.settings_container.add_text(get_message("expansions"))
+        self.settings_container.add_text(get_message("expansions_description"))
+        self.settings_container.add_item(self.expansion_select)
+        self.settings_container.add_separator()
+        self.settings_container.add_section(
+            discord.ui.TextDisplay(get_message("short_mode")),
+            discord.ui.TextDisplay(get_message("short_mode_description")),
+            accessory=self.short_mode_button,
+        )
+        self.settings_container.add_separator()
+        self.advanced_settings_button = discord.ui.Button(
+            label="View", style=discord.ButtonStyle.grey, emoji="⚙️"
+        )
+        self.advanced_settings_button.callback = self.advanced_settings
+        self.settings_container.add_section(
+            discord.ui.TextDisplay(get_message("advanced_settings")),
+            accessory=self.advanced_settings_button,
+        )
+        self.add_item(self.settings_container)
 
     async def on_timeout(self):
         await self.game.events.game_end()
+        self.terminate_view()
+        self.title.content = get_message("game_timeout")
         await super().on_timeout()
 
-    @discord.ui.button(label="Join", style=discord.ButtonStyle.blurple, emoji="👋")
-    async def join_game(self, _, interaction: discord.Interaction):
+    async def join_game(self, interaction: discord.Interaction):
         if not interaction.user:
             return
-        game_cancelled = False
-        self.game.log.actions = []
-        await interaction.edit(view=self)
         if interaction.user.id in self.game.config["players"]:
             self.game.config["players"].remove(interaction.user.id)
-            if not (interaction.message and interaction.message.content):
-                return
             if not self.game.config["players"]:
-                game_cancelled = True
                 await self.game.events.game_end()
-                self.on_timeout = super().on_timeout
-                self.disable_all_items()
-            await self.game.log(
-                "\n".join(
-                    line
-                    for line in interaction.message.content.split("\n")
-                    if not line.endswith(f"<@{interaction.user.id}>")
-                )
-                + "\n"
-                + (get_message("game_cancelled") if game_cancelled else ""),
-                view=self,
-            )
-            return
-        self.game.config["players"].append(interaction.user.id)
-        await self.game.log(self.generate_game_start_message(), view=self)
+                self.terminate_view()
+                self.title.content = get_message("game_cancelled")
+                await interaction.edit(view=self)
+                return
+        else:
+            self.game.config["players"].append(interaction.user.id)
+        self.players_display.content = self.game.player_list
+        await interaction.edit(view=self)
 
-    def generate_game_start_message(self):
-        return "\n".join(
-            (
-                get_message("start"),
-                get_message("players"),
-                *(
-                    get_message("players_list_item").format(player)
-                    for player in self.game.config["players"]
-                ),
-                *(
-                    (
-                        get_message("expansions"),
-                        *(
-                            get_message("bold_list_item").format(
-                                replace_emojis(EXPANSIONS[expansion]["emoji"]),
-                                EXPANSIONS[expansion]["name"],
-                            )
-                            for expansion in self.game.config.get("expansions", [])
-                        ),
-                    )
-                ),
-                (
-                    ""
-                    if self.game.config.get("expansions", [])
-                    else get_message("no_expansions")
-                ),
-            )
-        )
+    def terminate_view(self):
+        self.stop()
+        self.remove_item(self.players_container)
+        self.remove_item(self.settings_container)
+        self.remove_item(self.join_game_button)
+        self.header.accessory = discord.ui.Button(emoji="🚫", disabled=True)
 
-    @discord.ui.button(label="Start Game", style=discord.ButtonStyle.green, emoji="🚀")
-    async def start_game(self, _, interaction: discord.Interaction):
-        if not (interaction.user and self.message):
-            return
-        if interaction.user.id != self.game.config["players"][0]:
-            await interaction.respond(
-                get_message("not_game_creator_start"), ephemeral=True, delete_after=5
-            )
+    async def start_game(self, interaction: discord.Interaction):
+        if not await check_permissions(self.game, interaction):
             return
         if len(self.game.config["players"]) < 2:
             await interaction.respond(
@@ -95,105 +118,75 @@ class StartGameView(discord.ui.View):
             return
         await interaction.response.defer()
         self.stop()
-        self.game.start()
-        await self.game.log(get_message("game_started"), view=self, anchor=interaction)
-        await self.game.events.game_start()
-        async with TurnView(self.game):
-            await self.game.events.turn_start()
+        self.disable_all_items()
+        self.start_game_button.label = get_message("started")
+        await interaction.edit(view=self)
+        await self.game.start(interaction)
 
-    @discord.ui.button(label="Settings", style=discord.ButtonStyle.grey, emoji="⚙️")
-    async def settings(self, _, interaction: discord.Interaction):
-        if not (interaction.user and self.message):
-            return
-        if interaction.user.id != self.game.config["players"][0]:
-            await interaction.respond(
-                get_message("not_game_creator_edit_settings"),
-                ephemeral=True,
-                delete_after=5,
-            )
-            return
-        await interaction.respond(view=SettingsView(self.game, self), ephemeral=True)
+    async def help(self, interaction: discord.Interaction):
+        await interaction.respond(view=HelpView(), ephemeral=True)
 
-    @discord.ui.button(label="Help", style=discord.ButtonStyle.grey, emoji="❓")
-    async def help(self, _, interaction: discord.Interaction):
-        if not (interaction.user and self.message):
-            return
-        await self.game.app.show_help(interaction, ephemeral=True)
-
-
-class SettingsView(discord.ui.View):
-    def __init__(self, game: Game, parent_view: StartGameView):
-        super().__init__(timeout=600, disable_on_timeout=True)
-        self.game = game
-        self.expansion_select: discord.ui.Select | None = None
-        self.short_mode_button: discord.ui.Button | None = None
-        self.parent_view = parent_view
-        self.create_view()
-
-    def create_view(self):
-        if self.expansion_select:
-            self.remove_item(self.expansion_select)
-        if self.short_mode_button:
-            self.remove_item(self.short_mode_button)
+    def create_settings(self):
         self.expansion_select = discord.ui.Select(
-            options=[
-                discord.SelectOption(
-                    value=name,
-                    label=expansion["name"],
-                    emoji=replace_emojis(expansion["emoji"]),
-                    default=name in self.game.config.get("expansions", []),
-                )
-                for name, expansion in EXPANSIONS.items()
-            ],
-            placeholder="Eggspansions",
+            options=self.generate_expansion_options(),
+            placeholder=get_message("no_expansions"),
             min_values=0,
             max_values=len(EXPANSIONS),
         )
         self.expansion_select.callback = self.expansion_callback
-        self.add_item(self.expansion_select)
-        short = self.game.config.get("short", None)
-        self.short_mode_button = discord.ui.Button(
-            label="Short mode: "
-            + ("Auto" if short is None else "On" if short else "Off"),
-            style=(
-                discord.ButtonStyle.green
-                if self.game.config.get("short", False)
-                else discord.ButtonStyle.grey
-            ),
-            emoji="⚡",
-        )
+        self.short_mode_button = discord.ui.Button()
+        self.update_short_mode_button()
         self.short_mode_button.callback = self.short_mode_callback
-        self.add_item(self.short_mode_button)
+
+    def update_short_mode_button(self):
+        short = self.game.config.get("short", None)
+        short_mode_states = {
+            None: ("⚡", "Auto"),
+            True: ("⏩", "On"),
+            False: ("🕒", "Off"),
+        }
+        self.short_mode_button.emoji, self.short_mode_button.label = short_mode_states[
+            short
+        ]
+        self.short_mode_button.style = (
+            discord.ButtonStyle.green
+            if self.game.config.get("short", False)
+            else discord.ButtonStyle.grey
+        )
+
+    def generate_expansion_options(self):
+        return [
+            discord.SelectOption(
+                value=name,
+                label=expansion["name"],
+                emoji=replace_emojis(expansion["emoji"]),
+                default=name in self.game.config.get("expansions", []),
+            )
+            for name, expansion in EXPANSIONS.items()
+        ]
 
     async def expansion_callback(self, interaction: discord.Interaction):
-        if not self.expansion_select:
-            return
-        self.game.config["expansions"] = self.expansion_select.values
-        await interaction.respond(
-            get_message("expansions_updated"), ephemeral=True, delete_after=5
-        )
-        self.game.log.actions = []
-        await self.game.log(
-            self.parent_view.generate_game_start_message(),
-            view=self.parent_view,
-        )
+        await interaction.edit(view=self)
+        if await check_permissions(self.game, interaction):
+            self.game.config["expansions"] = self.expansion_select.values
+        self.expansion_select.options = self.generate_expansion_options()
+        await interaction.edit_original_response(view=self)
 
     async def short_mode_callback(self, interaction: discord.Interaction):
+        if not await check_permissions(self.game, interaction):
+            return
         self.game.config["short"] = not self.game.config.get("short", False)
-        self.create_view()
+        self.update_short_mode_button()
         await interaction.edit(view=self)
 
-    @discord.ui.button(
-        label="Advanced Settings", style=discord.ButtonStyle.grey, emoji="⚙️"
-    )
-    async def advanced_settings(self, _, interaction: discord.Interaction):
+    async def advanced_settings(self, interaction: discord.Interaction):
         await interaction.response.send_modal(
             SettingsModal(game=self.game, title="Advanced Settings")
         )
 
 
 class SettingsModal(discord.ui.Modal):
-    def __init__(self, game: Game, *args, **kwargs) -> None:
+    def __init__(self, game: "Game", *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.game = game
         self.inputs = {
@@ -205,6 +198,7 @@ class SettingsModal(discord.ui.Modal):
                     required=False,
                 ),
                 "min": 1,
+                "max": 100,
             },
             "deck_defuse_cards": {
                 "input": discord.ui.InputText(
@@ -213,23 +207,27 @@ class SettingsModal(discord.ui.Modal):
                     value=self.game.config.get("deck_defuse_cards", None),
                     required=False,
                 ),
+                "min": 0,
+                "max": 100,
             },
-            # "turn_timeout": {
-            #     "input": discord.ui.InputText(
-            #         label="Turn timer (in seconds; 40-600)",
-            #         placeholder="60",
-            #         value=self.game.config.get("turn_timeout", None),
-            #         required=False,
-            #     ),
-            #     "min": 40,
-            #     "max": 600,
-            # },
+            "turn_timeout": {
+                "input": discord.ui.InputText(
+                    label="[Experimental] Turn timeout (seconds)",
+                    placeholder="60",
+                    value=self.game.config.get("turn_timeout", None),
+                    required=False,
+                ),
+                "min": 10,
+                "max": 600,
+            },
         }
         for _, i in self.inputs.items():
             self.add_item(i["input"])
 
     async def callback(self, interaction: discord.Interaction):
         if not self.game:
+            return
+        if not await check_permissions(self.game, interaction):
             return
         response = get_message("settings_updated")
         for input_name, item in self.inputs.items():
@@ -275,6 +273,24 @@ class SettingsModal(discord.ui.Modal):
 class HelpView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
+        self.section_select = discord.ui.Select(
+            placeholder="Section",
+            options=[
+                discord.SelectOption(label="Getting started", emoji="🚀", value="0"),
+                discord.SelectOption(label="Cards (1)", emoji="🎴", value="1"),
+                discord.SelectOption(label="Cards (2)", emoji="🎴", value="2"),
+                discord.SelectOption(
+                    label="Radioeggtive Eggspansion", emoji="🧩", value="3"
+                ),
+                discord.SelectOption(label="Credits", emoji="👏", value="4"),
+            ],
+            max_values=1,
+            min_values=1,
+        )
+        self.section_select.callback = self.section_callback
+        self.add_item(self.section_select)
+        self.help_text = discord.ui.TextDisplay(get_message("help0"))
+        self.add_item(self.help_text)
         self.add_item(
             discord.ui.Button(
                 label="Website",
@@ -316,20 +332,7 @@ class HelpView(discord.ui.View):
             )
         )
 
-    @discord.ui.select(
-        placeholder="Section",
-        options=[
-            discord.SelectOption(label="Getting started", emoji="🚀", value="0"),
-            discord.SelectOption(label="Cards (1)", emoji="🎴", value="1"),
-            discord.SelectOption(label="Cards (2)", emoji="🎴", value="2"),
-            discord.SelectOption(label="Eggspansions", emoji="🧩", value="3"),
-            discord.SelectOption(label="Credits", emoji="👏", value="4"),
-        ],
-        max_values=1,
-        min_values=1,
-    )
-    async def section_callback(
-        self, select: discord.ui.Select, interaction: discord.Interaction
-    ):
-        assert isinstance(select.values[0], str)
-        await interaction.edit(content=get_message(f"help{int(select.values[0])}"))
+    async def section_callback(self, interaction: discord.Interaction):
+        assert isinstance(self.section_select.values[0], str)
+        self.help_text.content = get_message(f"help{int(self.section_select.values[0])}")
+        await interaction.edit(view=self)

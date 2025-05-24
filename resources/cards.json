@@ -44,7 +44,7 @@
         "count": 5,
         "usable": true
     },
-    "food1": {
+    "food0": {
         "title": "Boiled egg",
         "description": "Use 2 of this card to steal a card from another player!",
         "emoji": "🥚",
@@ -53,7 +53,7 @@
         "explicit": true,
         "combo": 1
     },
-    "food2": {
+    "food1": {
         "title": "Fried egg",
         "description": "Use 2 of this card to steal a card from another player!",
         "emoji": "🍳",
@@ -62,7 +62,7 @@
         "explicit": true,
         "combo": 1
     },
-    "food3": {
+    "food2": {
         "title": "Ham & Eggs",
         "description": "Use 2 of this card to steal a card from another player!",
         "emoji": "🥓",
@@ -71,7 +71,7 @@
         "explicit": true,
         "combo": 1
     },
-    "food4": {
+    "food3": {
         "title": "Pancake",
         "description": "Use 2 of this card to steal a card from another player!",
         "emoji": "🥞",
@@ -80,7 +80,7 @@
         "explicit": true,
         "combo": 1
     },
-    "food5": {
+    "food4": {
         "title": "Fried chicken",
         "description": "Use 2 of this card to steal a card from another player!",
         "emoji": "🍗",

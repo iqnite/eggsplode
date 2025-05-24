@@ -6,8 +6,8 @@ import asyncio
 import discord
 from discord.ext import commands
 
-from ..commands import EggsplodeApp
-from ..strings import get_message, TEST_GUILD_ID, CONFIG
+from eggsplode.commands import EggsplodeApp
+from eggsplode.strings import get_message, TEST_GUILD_ID, CONFIG
 
 
 class Owner(commands.Cog):
@@ -38,7 +38,7 @@ class Owner(commands.Cog):
         if not update_command:
             await ctx.respond("Update command is not configured.", ephemeral=True)
             return
-        await self.terminal(ctx, update_command)
+        await self.execute(ctx, update_command)
         await self.restart(ctx)
 
     @discord.slash_command(
@@ -63,7 +63,7 @@ class Owner(commands.Cog):
         )
 
     @discord.slash_command(
-        name="terminal",
+        name="execute",
         description="Run a command on the bot.",
         guild_ids=[TEST_GUILD_ID],
     )
@@ -74,7 +74,7 @@ class Owner(commands.Cog):
         required=True,
     )
     @commands.is_owner()
-    async def terminal(self, ctx: discord.ApplicationContext, command: str):
+    async def execute(self, ctx: discord.ApplicationContext, command: str):
         await ctx.response.defer(ephemeral=True)
         process = await asyncio.create_subprocess_shell(
             command,
@@ -85,15 +85,15 @@ class Owner(commands.Cog):
 
         if process.returncode == 0:
             await ctx.edit(
-                content=f"Command executed successfully:\n```{stdout.decode()[1800:]}```"
+                content=get_message("command_success").format(stdout.decode()[1800:])
             )
         else:
             await ctx.edit(
-                content=f"Command failed with error:\n```{stderr.decode()[1800:]}```"
+                content=get_message("command_failed").format(stderr.decode()[1800:])
             )
 
     @discord.slash_command(
-        name="listgames",
+        name="all_games",
         description="List all games.",
         guild_ids=[TEST_GUILD_ID],
     )

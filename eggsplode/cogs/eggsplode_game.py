@@ -5,8 +5,8 @@ Contains commands for the main Eggsplode game.
 import discord
 from discord.ext import commands
 
-from ..commands import EggsplodeApp
-from ..strings import get_message
+from eggsplode.commands import EggsplodeApp
+from eggsplode.strings import get_message
 
 
 class MainGame(commands.Cog):
@@ -22,7 +22,7 @@ class MainGame(commands.Cog):
         },
     )
     async def start_game(self, ctx: discord.ApplicationContext):
-        await self.bot.start_game(ctx.interaction)
+        await self.bot.create_game(ctx.interaction)
 
     @discord.slash_command(
         name="hand",

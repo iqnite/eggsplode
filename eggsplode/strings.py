@@ -6,6 +6,8 @@ import os
 import json
 from dotenv import load_dotenv
 
+MAX_COMPONENTS = 40
+
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
