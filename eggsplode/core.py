@@ -210,7 +210,6 @@ class Game:
                         replace_emojis(CARDS[card]["emoji"]), CARDS[card]["title"]
                     ),
                     ephemeral=True,
-                    delete_after=10,
                 )
         return card, hold
 

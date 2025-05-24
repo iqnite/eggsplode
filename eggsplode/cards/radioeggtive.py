@@ -150,10 +150,7 @@ async def targeted_attegg(game: "Game", interaction: discord.Interaction):
     )
     await view.create_user_selection()
     await interaction.respond(
-        get_message("targeted_attegg_prompt"),
-        view=view,
-        ephemeral=True,
-        delete_after=30,
+        get_message("targeted_attegg_prompt"), view=view, ephemeral=True
     )
 
 

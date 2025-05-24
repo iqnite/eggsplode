@@ -50,9 +50,7 @@ async def predict(game: "Game", interaction: discord.Interaction):
         get_message("predicted").format(interaction.user.id),
     )
     await interaction.respond(
-        "\n".join((get_message("next_cards"), next_cards)),
-        ephemeral=True,
-        delete_after=20,
+        "\n".join((get_message("next_cards"), next_cards)), ephemeral=True
     )
     await game.events.action_end()
 
@@ -75,9 +73,7 @@ async def food_combo(game: "Game", interaction: discord.Interaction, card: str):
         and len(game.hands[user_id]) > 0,
     )
     await view.create_user_selection()
-    await interaction.respond(
-        get_message("steal_prompt"), view=view, ephemeral=True, delete_after=30
-    )
+    await interaction.respond(get_message("steal_prompt"), view=view, ephemeral=True)
 
 
 async def food_combo_begin(
@@ -134,7 +130,6 @@ async def food_combo_finish(
                 replace_emojis(CARDS[stolen_card]["emoji"]), CARDS[stolen_card]["title"]
             ),
             ephemeral=True,
-            delete_after=10,
         )
         if target_interaction:
             await target_interaction.respond(
@@ -144,7 +139,6 @@ async def food_combo_finish(
                     CARDS[stolen_card]["title"],
                 ),
                 ephemeral=True,
-                delete_after=10,
             )
     finally:
         await game.events.action_end()
