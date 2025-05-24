@@ -1,5 +1,5 @@
 """
-Contains the TurnView class, which is a Discord UI view for managing player turns in the Eggsplode game.
+Contains the TurnView class, which provides buttons to take actions.
 """
 
 from typing import TYPE_CHECKING

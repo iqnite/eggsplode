@@ -2,8 +2,8 @@
 Contains the StartGameView class which handles the start game view in the Discord bot.
 """
 
-import discord
 from typing import TYPE_CHECKING
+import discord
 from eggsplode.strings import EXPANSIONS, get_message, replace_emojis
 
 if TYPE_CHECKING:

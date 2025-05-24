@@ -6,7 +6,7 @@ from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 
 from eggsplode.nope import NopeView
-from eggsplode.strings import CARDS, get_message
+from eggsplode.strings import CARDS, MAX_COMPONENTS, get_message
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
@@ -154,6 +154,8 @@ class DefuseView(SelectionView):
 
 
 class PlayView(discord.ui.View):
+    MAX_SECTIONS = (MAX_COMPONENTS - 3) // 3
+
     def __init__(self, game: "Game"):
         super().__init__(timeout=60)
         self.game = game
@@ -161,35 +163,17 @@ class PlayView(discord.ui.View):
         self.card_selects = []
         self.play_prompt = discord.ui.TextDisplay(get_message("play_prompt"))
         self.add_item(self.play_prompt)
-        self.create_card_selection()
+        self.back_button: discord.ui.Button | None = None
+        self.forward_button: discord.ui.Button | None = None
+        self.page_number = 0
+        self.update_sections()
 
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if not interaction.user:
-            raise TypeError("interaction.user is None")
-        if interaction.user.id != self.game.current_player_id:
-            await interaction.edit(
-                view=discord.ui.View(
-                    discord.ui.TextDisplay(get_message("not_your_turn"))
-                ),
-                delete_after=5,
-            )
-            return False
-        if self.action_id != self.game.action_id:
-            await interaction.edit(
-                view=discord.ui.View(
-                    discord.ui.TextDisplay(get_message("invalid_turn"))
-                ),
-                delete_after=10,
-            )
-            return False
-        self.game.action_id += 1
-        self.action_id = self.game.action_id
-        await self.game.events.action_start()
-        self.stop()
-        await interaction.edit(view=self, delete_after=0)
-        return True
+    @property
+    def page_count(self) -> int:
+        return (len(self.card_selects) + self.MAX_SECTIONS - 1) // self.MAX_SECTIONS
 
-    def create_card_selection(self):
+    def update_sections(self):
+        self.card_selects = []
         user_cards = self.game.group_hand(
             self.game.current_player_id, usable_only=False
         )
@@ -214,20 +198,72 @@ class PlayView(discord.ui.View):
                     disabled=not playable,
                 ),
             )
-            assert isinstance(section.accessory, discord.ui.Button)
 
             def make_callback(card_value):
                 return lambda interaction: self.play_card(card_value, interaction)
 
+            assert isinstance(section.accessory, discord.ui.Button)
             section.accessory.callback = make_callback(card)
             self.card_selects.append(section)
-            if section in self.children:
-                self.remove_item(section)
-            self.add_item(section)
+
+        for item in self.children[1:]:
+            self.remove_item(item)
+        for item in self.card_selects[
+            self.page_number : self.page_number + self.MAX_SECTIONS - 1
+        ]:
+            self.add_item(item)
+
+        if self.page_count > 1:
+            if self.page_count > 2 or self.page_number == 0:
+                self.forward_button = self.create_button(1)
+            if self.page_count > 2 or self.page_number == 1:
+                self.back_button = self.create_button(-1)
+
+    def create_button(self, step: int) -> discord.ui.Button:
+        to_page = self.page_number + step
+        if to_page < 0:
+            to_page = self.page_count - 1
+        elif to_page >= self.page_count:
+            to_page = 0
+
+        async def button_callback(interaction: discord.Interaction):
+            self.page_number = to_page
+            self.update_sections()
+            await interaction.edit(view=self)
+
+        button = discord.ui.Button(
+            label="Page " + str(to_page + 1),
+            style=discord.ButtonStyle.secondary,
+            emoji="◀️" if step < 0 else "▶️",
+        )
+        button.callback = button_callback
+        self.add_item(button)
+        return button
 
     async def play_card(self, card: str, interaction: discord.Interaction):
         if not interaction.user:
+            raise TypeError("interaction.user is None")
+        if interaction.user.id != self.game.current_player_id:
+            await interaction.edit(
+                view=discord.ui.View(
+                    discord.ui.TextDisplay(get_message("not_your_turn"))
+                ),
+                delete_after=5,
+            )
             return
+        if self.action_id != self.game.action_id:
+            await interaction.edit(
+                view=discord.ui.View(
+                    discord.ui.TextDisplay(get_message("invalid_turn"))
+                ),
+                delete_after=10,
+            )
+            return
+        self.game.action_id += 1
+        self.action_id = self.game.action_id
+        await self.game.events.action_start()
+        self.stop()
+        await interaction.edit(view=self, delete_after=0)
         await self.game.events.action_start()
         self.game.current_player_hand.remove(card)
         if CARDS[card].get("explicit", False):
