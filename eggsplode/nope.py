@@ -112,13 +112,13 @@ class NopeView(BaseView):
                 else get_message("message_edit_on_yup").format(interaction.user.id)
             )
             self.action_text_display.content = "\n".join(self.action_messages)
+            if self.target_player_id is not None:
+                if self.noped:
+                    self.remove_item(self.ok_button)
+                else:
+                    self.add_item(self.ok_button)
         self.timer_display.content = self.timer_text
         self.game.anchor_interaction = interaction
-        if self.target_player_id is not None:
-            if self.noped:
-                self.remove_item(self.ok_button)
-            else:
-                self.add_item(self.ok_button)
         await interaction.edit(view=self)
 
     async def ok_callback(self, interaction: discord.Interaction):

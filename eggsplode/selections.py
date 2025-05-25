@@ -246,7 +246,7 @@ class PlayView(discord.ui.View):
     async def play_card(self, card: str, interaction: discord.Interaction):
         if not interaction.user:
             raise TypeError("interaction.user is None")
-        if interaction.user.id != self.game.current_player_id:
+        if not self.playable:
             await interaction.edit(
                 view=discord.ui.View(
                     discord.ui.TextDisplay(get_message("not_your_turn"))
