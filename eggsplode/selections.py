@@ -260,7 +260,6 @@ class PlayView(discord.ui.View):
             return
         self.game.action_id += 1
         self.action_id = self.game.action_id
-        await self.game.events.action_start()
         self.stop()
         await interaction.edit(view=self, delete_after=0)
         await self.game.events.action_start()
