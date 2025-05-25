@@ -185,6 +185,7 @@ async def eggsplode(
     await game.send(get_message("eggsploded").format(prev_player))
     if len(game.players) == 1:
         await game_over(game, interaction)
+        return
     await game.events.turn_end()
 
 

@@ -37,7 +37,7 @@ class ChoosePlayerView(discord.ui.View):
         callback_action: Callable[[int], Coroutine],
         condition: Callable[[int], bool] = lambda _: True,
     ):
-        super().__init__(timeout=20)
+        super().__init__(timeout=20, disable_on_timeout=True)
         self.game = game
         self.eligible_players = [
             user_id for user_id in self.game.players if condition(user_id)
@@ -89,7 +89,7 @@ class DefuseView(SelectionView):
         card="eggsplode",
         prev_card=None,
     ):
-        super().__init__(timeout=30)
+        super().__init__(timeout=30, disable_on_timeout=True)
         self.game = game
         self.callback_action = callback_action
         self.card = card
