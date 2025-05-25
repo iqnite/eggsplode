@@ -8,7 +8,7 @@ import discord
 
 from eggsplode.cards.base import attegg_finish, game_over
 from eggsplode.strings import CARDS, get_message, replace_emojis
-from eggsplode.nope import ExplicitNopeView
+from eggsplode.nope import NopeView
 from eggsplode.selections import ChoosePlayerView, DefuseView, SelectionView
 
 if TYPE_CHECKING:
@@ -122,7 +122,7 @@ async def targeted_attegg_begin(
 ):
     if not interaction.user:
         return
-    view = ExplicitNopeView(
+    view = NopeView(
         game,
         message=get_message("before_targeted_attegg").format(
             interaction.user.id,

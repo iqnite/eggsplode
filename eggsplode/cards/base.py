@@ -5,7 +5,7 @@ Contains card effects for the base game.
 import random
 from typing import TYPE_CHECKING
 import discord
-from eggsplode.nope import ExplicitNopeView
+from eggsplode.nope import NopeView
 from eggsplode.selections import ChoosePlayerView, DefuseView
 from eggsplode.strings import CARDS, get_message, replace_emojis
 
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 async def attegg(game: "Game", interaction: discord.Interaction):
     if not interaction.user:
         return
-    view = ExplicitNopeView(
+    view = NopeView(
         game=game,
         message=get_message("before_attegg").format(
             interaction.user.id,
@@ -84,7 +84,7 @@ async def food_combo_begin(
 ):
     if not interaction.user:
         return
-    view = ExplicitNopeView(
+    view = NopeView(
         game,
         message=get_message("before_steal").format(
             replace_emojis(CARDS[food_card]["emoji"]),

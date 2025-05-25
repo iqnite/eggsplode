@@ -17,6 +17,7 @@ class NopeView(BaseView):
         self,
         game: "Game",
         message: str,
+        target_player_id: int | None = None,
         ok_callback_action: (
             Callable[[discord.Interaction | None], Coroutine] | None
         ) = None,
@@ -39,6 +40,13 @@ class NopeView(BaseView):
         )
         self.nope_button.callback = self.nope_callback
         self.add_item(self.nope_button)
+        self.target_player_id = target_player_id
+        if target_player_id is not None:
+            self.ok_button = discord.ui.Button(
+                label="OK!", style=discord.ButtonStyle.green, emoji="✅"
+            )
+            self.ok_button.callback = self.ok_callback
+            self.add_item(self.ok_button)
 
     @property
     def timer_text(self) -> str:
@@ -50,6 +58,10 @@ class NopeView(BaseView):
             else ""
         )
 
+    @property
+    def noped(self) -> bool:
+        return self.nope_count % 2 == 1
+
     async def on_timeout(self):
         try:
             await super().on_timeout()
@@ -57,7 +69,7 @@ class NopeView(BaseView):
             if not self.disabled:
                 self.disabled = True
                 self.stop()
-                if not self.nope_count % 2 and self.ok_callback_action:
+                if not self.noped and self.ok_callback_action:
                     await self.ok_callback_action(None)
                 else:
                     await self.game.events.action_end()
@@ -79,10 +91,7 @@ class NopeView(BaseView):
     async def nope_callback(self, interaction: discord.Interaction):
         if not interaction.user:
             return
-        if (
-            not self.nope_count % 2
-            and self.game.current_player_id == interaction.user.id
-        ):
+        if not self.noped and self.game.current_player_id == interaction.user.id:
             await interaction.respond(
                 get_message("no_self_nope"), ephemeral=True, delete_after=5
             )
@@ -95,38 +104,22 @@ class NopeView(BaseView):
             )
         else:
             self.nope_count += 1
-            self.nope_button.label = "Nope!" if not self.nope_count % 2 else "Yup!"
+            self.nope_button.label = "Nope!" if not self.noped else "Yup!"
             self.toggle_strike_through()
             self.action_messages.append(
                 get_message("message_edit_on_nope").format(interaction.user.id)
-                if self.nope_count % 2
+                if self.noped
                 else get_message("message_edit_on_yup").format(interaction.user.id)
             )
             self.action_text_display.content = "\n".join(self.action_messages)
         self.timer_display.content = self.timer_text
         self.game.anchor_interaction = interaction
+        if self.target_player_id is not None:
+            if self.noped:
+                self.remove_item(self.ok_button)
+            else:
+                self.add_item(self.ok_button)
         await interaction.edit(view=self)
-
-
-class ExplicitNopeView(NopeView):
-    def __init__(
-        self,
-        game: "Game",
-        message: str,
-        target_player_id: int,
-        ok_callback_action: Callable[[discord.Interaction | None], Coroutine],
-        nope_callback_action: Callable[[], None] | None = None,
-        timeout=10,
-    ):
-        super().__init__(
-            game, message, ok_callback_action, nope_callback_action, timeout=timeout
-        )
-        self.target_player_id = target_player_id
-        self.ok_button = discord.ui.Button(
-            label="OK!", style=discord.ButtonStyle.green, emoji="✅"
-        )
-        self.ok_button.callback = self.ok_callback
-        self.add_item(self.ok_button)
 
     async def ok_callback(self, interaction: discord.Interaction):
         if not interaction.user:
@@ -136,7 +129,7 @@ class ExplicitNopeView(NopeView):
                 get_message("not_your_turn"), ephemeral=True, delete_after=5
             )
             return
-        if self.nope_count % 2:
+        if self.noped:
             await interaction.respond(
                 get_message("action_noped"), ephemeral=True, delete_after=5
             )
