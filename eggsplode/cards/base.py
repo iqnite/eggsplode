@@ -170,7 +170,7 @@ async def eggsplode(
     if "defuse" in game.hands[game.current_player_id]:
         game.hands[game.current_player_id].remove("defuse")
         if timed_out:
-            game.deck.insert(random.randint(1, len(game.deck)), "eggsplode")
+            game.deck.insert(random.randint(0, len(game.deck)), "eggsplode")
             await game.send(get_message("defused").format(game.current_player_id))
         else:
             view = DefuseView(
