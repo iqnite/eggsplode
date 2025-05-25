@@ -159,13 +159,17 @@ class PlayView(discord.ui.View):
         self.user_id = user_id
         self.action_id = game.action_id
         self.card_selects = []
-        if game.current_player_id == user_id:
+        if self.playable:
             self.play_prompt = discord.ui.TextDisplay(get_message("play_prompt"))
             self.add_item(self.play_prompt)
         self.back_button: discord.ui.Button | None = None
         self.forward_button: discord.ui.Button | None = None
         self.page_number = 0
         self.update_sections()
+
+    @property
+    def playable(self) -> bool:
+        return self.game.current_player_id == self.user_id and not self.game.paused
 
     @property
     def page_count(self) -> int:
@@ -177,8 +181,8 @@ class PlayView(discord.ui.View):
         if not user_cards:
             return
         for card, count in user_cards.items():
-            playable = (
-                self.game.current_player_id == self.user_id
+            card_playable = (
+                self.playable
                 and CARDS[card].get("usable", False)
                 and (CARDS[card].get("combo", 0) == 0 or count > 1)
             )
@@ -191,10 +195,10 @@ class PlayView(discord.ui.View):
                     )
                 ),
                 accessory=discord.ui.Button(
-                    label=("Play " if playable else "") + f"({count}x)",
+                    label=("Play " if card_playable else "") + f"({count}x)",
                     style=discord.ButtonStyle.secondary,
                     emoji=CARDS[card]["emoji"],
-                    disabled=not playable,
+                    disabled=not card_playable,
                 ),
             )
 
