@@ -50,7 +50,7 @@ class StartGameView(discord.ui.View):
         self.players_container.add_item(self.players_display)
         self.add_item(self.players_container)
         self.help_button = discord.ui.Button(
-            label="Help", style=discord.ButtonStyle.grey, emoji="❓"
+            label="Help", style=discord.ButtonStyle.secondary, emoji="❓"
         )
         self.help_button.callback = self.help
         self.settings_container = discord.ui.Container()
@@ -68,7 +68,7 @@ class StartGameView(discord.ui.View):
         )
         self.settings_container.add_separator()
         self.advanced_settings_button = discord.ui.Button(
-            label="View", style=discord.ButtonStyle.grey, emoji="⚙️"
+            label="View", style=discord.ButtonStyle.secondary, emoji="⚙️"
         )
         self.advanced_settings_button.callback = self.advanced_settings
         self.settings_container.add_section(
@@ -134,7 +134,7 @@ class StartGameView(discord.ui.View):
             max_values=len(EXPANSIONS),
         )
         self.expansion_select.callback = self.expansion_callback
-        self.short_mode_button = discord.ui.Button()
+        self.short_mode_button = discord.ui.Button(style=discord.ButtonStyle.secondary)
         self.update_short_mode_button()
         self.short_mode_button.callback = self.short_mode_callback
 
@@ -143,16 +143,11 @@ class StartGameView(discord.ui.View):
         short_mode_states = {
             None: ("⚡", "Auto"),
             True: ("⏩", "On"),
-            False: ("🕒", "Off"),
+            False: ("▶️", "Off"),
         }
         self.short_mode_button.emoji, self.short_mode_button.label = short_mode_states[
             short
         ]
-        self.short_mode_button.style = (
-            discord.ButtonStyle.green
-            if self.game.config.get("short", False)
-            else discord.ButtonStyle.grey
-        )
 
     def generate_expansion_options(self):
         return [
@@ -334,5 +329,7 @@ class HelpView(discord.ui.View):
 
     async def section_callback(self, interaction: discord.Interaction):
         assert isinstance(self.section_select.values[0], str)
-        self.help_text.content = get_message(f"help{int(self.section_select.values[0])}")
+        self.help_text.content = get_message(
+            f"help{int(self.section_select.values[0])}"
+        )
         await interaction.edit(view=self)
