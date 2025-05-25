@@ -153,12 +153,15 @@ class DefuseView(SelectionView):
 class PlayView(discord.ui.View):
     MAX_SECTIONS = (MAX_COMPONENTS - 3) // 3
 
-    def __init__(self, game: "Game"):
+    def __init__(self, game: "Game", user_id: int):
         super().__init__(timeout=60)
         self.game = game
+        self.user_id = user_id
         self.action_id = game.action_id
         self.card_selects = []
-        self.play_prompt = discord.ui.TextDisplay(get_message("play_prompt"))
+        self.play_prompt = discord.ui.TextDisplay(
+            get_message("play_prompt") if self.game.current_player_id == user_id else ""
+        )
         self.add_item(self.play_prompt)
         self.back_button: discord.ui.Button | None = None
         self.forward_button: discord.ui.Button | None = None
@@ -171,14 +174,14 @@ class PlayView(discord.ui.View):
 
     def update_sections(self):
         self.card_selects = []
-        user_cards = self.game.group_hand(
-            self.game.current_player_id, usable_only=False
-        )
+        user_cards = self.game.group_hand(self.user_id, usable_only=False)
         if not user_cards:
             return
         for card, count in user_cards.items():
-            playable = CARDS[card].get("usable", False) and (
-                CARDS[card].get("combo", 0) == 0 or count > 1
+            playable = (
+                self.game.current_player_id == self.user_id
+                and CARDS[card].get("usable", False)
+                and (CARDS[card].get("combo", 0) == 0 or count > 1)
             )
             section = discord.ui.Section(
                 discord.ui.TextDisplay(

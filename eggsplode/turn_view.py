@@ -35,30 +35,32 @@ class TurnView(BaseView):
     async def interaction_check(self, interaction: discord.Interaction):
         if not await super().interaction_check(interaction):
             return False
+        self.game.anchor_interaction = interaction
+        self.game.inactivity_count = 0
+        return True
+
+    async def draw_callback(self, interaction: discord.Interaction):
         if not interaction.user:
             raise TypeError("interaction.user is None")
         if interaction.user.id != self.game.current_player_id:
             await interaction.respond(
                 get_message("not_your_turn"), ephemeral=True, delete_after=5
             )
-            return False
+            return
         if self.game.paused:
             await interaction.respond(
                 get_message("awaiting_prompt"), ephemeral=True, delete_after=5
             )
-            return False
-        self.game.anchor_interaction = interaction
-        self.game.inactivity_count = 0
-        return True
-
-    async def draw_callback(self, interaction: discord.Interaction):
+            return
         await self.game.events.action_start()
         _, hold = await self.game.draw_from(interaction)
         if hold:
             await self.game.events.turn_end()
 
     async def play_callback(self, interaction: discord.Interaction):
-        view = PlayView(self.game)
+        if not interaction.user:
+            raise TypeError("interaction.user is None")
+        view = PlayView(self.game, interaction.user.id)
         await interaction.respond(view=view, ephemeral=True)
         await self.game.events.turn_reset()
 
