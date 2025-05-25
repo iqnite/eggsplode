@@ -166,7 +166,6 @@ async def skip(game: "Game", _):
 async def eggsplode(
     game: "Game", interaction: discord.Interaction, timed_out: bool = False
 ):
-
     if "defuse" in game.hands[game.current_player_id]:
         game.hands[game.current_player_id].remove("defuse")
         if timed_out:
