@@ -25,13 +25,9 @@ async def draw_from_bottom(game: "Game", interaction: discord.Interaction):
 def radioeggtive_warning(game: "Game") -> str:
     radioeggtive_countdown = game.card_comes_in("radioeggtive_face_up")
     return (
-        ""
-        if radioeggtive_countdown is None
-        else (
-            get_message("play_prompt_radioeggtive").format(radioeggtive_countdown)
-            if radioeggtive_countdown > 0
-            else get_message("play_prompt_radioeggtive_now")
-        )
+        get_message("play_prompt_radioeggtive_now")
+        if radioeggtive_countdown == 0
+        else ""
     )
 
 
