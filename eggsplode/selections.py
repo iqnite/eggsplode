@@ -159,10 +159,9 @@ class PlayView(discord.ui.View):
         self.user_id = user_id
         self.action_id = game.action_id
         self.card_selects = []
-        self.play_prompt = discord.ui.TextDisplay(
-            get_message("play_prompt") if self.game.current_player_id == user_id else ""
-        )
-        self.add_item(self.play_prompt)
+        if game.current_player_id == user_id:
+            self.play_prompt = discord.ui.TextDisplay(get_message("play_prompt"))
+            self.add_item(self.play_prompt)
         self.back_button: discord.ui.Button | None = None
         self.forward_button: discord.ui.Button | None = None
         self.page_number = 0
