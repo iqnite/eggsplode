@@ -150,12 +150,7 @@ class Owner(commands.Cog):
             ),
             status=discord.Status[status or "online"],
         )
-        await ctx.respond(
-            get_message("set_status_success").format(
-                status, activity_type or "default" + (activity or "")
-            ),
-            ephemeral=True,
-        )
+        await ctx.respond(get_message("set_status_success"), ephemeral=True)
 
 
 def setup(bot: EggsplodeApp):
