@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 from eggsplode.strings import get_message
-from eggsplode.base_view import BaseView
+from eggsplode.ui.base import BaseView
 
 if TYPE_CHECKING:
     from eggsplode.core import Game

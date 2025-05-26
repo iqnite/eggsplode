@@ -4,7 +4,7 @@ Contains the TurnView class, which provides buttons to take actions.
 
 from typing import TYPE_CHECKING
 import discord
-from eggsplode.base_view import BaseView
+from eggsplode.ui.base import BaseView
 
 if TYPE_CHECKING:
     from eggsplode.core import Game

@@ -8,8 +8,8 @@ import discord
 
 from eggsplode.cards.base import attegg_finish, game_over
 from eggsplode.strings import CARDS, get_message, replace_emojis
-from eggsplode.nope import NopeView
-from eggsplode.selections import ChoosePlayerView, DefuseView, SelectionView
+from eggsplode.ui.nope import NopeView
+from eggsplode.ui.selections import ChoosePlayerView, DefuseView, SelectionView
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
