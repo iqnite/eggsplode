@@ -148,6 +148,7 @@
     "radioeggtive": "## ☢️ <@{}> drew the Radioeggtive card and put it back into the deck face up!",
     "radioeggtive_face_up": "## 💥 <@{}> drew the Radioeggtive card face up and eggsploded!",
     "reversed": "🔄️ <@{}> skipped their turn without drawing and reversed the order of play!",
+    "set_status_success": "✅ Status updated!",
     "settings_updated": "**Game settings updated**",
     "settings_updated_error": "❌ {}: {} ({})",
     "settings_updated_success": "✅ {}: {}",
