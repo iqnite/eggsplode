@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 from eggsplode.core import Game
 from eggsplode.strings import get_message
-from eggsplode.ui.start import StartGameView
+from eggsplode.ui import StartGameView
 
 
 class EggsplodeApp(commands.Bot):

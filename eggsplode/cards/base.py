@@ -5,8 +5,7 @@ Contains card effects for the base game.
 import random
 from typing import TYPE_CHECKING
 import discord
-from eggsplode.ui.nope import NopeView
-from eggsplode.ui.selections import ChoosePlayerView, DefuseView
+from eggsplode.ui import NopeView, ChoosePlayerView, DefuseView
 from eggsplode.strings import CARDS, get_message, replace_emojis
 
 if TYPE_CHECKING:

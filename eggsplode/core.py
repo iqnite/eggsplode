@@ -8,9 +8,7 @@ from importlib import import_module
 import random
 from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
-from eggsplode.ui.nope import NopeView
-from eggsplode.ui.selections import PlayView
-from eggsplode.ui.turn import TurnView
+from eggsplode.ui import NopeView, PlayView, TurnView
 from eggsplode.strings import CARDS, EXPANSIONS, get_message, replace_emojis
 
 if TYPE_CHECKING:

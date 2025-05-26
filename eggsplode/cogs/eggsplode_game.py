@@ -7,6 +7,7 @@ from discord.ext import commands
 from eggsplode.commands import EggsplodeApp
 from eggsplode.core import Game
 from eggsplode.strings import CARDS, get_card_by_title, get_message
+from eggsplode.ui import EndGameView
 
 
 class MainGame(commands.Cog):
@@ -143,6 +144,22 @@ class MainGame(commands.Cog):
             ),
             ephemeral=True,
         )
+
+    @discord.slash_command(
+        name="end",
+        description="End the current Eggsplode game.",
+        integration_types={
+            discord.IntegrationType.guild_install,
+            discord.IntegrationType.user_install,
+        },
+    )
+    @discord.default_permissions(manage_messages=True)
+    async def end_game(self, ctx: discord.ApplicationContext):
+        game = await self.get_game(ctx.interaction)
+        if game is None or not ctx.interaction.user:
+            return
+        view = EndGameView(game, ctx.interaction.user.id)
+        await ctx.respond(view=view, ephemeral=True)
 
 
 def setup(bot: EggsplodeApp):

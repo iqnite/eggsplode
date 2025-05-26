@@ -5,7 +5,7 @@ Contains additional commands.
 import discord
 from discord.ext import commands
 from eggsplode.commands import EggsplodeApp
-from eggsplode.ui.start import HelpView
+from eggsplode.ui import HelpView
 from eggsplode.strings import INFO, get_message
 
 
