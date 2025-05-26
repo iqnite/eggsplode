@@ -106,6 +106,57 @@ class Owner(commands.Cog):
             ephemeral=True,
         )
 
+    @discord.slash_command(
+        name="set_status",
+        description="Set the bot's status.",
+        guild_ids=[TEST_GUILD_ID],
+    )
+    @discord.option(
+        name="status",
+        description="The status to set the bot to.",
+        input_type=str,
+        required=False,
+        autocomplete=lambda _: list(discord.Status.__members__.keys()),
+    )
+    @discord.option(
+        name="activity",
+        description="The activity to set the bot to.",
+        input_type=str,
+        required=False,
+    )
+    @discord.option(
+        name="activity_type",
+        description="The type of activity to set the bot to.",
+        input_type=str,
+        required=False,
+        autocomplete=lambda _: list(discord.ActivityType.__members__.keys()),
+    )
+    @commands.is_owner()
+    async def set_status(
+        self,
+        ctx: discord.ApplicationContext,
+        status: str,
+        activity: str | None = None,
+        activity_type: str | None = None,
+    ):
+        await ctx.response.defer(ephemeral=True)
+        await self.bot.change_presence(
+            activity=(
+                discord.Activity(
+                    type=discord.ActivityType[activity_type], name=activity or ""
+                )
+                if activity_type
+                else discord.CustomActivity(name=activity or "")
+            ),
+            status=discord.Status[status or "online"],
+        )
+        await ctx.respond(
+            get_message("set_status_success").format(
+                status, activity_type or "default" + (activity or "")
+            ),
+            ephemeral=True,
+        )
+
 
 def setup(bot: EggsplodeApp):
     bot.add_cog(Owner(bot))
