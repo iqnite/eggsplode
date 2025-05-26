@@ -148,14 +148,20 @@ class MainGame(commands.Cog):
     @discord.slash_command(
         name="end",
         description="End the current Eggsplode game.",
-        integration_types={
-            discord.IntegrationType.guild_install,
-            discord.IntegrationType.user_install,
-        },
+        integration_types={discord.IntegrationType.guild_install},
     )
     @discord.default_permissions(manage_messages=True)
     async def end_game(self, ctx: discord.ApplicationContext):
-        game = await self.get_game(ctx.interaction)
+        game_id = ctx.interaction.channel_id
+        if not (game_id and ctx.interaction.user):
+            return
+        if (
+            game_id not in self.bot.games
+            or (game := self.bot.games[game_id]) is None
+            or not game.running
+        ):
+            await ctx.respond(get_message("game_not_found"), ephemeral=True)
+            return
         if game is None or not ctx.interaction.user:
             return
         view = EndGameView(game, ctx.interaction.user.id)

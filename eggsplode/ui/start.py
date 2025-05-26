@@ -27,6 +27,7 @@ class StartGameView(discord.ui.View):
     def __init__(self, game: "Game"):
         super().__init__(timeout=600, disable_on_timeout=True)
         self.game = game
+        self.game.events.game_end += self.terminate_view
         self.create_settings()
         self.header = discord.ui.Section()
         self.title = discord.ui.TextDisplay(get_message("start"))
