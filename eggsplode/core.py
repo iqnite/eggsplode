@@ -8,6 +8,8 @@ from importlib import import_module
 import random
 from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
+from eggsplode.nope import NopeView
+from eggsplode.selections import PlayView
 from eggsplode.turn_view import TurnView
 from eggsplode.strings import CARDS, EXPANSIONS, get_message, replace_emojis
 
@@ -197,10 +199,62 @@ class Game:
             hold = True
         return card, hold
 
+    async def action_check(self, interaction: discord.Interaction) -> bool:
+        if not interaction.user:
+            raise TypeError("interaction.user is None")
+        if interaction.user.id != self.current_player_id:
+            await interaction.respond(
+                get_message("not_your_turn"), ephemeral=True, delete_after=5
+            )
+            return False
+        if self.paused:
+            await interaction.respond(
+                get_message("awaiting_prompt"), ephemeral=True, delete_after=5
+            )
+            return False
+        return True
+
+    async def draw_callback(self, interaction: discord.Interaction):
+        if not await self.action_check(interaction):
+            return
+        await self.events.action_start()
+        _, hold = await self.draw_from(interaction)
+        if hold:
+            await self.events.turn_end()
+
+    async def show_hand(self, interaction: discord.Interaction):
+        if not interaction.user:
+            raise TypeError("interaction.user is None")
+        view = PlayView(self, interaction.user.id)
+        await interaction.respond(view=view, ephemeral=True)
+        await self.events.turn_reset()
+
+    async def play_callback(self, interaction: discord.Interaction, card: str):
+        if not await self.action_check(interaction):
+            return
+        if not interaction.user:
+            raise TypeError("interaction.user is None")
+        self.current_player_hand.remove(card)
+        await self.events.action_start()
+        if CARDS[card].get("explicit", False):
+            await self.play(interaction, card)
+        else:
+            view = NopeView(
+                self,
+                ok_callback_action=lambda _: self.play(interaction, card),
+                message=get_message("play_card").format(
+                    interaction.user.id,
+                    CARDS[card]["emoji"],
+                    CARDS[card]["title"],
+                ),
+            )
+            await self.send(view=view)
+
     async def draw_from(
         self, interaction: discord.Interaction, index: int = -1, timed_out: bool = False
     ) -> tuple[str, bool]:
         turn_player: int = self.current_player_id
+        self.anchor_interaction = interaction
         card, hold = await self.draw(interaction, self.deck.pop(index), timed_out)
         if hold:
             await self.send(get_message("user_drew_card").format(turn_player))

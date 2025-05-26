@@ -5,8 +5,6 @@ Contains the TurnView class, which provides buttons to take actions.
 from typing import TYPE_CHECKING
 import discord
 from eggsplode.base_view import BaseView
-from eggsplode.selections import PlayView
-from eggsplode.strings import get_message
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
@@ -20,12 +18,12 @@ class TurnView(BaseView):
         self.play_button = discord.ui.Button(
             label="Play a card", style=discord.ButtonStyle.primary, emoji="🎴"
         )
-        self.play_button.callback = self.play_callback
+        self.play_button.callback = self.game.show_hand
         self.add_item(self.play_button)
         self.draw_button = discord.ui.Button(
             label="Draw", style=discord.ButtonStyle.secondary, emoji="🤚"
         )
-        self.draw_button.callback = self.draw_callback
+        self.draw_button.callback = self.game.draw_callback
         self.add_item(self.draw_button)
         self.warnings = discord.ui.TextDisplay(self.game.warnings)
         self.add_item(self.warnings)
@@ -39,37 +37,12 @@ class TurnView(BaseView):
         self.game.inactivity_count = 0
         return True
 
-    async def draw_callback(self, interaction: discord.Interaction):
-        if not interaction.user:
-            raise TypeError("interaction.user is None")
-        if interaction.user.id != self.game.current_player_id:
-            await interaction.respond(
-                get_message("not_your_turn"), ephemeral=True, delete_after=5
-            )
-            return
-        if self.game.paused:
-            await interaction.respond(
-                get_message("awaiting_prompt"), ephemeral=True, delete_after=5
-            )
-            return
-        await self.game.events.action_start()
-        _, hold = await self.game.draw_from(interaction)
-        if hold:
-            await self.game.events.turn_end()
-
-    async def play_callback(self, interaction: discord.Interaction):
-        if not interaction.user:
-            raise TypeError("interaction.user is None")
-        view = PlayView(self.game, interaction.user.id)
-        await interaction.respond(view=view, ephemeral=True)
-        await self.game.events.turn_reset()
-
     async def deactivate(self):
         self.stop()
-        self.disable_all_items()
         self.game.events.turn_end -= self.deactivate
         self.game.events.game_end -= self.deactivate
-        for item in (self.draw_button, self.play_button, self.warnings):
-            self.remove_item(item)
-        if self.game.anchor_interaction:
-            await self.game.anchor_interaction.edit_original_response(view=self)
+        # self.disable_all_items()
+        # for item in (self.draw_button, self.play_button, self.warnings):
+        #     self.remove_item(item)
+        # if self.game.anchor_interaction:
+        #     await self.game.anchor_interaction.edit_original_response(view=self)

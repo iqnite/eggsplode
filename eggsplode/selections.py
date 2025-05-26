@@ -5,7 +5,6 @@ Contains the views for the short interactions in the game, such as "Defuse".
 from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 
-from eggsplode.nope import NopeView
 from eggsplode.strings import CARDS, MAX_COMPONENTS, get_message
 
 if TYPE_CHECKING:
@@ -166,6 +165,7 @@ class PlayView(discord.ui.View):
         self.forward_button: discord.ui.Button | None = None
         self.page_number = 0
         self.update_sections()
+        self.game.events.game_end += self.stop
 
     @property
     def playable(self) -> bool:
@@ -266,18 +266,4 @@ class PlayView(discord.ui.View):
         self.action_id = self.game.action_id
         self.stop()
         await interaction.edit(view=self, delete_after=0)
-        await self.game.events.action_start()
-        self.game.current_player_hand.remove(card)
-        if CARDS[card].get("explicit", False):
-            await self.game.play(interaction, card)
-        else:
-            view = NopeView(
-                self.game,
-                ok_callback_action=lambda _: self.game.play(interaction, card),
-                message=get_message("play_card").format(
-                    interaction.user.id,
-                    CARDS[card]["emoji"],
-                    CARDS[card]["title"],
-                ),
-            )
-            await self.game.send(view=view)
+        await self.game.play_callback(interaction, card)
