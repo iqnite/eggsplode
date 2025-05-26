@@ -13,6 +13,7 @@ class BaseView(discord.ui.View):
     def __init__(self, game: "Game", timeout=None):
         super().__init__(timeout=timeout, disable_on_timeout=True)
         self.game = game
+        self.game.events.game_end += self.stop
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if not await super().interaction_check(interaction):

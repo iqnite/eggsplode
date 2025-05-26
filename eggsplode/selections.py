@@ -43,6 +43,7 @@ class ChoosePlayerView(discord.ui.View):
         ]
         self.callback_action = callback_action
         self.user_select = None
+        self.game.events.game_end += self.stop
 
     async def on_timeout(self):
         try:
@@ -95,6 +96,7 @@ class DefuseView(SelectionView):
         self.prev_card = prev_card if prev_card else card
         self.card_position = 0
         self.generate_move_prompt()
+        self.game.events.game_end += self.stop
 
     async def finish(self):
         self.game.deck.insert(self.card_position, self.card)
