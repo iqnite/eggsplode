@@ -1,4 +1,4 @@
-# py-cord
+# py-cord>=2.7.0
 git+https://github.com/Pycord-Development/pycord.git@refs/pull/2707/head
 python-dotenv
 coverage

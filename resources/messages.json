@@ -45,7 +45,6 @@
     ],
     "help1": [
         "# Cards (1)",
-        "*Tip: You can view the cards in your hand by sending the </hand:1332257389881331722> command.*",
         "## 💣 Eggsplode",
         "If you draw this card and don't have a **Defuse**, you eggsplode and are out of the game!",
         "-# Cannot be played or noped.",
@@ -67,7 +66,6 @@
     ],
     "help2": [
         "# Cards (2)",
-        "*Tip: You can view the cards in your hand by sending the </hand:1332257389881331722> command.*",
         "## 🏃‍➡️ Skip",
         "End your turn without drawing from the deck.",
         "-# Can be played during your turn.",
