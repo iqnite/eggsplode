@@ -2,11 +2,13 @@
 Contains the views for the short interactions in the game, such as "Defuse".
 """
 
-from typing import Callable, Coroutine
+from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 
-from .strings import CARDS, get_message
-from .game_logic import Game
+from eggsplode.strings import CARDS, get_message
+
+if TYPE_CHECKING:
+    from eggsplode.core import Game
 
 
 class SelectionView(discord.ui.View):
@@ -23,24 +25,25 @@ class SelectionView(discord.ui.View):
     async def confirm(self, _, interaction: discord.Interaction):
         self.disable_all_items()
         await interaction.edit(view=self, delete_after=0)
-        self.on_timeout = super().on_timeout
+        self.stop()
         await self.finish()
 
 
 class ChoosePlayerView(discord.ui.View):
     def __init__(
         self,
-        game: Game,
+        game: "Game",
         callback_action: Callable[[int], Coroutine],
         condition: Callable[[int], bool] = lambda _: True,
     ):
-        super().__init__(timeout=20)
+        super().__init__(timeout=20, disable_on_timeout=True)
         self.game = game
         self.eligible_players = [
             user_id for user_id in self.game.players if condition(user_id)
         ]
         self.callback_action = callback_action
         self.user_select = None
+        self.game.events.game_end += self.stop
 
     async def on_timeout(self):
         try:
@@ -70,6 +73,7 @@ class ChoosePlayerView(discord.ui.View):
         if not (interaction and self.user_select):
             return
         self.on_timeout = super().on_timeout
+        self.stop()
         self.disable_all_items()
         await interaction.edit(view=self, delete_after=0)
         if not isinstance(self.user_select.values[0], str):
@@ -80,18 +84,19 @@ class ChoosePlayerView(discord.ui.View):
 class DefuseView(SelectionView):
     def __init__(
         self,
-        game: Game,
+        game: "Game",
         callback_action: Callable[[], Coroutine],
         card="eggsplode",
         prev_card=None,
     ):
-        super().__init__(timeout=30)
+        super().__init__(timeout=30, disable_on_timeout=True)
         self.game = game
         self.callback_action = callback_action
         self.card = card
         self.prev_card = prev_card if prev_card else card
         self.card_position = 0
         self.generate_move_prompt()
+        self.game.events.game_end += self.stop
 
     async def finish(self):
         self.game.deck.insert(self.card_position, self.card)
@@ -142,8 +147,34 @@ class DefuseView(SelectionView):
 
     async def send(self, interaction: discord.Interaction):
         await interaction.respond(
-            self.generate_move_prompt(),
-            view=self,
-            ephemeral=True,
-            delete_after=60,
+            self.generate_move_prompt(), view=self, ephemeral=True
         )
+
+
+class EndGameView(discord.ui.View):
+    def __init__(self, game: "Game", user_id: int):
+        super().__init__(timeout=30, disable_on_timeout=True)
+        self.game = game
+        self.user_id = user_id
+        self.warning = discord.ui.TextDisplay(get_message("end_game_warning"))
+        self.add_item(self.warning)
+        self.button = discord.ui.Button(
+            label=get_message("end_game_button"), style=discord.ButtonStyle.danger
+        )
+        self.button.callback = self.end_game_callback
+        self.add_item(self.button)
+
+    async def end_game_callback(self, interaction: discord.Interaction):
+        if not interaction.user or interaction.user.id != self.user_id:
+            await interaction.respond(
+                get_message("end_game_permission_denied"), ephemeral=True
+            )
+            return
+        if not interaction or not self.game:
+            return
+        self.disable_all_items()
+        await interaction.edit(view=self)
+        if self.game.running:
+            await self.game.events.game_end()
+        self.stop()
+        await interaction.respond(get_message("game_ended").format(self.user_id))

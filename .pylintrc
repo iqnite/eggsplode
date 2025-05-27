@@ -6,7 +6,7 @@ disable=
     C0115, # Missing class docstring
     C0116, # Missing function or method docstring,
     R0901, # Too many ancestors
-    R0902, # Too many instance attributes    
+    R0902, # Too many instance attributes
     R0903, # Too few public methods
     R0904, # Too many public methods
     R0913, # Too many arguments
@@ -17,4 +17,4 @@ generated-members=
 
 ignore=
     *.pyc,
-    .venv/,
+    .venv*/,

@@ -5,9 +5,9 @@ Contains the commands for the Eggsplode game.
 from datetime import datetime
 import discord
 from discord.ext import commands
-from .game_logic import ActionLog, Game
-from .strings import INFO, get_message
-from .start import HelpView, StartGameView
+from eggsplode.core import Game
+from eggsplode.strings import get_message
+from eggsplode.ui import StartGameView
 
 
 class EggsplodeApp(commands.Bot):
@@ -16,7 +16,6 @@ class EggsplodeApp(commands.Bot):
         self.admin_maintenance: bool = False
         self.games: dict[int, Game] = {}
         self.load_extension("eggsplode.cogs.eggsplode_game")
-        self.load_extension("eggsplode.cogs.mini_games")
         self.load_extension("eggsplode.cogs.misc")
         self.load_extension("eggsplode.cogs.owner")
 
@@ -33,7 +32,7 @@ class EggsplodeApp(commands.Bot):
             ).total_seconds() > 1800:
                 del self.games[game_id]
 
-    async def start_game(self, interaction: discord.Interaction, config=None):
+    async def create_game(self, interaction: discord.Interaction, config=None):
         self.cleanup()
         if self.admin_maintenance:
             await interaction.respond(get_message("maintenance"), ephemeral=True)
@@ -57,19 +56,6 @@ class EggsplodeApp(commands.Bot):
                 else config
             ),
         )
-        game.log = ActionLog(anchor_interaction=interaction)
+        game.anchor_interaction = interaction
         view = StartGameView(game)
-        await interaction.respond(view.generate_game_start_message(), view=view)
-
-    async def show_help(self, interaction: discord.Interaction, ephemeral=False):
-        await interaction.respond(
-            get_message("help0")
-            + "\n"
-            + get_message("status").format(
-                self.latency * 1000,
-                INFO["version"],
-                get_message("maintenance") if self.admin_maintenance else "",
-            ),
-            view=HelpView(),
-            ephemeral=ephemeral,
-        )
+        await interaction.respond(view=view)

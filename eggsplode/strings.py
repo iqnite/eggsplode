@@ -6,6 +6,8 @@ import os
 import json
 from dotenv import load_dotenv
 
+MAX_COMPONENTS = 40
+
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
@@ -44,3 +46,11 @@ def get_message(key: str) -> str:
     if isinstance(message, list):
         return "\n".join([replace_emojis(m) for m in message])
     raise ValueError(f"Invalid message format for key: {key}")
+
+
+def get_card_by_title(title: str, match_case: bool = False) -> str:
+    match_func = str if match_case else str.lower
+    for card, data in CARDS.items():
+        if match_func(data["title"]) == match_func(title):
+            return card
+    raise ValueError(f"Card with title '{title}' not found.")
