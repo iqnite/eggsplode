@@ -73,7 +73,7 @@ class PlayView(discord.ui.View):
         for item in self.children[1:]:
             self.remove_item(item)
         for item in self.card_selects[
-            self.page_number : self.page_number + self.MAX_SECTIONS - 1
+            self.page_number * self.MAX_SECTIONS : (self.page_number + 1) * self.MAX_SECTIONS
         ]:
             self.add_item(item)
 
