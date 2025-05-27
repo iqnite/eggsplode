@@ -62,7 +62,13 @@ async def food_combo(game: "Game", interaction: discord.Interaction, card: str):
             get_message("no_players_have_cards"), ephemeral=True, delete_after=10
         )
         return
-    game.current_player_hand.remove(card)
+    if card in game.current_player_hand:
+        game.current_player_hand.remove(card)
+    else:
+        await interaction.respond(
+            get_message("card_not_found").format(card), ephemeral=True, delete_after=10
+        )
+        return
     view = ChoosePlayerView(
         game,
         lambda target_player_id: food_combo_begin(
