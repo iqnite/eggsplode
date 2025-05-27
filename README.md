@@ -25,7 +25,7 @@ _No eggs were injured while making this game._
 
 - This project is created and maintained by [Phorb](https://iqnite.github.io/).
 - Huge thanks to Psilo for making the card icons!
-- The project is based on the [PyCord](https://pycord.dev/) library.
+- The project is based on the [Pycord](https://pycord.dev/) library.
 - The game concept is based on the card game [Exploding Kittens](https://explodingkittens.com/).
 - Thanks to all the early testers for their feedback and patience!
 - And of course, thanks to you for playing!
