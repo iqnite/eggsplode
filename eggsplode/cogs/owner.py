@@ -82,7 +82,7 @@ class Owner(commands.Cog):
         )
         stdout, stderr = await process.communicate()
 
-        with open("temp/output.txt", "w") as f:
+        with open("temp/output.txt", "w", encoding="utf-8") as f:
             f.write(stdout.decode() + "\n" + stderr.decode())
         if process.returncode == 0:
             await ctx.edit(
