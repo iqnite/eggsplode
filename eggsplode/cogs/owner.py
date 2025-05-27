@@ -5,7 +5,6 @@ Contains owner only commands.
 import asyncio
 import discord
 from discord.ext import commands
-
 from eggsplode.commands import EggsplodeApp
 from eggsplode.strings import get_message, TEST_GUILD_ID, CONFIG
 
@@ -83,13 +82,17 @@ class Owner(commands.Cog):
         )
         stdout, stderr = await process.communicate()
 
+        with open("temp/output.txt", "w") as f:
+            f.write(stdout.decode() + "\n" + stderr.decode())
         if process.returncode == 0:
             await ctx.edit(
-                content=get_message("command_success").format(stdout.decode()[1800:])
+                content=get_message("command_success"),
+                file=discord.File(fp="temp/output.txt"),
             )
         else:
             await ctx.edit(
-                content=get_message("command_failed").format(stderr.decode()[1800:])
+                content=get_message("command_failed"),
+                file=discord.File(fp="temp/output.txt"),
             )
 
     @discord.slash_command(
