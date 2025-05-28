@@ -10,8 +10,8 @@ from eggsplode.strings import get_message, TEST_GUILD_ID, CONFIG
 
 
 class Owner(commands.Cog):
-    def __init__(self, bot: EggsplodeApp):
-        self.bot = bot
+    def __init__(self, app: EggsplodeApp):
+        self.app = app
 
     @discord.slash_command(
         name="restart",
@@ -21,7 +21,7 @@ class Owner(commands.Cog):
     @commands.is_owner()
     async def restart(self, ctx: discord.ApplicationContext):
         await self.maintenance(ctx)
-        while self.bot.games and self.bot.admin_maintenance:
+        while self.app.game_count > 0 and self.app.admin_maintenance:
             await asyncio.sleep(10)
         print("RESTARTING VIA ADMIN COMMAND")
         await asyncio.create_subprocess_shell(CONFIG.get("restart_command", ""))
@@ -47,14 +47,14 @@ class Owner(commands.Cog):
     )
     @commands.is_owner()
     async def maintenance(self, ctx: discord.ApplicationContext):
-        self.bot.cleanup()
-        self.bot.admin_maintenance = not self.bot.admin_maintenance
+        self.app.cleanup()
+        self.app.admin_maintenance = not self.app.admin_maintenance
         await ctx.respond(
             get_message("maintenance_mode_toggle").format(
-                "enabled" if self.bot.admin_maintenance else "disabled",
+                "enabled" if self.app.admin_maintenance else "disabled",
                 (
                     get_message("maintenance_mode_no_games_running")
-                    if not self.bot.games
+                    if not self.app.games
                     else ""
                 ),
             ),
@@ -104,7 +104,7 @@ class Owner(commands.Cog):
     async def list_games(self, ctx):
         await ctx.respond(
             get_message("list_games_title").format(
-                "\n".join(f"- {i}" for i in self.bot.games)
+                "\n".join(f"- {i}" for i in self.app.games)
             ),
             ephemeral=True,
         )
@@ -143,7 +143,7 @@ class Owner(commands.Cog):
         activity_type: str | None = None,
     ):
         await ctx.response.defer(ephemeral=True)
-        await self.bot.change_presence(
+        await self.app.change_presence(
             activity=(
                 discord.Activity(
                     type=discord.ActivityType[activity_type], name=activity or ""
