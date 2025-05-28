@@ -334,3 +334,32 @@ class HelpView(discord.ui.View):
             f"help{int(self.section_select.values[0])}"
         )
         await interaction.edit(view=self)
+
+
+class EndGameView(discord.ui.View):
+    def __init__(self, game: "Game", user_id: int):
+        super().__init__(timeout=30, disable_on_timeout=True)
+        self.game = game
+        self.user_id = user_id
+        self.warning = discord.ui.TextDisplay(get_message("end_game_warning"))
+        self.add_item(self.warning)
+        self.button = discord.ui.Button(
+            label=get_message("end_game_button"), style=discord.ButtonStyle.danger
+        )
+        self.button.callback = self.end_game_callback
+        self.add_item(self.button)
+
+    async def end_game_callback(self, interaction: discord.Interaction):
+        if not interaction.user or interaction.user.id != self.user_id:
+            await interaction.respond(
+                get_message("end_game_permission_denied"), ephemeral=True
+            )
+            return
+        if not interaction or not self.game:
+            return
+        self.disable_all_items()
+        await interaction.edit(view=self)
+        if self.game.running:
+            await self.game.events.game_end()
+        self.stop()
+        await interaction.respond(get_message("game_ended").format(self.user_id))

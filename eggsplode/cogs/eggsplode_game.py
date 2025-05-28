@@ -7,7 +7,7 @@ from discord.ext import commands
 from eggsplode.commands import EggsplodeApp
 from eggsplode.core import Game
 from eggsplode.strings import CARDS, get_card_by_title, get_message
-from eggsplode.ui import EndGameView
+from eggsplode.ui.start import EndGameView
 
 
 class EggsplodeGame(commands.Cog):
