@@ -10,8 +10,8 @@ from eggsplode.strings import INFO, get_message
 
 
 class Misc(commands.Cog):
-    def __init__(self, bot: EggsplodeApp):
-        self.bot = bot
+    def __init__(self, app: EggsplodeApp):
+        self.app = app
 
     @discord.slash_command(
         name="help",
@@ -36,9 +36,9 @@ class Misc(commands.Cog):
         await ctx.defer(ephemeral=True)
         await ctx.respond(
             get_message("status").format(
-                self.bot.latency * 1000,
+                self.app.latency * 1000,
                 INFO["version"],
-                get_message("maintenance") if self.bot.admin_maintenance else "",
+                get_message("maintenance") if self.app.admin_maintenance else "",
             ),
             ephemeral=True,
         )
