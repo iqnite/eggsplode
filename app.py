@@ -40,13 +40,4 @@ if __name__ == "__main__":
     if CONFIG.get("log_path", "") != "":
         logger.info("PROGRAM STARTED!")
     print("PROGRAM STARTED!")
-    try:
-        app.run(DISCORD_TOKEN)
-    except KeyboardInterrupt:
-        print("KeyboardInterrupt received, shutting down...")
-        app.admin_maintenance = True
-        app.cleanup()
-        while app.game_count > 0 and app.admin_maintenance:
-            app.loop.run_until_complete(asyncio.sleep(10))
-        print("Shutting down...")
-        quit()
+    app.run(DISCORD_TOKEN)
