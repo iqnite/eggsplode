@@ -4,6 +4,7 @@ Eggsplode Discord Bot Application
 This module contains the main application logic for the Eggsplode Discord bot.
 """
 
+import asyncio
 import sys
 import logging
 from logging.handlers import RotatingFileHandler
@@ -39,4 +40,13 @@ if __name__ == "__main__":
     if CONFIG.get("log_path", "") != "":
         logger.info("PROGRAM STARTED!")
     print("PROGRAM STARTED!")
-    app.run(DISCORD_TOKEN)
+    try:
+        app.run(DISCORD_TOKEN)
+    except KeyboardInterrupt:
+        print("KeyboardInterrupt received, shutting down...")
+        app.admin_maintenance = True
+        app.cleanup()
+        while app.game_count > 0 and app.admin_maintenance:
+            app.loop.run_until_complete(asyncio.sleep(10))
+        print("Shutting down...")
+        quit()

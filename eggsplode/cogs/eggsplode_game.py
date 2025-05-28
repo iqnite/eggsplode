@@ -11,8 +11,8 @@ from eggsplode.ui import EndGameView
 
 
 class EggsplodeGame(commands.Cog):
-    def __init__(self, bot: EggsplodeApp):
-        self.bot = bot
+    def __init__(self, app: EggsplodeApp):
+        self.app = app
 
     async def get_game(
         self, interaction: discord.Interaction, quiet: bool = False
@@ -21,8 +21,8 @@ class EggsplodeGame(commands.Cog):
         if not (game_id and interaction.user):
             return None
         if (
-            game_id not in self.bot.games
-            or (game := self.bot.games[game_id]) is None
+            game_id not in self.app.games
+            or (game := self.app.games[game_id]) is None
             or not game.running
         ):
             if not quiet:
@@ -51,7 +51,7 @@ class EggsplodeGame(commands.Cog):
         },
     )
     async def start_game(self, ctx: discord.ApplicationContext):
-        await self.bot.create_game(ctx.interaction)
+        await self.app.create_game(ctx.interaction)
 
     @discord.slash_command(
         name="draw",
@@ -128,10 +128,10 @@ class EggsplodeGame(commands.Cog):
         },
     )
     async def list_user_games(self, ctx: discord.ApplicationContext):
-        self.bot.cleanup()
+        self.app.cleanup()
         if not ctx.interaction.user:
             return
-        found_games = self.bot.games_with_user(ctx.interaction.user.id)
+        found_games = self.app.games_with_user(ctx.interaction.user.id)
         await ctx.respond(
             (
                 get_message("list_games_title").format(
@@ -156,8 +156,8 @@ class EggsplodeGame(commands.Cog):
         if not (game_id and ctx.interaction.user):
             return
         if (
-            game_id not in self.bot.games
-            or (game := self.bot.games[game_id]) is None
+            game_id not in self.app.games
+            or (game := self.app.games[game_id]) is None
             or not game.running
         ):
             await ctx.respond(get_message("game_not_found"), ephemeral=True)

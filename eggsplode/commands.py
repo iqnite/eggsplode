@@ -23,7 +23,11 @@ class EggsplodeApp(commands.Bot):
         print("APP READY!")
 
     def games_with_user(self, user_id: int) -> list[int]:
-        return [i for i, game in self.games.items() if user_id in game.players]
+        return [
+            i
+            for i, game in self.games.items()
+            if user_id in game.players + game.config.get("players", [])
+        ]
 
     def cleanup(self):
         for game_id in list(self.games):
@@ -31,6 +35,14 @@ class EggsplodeApp(commands.Bot):
                 datetime.now() - self.games[game_id].last_activity
             ).total_seconds() > 1800:
                 del self.games[game_id]
+
+    @property
+    def game_count(self) -> int:
+        count = 0
+        for game in self.games.values():
+            if game and game.running:
+                count += 1
+        return count
 
     async def create_game(self, interaction: discord.Interaction, config=None):
         self.cleanup()
