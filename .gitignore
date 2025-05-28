@@ -1,7 +1,6 @@
 .env
 .venv*/
 *.pyc
-logs/
 .coverage
-emojis.json
+resources/emojis.json
 resources/config.json
