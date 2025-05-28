@@ -4,7 +4,6 @@ Eggsplode Discord Bot Application
 This module contains the main application logic for the Eggsplode Discord bot.
 """
 
-import asyncio
 import sys
 import logging
 from logging.handlers import RotatingFileHandler
