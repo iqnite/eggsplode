@@ -26,7 +26,7 @@ class EggsplodeApp(commands.Bot):
         return [
             i
             for i, game in self.games.items()
-            if user_id in game.players + game.config.get("players", [])
+            if user_id in game.players + list(game.config.get("players", []))
         ]
 
     def cleanup(self):
