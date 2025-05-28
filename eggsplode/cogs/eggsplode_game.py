@@ -10,7 +10,7 @@ from eggsplode.strings import CARDS, get_card_by_title, get_message
 from eggsplode.ui import EndGameView
 
 
-class MainGame(commands.Cog):
+class EggsplodeGame(commands.Cog):
     def __init__(self, bot: EggsplodeApp):
         self.bot = bot
 
@@ -169,4 +169,4 @@ class MainGame(commands.Cog):
 
 
 def setup(bot: EggsplodeApp):
-    bot.add_cog(MainGame(bot))
+    bot.add_cog(EggsplodeGame(bot))
