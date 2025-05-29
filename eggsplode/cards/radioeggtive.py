@@ -17,8 +17,9 @@ if TYPE_CHECKING:
 async def draw_from_bottom(game: "Game", interaction: discord.Interaction):
     if not interaction.user:
         return
-    await game.draw_from(interaction, index=0)
-    await game.events.turn_end()
+    _, hold = await game.draw_from(interaction, index=0)
+    if hold:
+        await game.events.turn_end()
 
 
 def radioeggtive_warning(game: "Game") -> str:
@@ -177,6 +178,8 @@ async def radioeggtive_face_up(game: "Game", interaction: discord.Interaction, _
     await game.send(get_message("radioeggtive_face_up").format(prev_player))
     if len(game.players) == 1:
         await game_over(game, interaction)
+        return
+    await game.events.turn_end()
 
 
 PLAY_ACTIONS = {
