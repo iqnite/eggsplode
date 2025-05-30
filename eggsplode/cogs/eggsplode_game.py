@@ -121,7 +121,7 @@ class EggsplodeGame(commands.Cog):
 
     @discord.slash_command(
         name="games",
-        description="View which games you're in.",
+        description="View and jump to the games you've joined.",
         integration_types={
             discord.IntegrationType.guild_install,
             discord.IntegrationType.user_install,
