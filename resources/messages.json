@@ -37,12 +37,13 @@
     "hand_title": "# Your cards\n{}",
     "help0": [
         "# How to start a game",
-        "Use the </start:1325457141628141661> command to create a new game. Once everyone has joined, select **Start game** to begin!",
+        "Use the </start:1325457141628141661> command to create a new game. Once everyone has joined, select **Start** to begin!",
         "# How to play",
-        "1. Once it's your turn, click on **Play!**",
-        "2. Play as many cards from the dropdown menu as you want. You can also not play any cards.",
-        "3. Click on **Draw** to draw a card from the deck and end your turn. It may not be required after playing some card types."
-    ],
+        "Once it's your turn, **Play** as many cards as you want. You can also not play any cards.",
+        "After that, **Draw** a card from the deck to end your turn. If you draw an **Eggsplode** card, you eggsplode and are out of the game!",
+        "If you have a **Defuse** card, it will be played automatically and you can put the **Eggsplode** card back into the deck.",
+        "To learn more about the cards, check out the **Cards** section."
+        ],
     "help1": [
         "# Cards (1)",
         "## 💣 Eggsplode",
