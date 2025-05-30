@@ -241,8 +241,8 @@ class Game:
                 self,
                 ok_callback_action=lambda _: self.play(interaction, card),
                 message=get_message("play_card").format(
-                    interaction.user.id,
                     CARDS[card]["emoji"],
+                    interaction.user.id,
                     CARDS[card]["title"],
                 ),
             )
