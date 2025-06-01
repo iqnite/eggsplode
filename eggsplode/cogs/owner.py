@@ -21,8 +21,10 @@ class Owner(commands.Cog):
     @commands.is_owner()
     async def restart(self, ctx: discord.ApplicationContext):
         await self.maintenance(ctx)
-        while self.app.game_count > 0 and self.app.admin_maintenance:
+        while self.app.game_count > 0:
             await asyncio.sleep(10)
+        if not self.app.admin_maintenance:
+            return
         print("RESTARTING VIA ADMIN COMMAND")
         await asyncio.create_subprocess_shell(CONFIG.get("restart_command", ""))
 
