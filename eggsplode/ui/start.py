@@ -400,9 +400,9 @@ class InfoView(discord.ui.View):
                 uptime.seconds % 60,
             )
         )
-        self.system_info.add_text(
-            get_message("status_cpu").format(psutil.cpu_percent())
-        )
+        # self.system_info.add_text(
+        #     get_message("status_cpu").format(psutil.cpu_percent())
+        # )
         self.system_info.add_text(
             get_message("status_memory").format(psutil.virtual_memory().percent)
         )
