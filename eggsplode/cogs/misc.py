@@ -5,8 +5,8 @@ Contains additional commands.
 import discord
 from discord.ext import commands
 from eggsplode.commands import EggsplodeApp
-from eggsplode.ui import HelpView
-from eggsplode.strings import INFO, get_message
+from eggsplode.ui import HelpView, InfoView
+from eggsplode.strings import get_message
 
 
 class Misc(commands.Cog):
@@ -25,23 +25,17 @@ class Misc(commands.Cog):
         await ctx.respond(view=HelpView())
 
     @discord.slash_command(
-        name="status",
-        description="Check the status of the app.",
+        name="info",
+        description="Show the status and some other info about the app.",
         integration_types={
             discord.IntegrationType.guild_install,
             discord.IntegrationType.user_install,
         },
     )
-    async def status(self, ctx: discord.ApplicationContext):
+    async def info(self, ctx: discord.ApplicationContext):
         await ctx.defer(ephemeral=True)
-        await ctx.respond(
-            get_message("status").format(
-                self.app.latency * 1000,
-                INFO["version"],
-                get_message("maintenance") if self.app.admin_maintenance else "",
-            ),
-            ephemeral=True,
-        )
+        view = InfoView(self.app)
+        await ctx.respond(view=view, ephemeral=True)
 
     @discord.message_command(
         name="Eggify",

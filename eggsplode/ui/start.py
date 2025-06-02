@@ -2,11 +2,15 @@
 Contains the StartGameView class which handles the start game view in the Discord bot.
 """
 
+import datetime
+import time
 from typing import TYPE_CHECKING
+import psutil
 import discord
-from eggsplode.strings import EXPANSIONS, get_message, replace_emojis
+from eggsplode.strings import EXPANSIONS, INFO, get_message, replace_emojis
 
 if TYPE_CHECKING:
+    from eggsplode.commands import EggsplodeApp
     from eggsplode.core import Game
 
 
@@ -297,7 +301,7 @@ class HelpView(discord.ui.View):
         )
         self.add_item(
             discord.ui.Button(
-                label="Support & Community server",
+                label="Official Server",
                 url="https://discord.gg/UGm36FkGDF",
                 style=discord.ButtonStyle.link,
                 emoji=replace_emojis("💬"),
@@ -313,7 +317,7 @@ class HelpView(discord.ui.View):
         )
         self.add_item(
             discord.ui.Button(
-                label="Invite to your server",
+                label="Install",
                 url="https://discord.com/oauth2/authorize?client_id=1325443178622484590",
                 style=discord.ButtonStyle.link,
                 emoji="🤖",
@@ -363,3 +367,63 @@ class EndGameView(discord.ui.View):
             await self.game.events.game_end()
         self.stop()
         await interaction.respond(get_message("game_ended").format(self.user_id))
+
+
+class InfoView(discord.ui.View):
+    def __init__(self, app: "EggsplodeApp"):
+        super().__init__(timeout=None)
+        self.app = app
+        self.software_info = discord.ui.Container()
+        self.software_info.add_section(
+            discord.ui.TextDisplay(
+                get_message("version_eggsplode").format(INFO["version"])
+            ),
+            discord.ui.TextDisplay(
+                get_message("version_pycord").format(discord.__version__)
+            ),
+            accessory=discord.ui.Button(
+                label="Release notes",
+                url="https://github.com/iqnite/eggsplode/releases",
+            ),
+        )
+        self.add_item(self.software_info)
+        self.system_info = discord.ui.Container()
+        self.system_info.add_text(
+            get_message("status_latency").format(self.app.latency * 1000)
+        )
+        self.system_info.add_text(
+            get_message("status_uptime").format(
+                get_uptime().days,
+                get_uptime().seconds // 3600,
+                (get_uptime().seconds // 60) % 60,
+                get_uptime().seconds % 60,
+            )
+        )
+        self.system_info.add_text(
+            get_message("status_cpu").format(psutil.cpu_percent())
+        )
+        self.system_info.add_text(
+            get_message("status_memory").format(psutil.virtual_memory().percent)
+        )
+        self.add_item(self.system_info)
+        self.discord_info = discord.ui.Container()
+        self.discord_info.add_section(
+            discord.ui.TextDisplay(
+                get_message("status_server_installs").format(len(self.app.guilds))
+            ),
+            discord.ui.TextDisplay(
+                get_message("status_user_installs").format(len(self.app.users))
+            ),
+            accessory=discord.ui.Button(
+                label="Install",
+                url="https://discord.com/oauth2/authorize?client_id=1325443178622484590",
+            ),
+        )
+        if self.app.admin_maintenance:
+            self.discord_info.add_text(get_message("maintenance"))
+        self.add_item(self.discord_info)
+        self.add_item(discord.ui.TextDisplay(get_message("help_info")))
+
+
+def get_uptime() -> datetime.timedelta:
+    return datetime.timedelta(seconds=time.time() - psutil.boot_time())

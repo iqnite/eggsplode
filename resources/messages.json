@@ -14,8 +14,8 @@
     "bold_list_item": "- **{} {}**",
     "bug_reported": "🐞 Bug reported! Thank you for your help!\nYou can also join our support server at https://discord.gg/UGm36FkGDF",
     "card_not_found": "❌ You don't have the card: `{}`",
-    "command_success": "✅ Command executed successfully!",
     "command_failed": "❌ Command failed with error!",
+    "command_success": "✅ Command executed successfully!",
     "defused": "## 🔧 <@{}> drew an Eggsplode card! Luckily, they had a Defuse and put it back into the deck!",
     "eggify_error": "💀 The Eggification failed",
     "eggsploded": "## 💥 <@{}> eggsploded!",
@@ -35,6 +35,7 @@
     "game_timeout": "**🚫 This game has been inactive for too long, so it has been terminated. You can start a new game with </start:1325457141628141661>.**",
     "hand_list": "- **{} {}** ({}x): {}",
     "hand_title": "# Your cards\n{}",
+    "help_info": "Use the </help:1328036788643823696> command to get help with the game!",
     "help0": [
         "# How to start a game",
         "Use the </start:1325457141628141661> command to create a new game. Once everyone has joined, select **Start** to begin!",
@@ -43,7 +44,7 @@
         "After that, **Draw** a card from the deck to end your turn. If you draw an **Eggsplode** card, you eggsplode and are out of the game!",
         "If you have a **Defuse** card, it will be played automatically and you can put the **Eggsplode** card back into the deck.",
         "To learn more about the cards, check out the **Cards** section."
-        ],
+    ],
     "help1": [
         "# Cards (1)",
         "## 💣 Eggsplode",
@@ -125,7 +126,7 @@
     "invalid_turn": "❌ This turn has ended or the action is not valid anymore. Please click **Play** on the main message.",
     "list_games_item": "- <#{}>",
     "list_games_title": "📋 **Games:**\n{}",
-    "maintenance": "⚠️ The bot is currently under maintenance. You can find more info in our support server.",
+    "maintenance": "⚠️ The bot is currently under maintenance. [More info](https://discord.gg/8dH5GvGjg4)",
     "maintenance_mode_no_games_running": "✅ No games running.",
     "maintenance_mode_toggle": "🔧 Maintenance mode **{}**. {}",
     "message_edit_on_nope": "🛑 <@{}>: **Nope!**",
@@ -167,7 +168,12 @@
     "start": "# New game",
     "start_game_tip": "Start a new game with </start:1325457141628141661>!",
     "started": "Game started!",
-    "status": "Ping: {:.0f}ms\nVersion: `{}`\n{}",
+    "status_latency": "Ping: {:.0f}ms",
+    "status_cpu": "CPU Usage: {:.0f}%",
+    "status_memory": "Memory Usage: {:.0f}%",
+    "status_uptime": "Uptime: {:.0f}d + {:.0f}:{:.0f}:{:.0f}",
+    "status_server_installs": "Server Installs: {}",
+    "status_user_installs": "User Installs: {}",
     "steal_prompt": "Choose a player to steal a card from.",
     "stolen_card_public": "🎭 <@{}> stole a card from <@{}>!",
     "stolen_card_them": "<@{}> stole 1 **{} {}** from you!",
@@ -180,5 +186,7 @@
     "user_drew_card": "🃏 <@{}> drew a card!",
     "user_not_in_any_games": "❌ You are not in any games! Start a new one with </start:1325457141628141661>!",
     "user_not_in_game": "❌ You are not in this game!",
+    "version_eggsplode": "Eggsplode Version: `{}`",
+    "version_pycord": "Pycord Version: `{}`",
     "you_drew_card": "You drew: **{} {}**!"
 }
