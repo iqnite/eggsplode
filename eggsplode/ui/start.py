@@ -412,9 +412,9 @@ class InfoView(discord.ui.View):
             discord.ui.TextDisplay(
                 get_message("status_server_installs").format(len(self.app.guilds))
             ),
-            discord.ui.TextDisplay(
-                get_message("status_user_installs").format(len(self.app.users))
-            ),
+            # discord.ui.TextDisplay(
+            #     get_message("status_user_installs").format(len(self.app.users))
+            # ),
             accessory=discord.ui.Button(
                 label="Install",
                 url="https://discord.com/oauth2/authorize?client_id=1325443178622484590",
