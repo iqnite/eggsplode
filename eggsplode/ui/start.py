@@ -391,12 +391,13 @@ class InfoView(discord.ui.View):
         self.system_info.add_text(
             get_message("status_latency").format(self.app.latency * 1000)
         )
+        uptime = get_uptime()
         self.system_info.add_text(
             get_message("status_uptime").format(
-                get_uptime().days,
-                get_uptime().seconds // 3600,
-                (get_uptime().seconds // 60) % 60,
-                get_uptime().seconds % 60,
+                uptime.days,
+                uptime.seconds // 3600,
+                (uptime.seconds // 60) % 60,
+                uptime.seconds % 60,
             )
         )
         self.system_info.add_text(
