@@ -158,5 +158,5 @@ class Owner(commands.Cog):
         await ctx.respond(get_message("set_status_success"), ephemeral=True)
 
 
-def setup(bot: EggsplodeApp):
-    bot.add_cog(Owner(bot))
+def setup(app: EggsplodeApp):
+    app.add_cog(Owner(app))

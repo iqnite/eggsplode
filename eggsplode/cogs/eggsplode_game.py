@@ -168,5 +168,5 @@ class EggsplodeGame(commands.Cog):
         await ctx.respond(view=view, ephemeral=True)
 
 
-def setup(bot: EggsplodeApp):
-    bot.add_cog(EggsplodeGame(bot))
+def setup(app: EggsplodeApp):
+    app.add_cog(EggsplodeGame(app))

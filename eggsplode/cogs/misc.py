@@ -63,5 +63,5 @@ class Misc(commands.Cog):
             await ctx.respond(get_message("eggify_error"), ephemeral=True)
 
 
-def setup(bot: EggsplodeApp):
-    bot.add_cog(Misc(bot))
+def setup(app: EggsplodeApp):
+    app.add_cog(Misc(app))
