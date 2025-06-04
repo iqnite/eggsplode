@@ -55,9 +55,8 @@ class StartGameView(discord.ui.View):
         self.players_container.add_item(self.players_display)
         self.add_item(self.players_container)
         self.help_button = discord.ui.Button(
-            label="Help", style=discord.ButtonStyle.secondary, emoji="❓"
+            label="Help", url="https://github.com/iqnite/eggsplode/wiki", emoji="❓"
         )
-        self.help_button.callback = self.help
         self.settings_container = discord.ui.Container()
         self.settings_container.add_section(
             discord.ui.TextDisplay(get_message("settings")), accessory=self.help_button
@@ -291,46 +290,6 @@ class HelpView(discord.ui.View):
         self.add_item(self.section_select)
         self.help_text = discord.ui.TextDisplay(get_message("help0"))
         self.add_item(self.help_text)
-        self.add_item(
-            discord.ui.Button(
-                label="Website",
-                url="https://iqnite.github.io/",
-                style=discord.ButtonStyle.link,
-                emoji=replace_emojis("🌐"),
-            )
-        )
-        self.add_item(
-            discord.ui.Button(
-                label="Official Server",
-                url="https://discord.gg/UGm36FkGDF",
-                style=discord.ButtonStyle.link,
-                emoji=replace_emojis("💬"),
-            )
-        )
-        self.add_item(
-            discord.ui.Button(
-                label="GitHub",
-                url="https://github.com/iqnite/eggsplode",
-                style=discord.ButtonStyle.link,
-                emoji=replace_emojis("🐙"),
-            )
-        )
-        self.add_item(
-            discord.ui.Button(
-                label="Install",
-                url="https://discord.com/oauth2/authorize?client_id=1325443178622484590",
-                style=discord.ButtonStyle.link,
-                emoji="🤖",
-            )
-        )
-        self.add_item(
-            discord.ui.Button(
-                label="Vote on top.gg",
-                url="https://top.gg/bot/1325443178622484590/vote",
-                style=discord.ButtonStyle.link,
-                emoji="🎉",
-            )
-        )
 
     async def section_callback(self, interaction: discord.Interaction):
         assert isinstance(self.section_select.values[0], str)
@@ -382,8 +341,9 @@ class InfoView(discord.ui.View):
                 get_message("version_pycord").format(discord.__version__)
             ),
             accessory=discord.ui.Button(
-                label="Release notes",
+                label="Release Notes",
                 url="https://github.com/iqnite/eggsplode/releases",
+                emoji="📜",
             ),
         )
         self.add_item(self.software_info)
@@ -418,12 +378,51 @@ class InfoView(discord.ui.View):
             accessory=discord.ui.Button(
                 label="Install",
                 url="https://discord.com/oauth2/authorize?client_id=1325443178622484590",
+                emoji="➕",
             ),
         )
         if self.app.admin_maintenance:
             self.discord_info.add_text(get_message("maintenance"))
         self.add_item(self.discord_info)
-        self.add_item(discord.ui.TextDisplay(get_message("help_info")))
+        self.add_item(
+            discord.ui.Button(
+                label="Help",
+                url="https://github.com/iqnite/eggsplode/wiki",
+                emoji="❓",
+            )
+        )
+        self.add_item(
+            discord.ui.Button(
+                label="Website",
+                url="https://iqnite.github.io/",
+                style=discord.ButtonStyle.link,
+                emoji=replace_emojis("🌐"),
+            )
+        )
+        self.add_item(
+            discord.ui.Button(
+                label="Official Server",
+                url="https://discord.gg/UGm36FkGDF",
+                style=discord.ButtonStyle.link,
+                emoji=replace_emojis("💬"),
+            )
+        )
+        self.add_item(
+            discord.ui.Button(
+                label="GitHub",
+                url="https://github.com/iqnite/eggsplode",
+                style=discord.ButtonStyle.link,
+                emoji=replace_emojis("🐙"),
+            )
+        )
+        self.add_item(
+            discord.ui.Button(
+                label="Vote on top.gg",
+                url="https://top.gg/bot/1325443178622484590/vote",
+                style=discord.ButtonStyle.link,
+                emoji="🎉",
+            )
+        )
 
 
 def get_uptime() -> datetime.timedelta:
