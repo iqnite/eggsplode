@@ -30,6 +30,7 @@ class NopeView(BaseView):
         self.ok_callback_action = ok_callback_action
         self.nope_callback_action = nope_callback_action
         self.nope_count = 0
+        self.players_confirmed = set()
         self.disabled = False
         self.action_text_display = discord.ui.TextDisplay(message)
         self.add_item(self.action_text_display)
@@ -41,12 +42,21 @@ class NopeView(BaseView):
         self.nope_button.callback = self.nope_callback
         self.add_item(self.nope_button)
         self.target_player_id = target_player_id
-        if target_player_id is not None:
-            self.ok_button = discord.ui.Button(
-                label="OK!", style=discord.ButtonStyle.green, emoji="✅"
-            )
-            self.ok_button.callback = self.ok_callback
-            self.add_item(self.ok_button)
+        self.ok_button = discord.ui.Button(
+            label=self.ok_label,
+            style=discord.ButtonStyle.green,
+            emoji="✅",
+        )
+        self.ok_button.callback = self.ok_callback
+        self.add_item(self.ok_button)
+
+    @property
+    def ok_label(self) -> str:
+        return "OK!" + (
+            f" ({len(self.players_confirmed)}/{len(self.game.players) - 1})"
+            if self.target_player_id is None
+            else ""
+        )
 
     @property
     def timer_text(self) -> str:
@@ -89,16 +99,20 @@ class NopeView(BaseView):
             )
 
     async def nope_callback(self, interaction: discord.Interaction):
+        self.timer_display.content = self.timer_text
         if not interaction.user:
+            await interaction.edit(view=self)
             return
         if not self.noped and self.game.current_player_id == interaction.user.id:
             await interaction.respond(
                 get_message("no_self_nope"), ephemeral=True, delete_after=5
             )
+            await interaction.edit(view=self)
             return
         try:
             self.game.hands[interaction.user.id].remove("nope")
-        except ValueError:
+        except (ValueError, KeyError):
+            await interaction.edit(view=self)
             await interaction.respond(
                 get_message("no_nope_cards"), ephemeral=True, delete_after=5
             )
@@ -112,28 +126,48 @@ class NopeView(BaseView):
                 else get_message("message_edit_on_yup").format(interaction.user.id)
             )
             self.action_text_display.content = "\n".join(self.action_messages)
-            if self.target_player_id is not None:
-                if self.noped:
-                    self.remove_item(self.ok_button)
-                else:
-                    self.add_item(self.ok_button)
-        self.timer_display.content = self.timer_text
+            if self.noped:
+                self.remove_item(self.ok_button)
+            else:
+                self.add_item(self.ok_button)
         self.game.anchor_interaction = interaction
         await interaction.edit(view=self)
 
     async def ok_callback(self, interaction: discord.Interaction):
+        self.timer_display.content = self.timer_text
         if not interaction.user:
+            return
+        if self.noped:
+            await interaction.edit(view=self)
+            await interaction.respond(
+                get_message("action_noped"), ephemeral=True, delete_after=5
+            )
+            return
+        if self.target_player_id is None:
+            if self.game.current_player_id == interaction.user.id:
+                await interaction.respond(
+                    get_message("no_self_ok"), ephemeral=True, delete_after=5
+                )
+                await interaction.edit(view=self)
+                return
+            if interaction.user.id in self.players_confirmed:
+                self.players_confirmed.remove(interaction.user.id)
+            else:
+                self.players_confirmed.add(interaction.user.id)
+            self.ok_button.label = self.ok_label
+            await interaction.edit(view=self)
+            if len(self.players_confirmed) == len(self.game.players) - 1:
+                await self.finalish_confirmation(interaction)
             return
         if interaction.user.id != self.target_player_id:
             await interaction.respond(
                 get_message("not_your_turn"), ephemeral=True, delete_after=5
             )
+            await interaction.edit(view=self)
             return
-        if self.noped:
-            await interaction.respond(
-                get_message("action_noped"), ephemeral=True, delete_after=5
-            )
-            return
+        await self.finalish_confirmation(interaction)
+
+    async def finalish_confirmation(self, interaction: discord.Interaction):
         self.game.anchor_interaction = interaction
         self.disabled = True
         self.stop()
