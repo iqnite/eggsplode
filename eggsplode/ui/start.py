@@ -192,7 +192,7 @@ class SettingsModal(discord.ui.Modal):
             "deck_eggsplode_cards": {
                 "input": discord.ui.InputText(
                     label="Eggsplode cards in deck",
-                    placeholder=str(len(self.game.config["players"]) - 1),
+                    placeholder=str(max(len(self.game.config["players"]) - 1, 2)),
                     value=self.game.config.get("deck_eggsplode_cards", None),
                     required=False,
                 ),

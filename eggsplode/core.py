@@ -36,6 +36,7 @@ class Game:
             str, Callable[[Game, discord.Interaction, bool | None], Coroutine]
         ]
         self.turn_warnings: list[Callable[[Game], str]]
+        self.setup_actions: list[Callable[[Game], None]]
         self.events.turn_end += self.next_turn
         self.events.game_end += self.end
         self.events.action_start += self.pause
@@ -43,7 +44,7 @@ class Game:
         self.events.action_end += self.resume
         self.events.turn_start += self.resume
 
-    async def start(self, interaction: discord.Interaction):
+    def setup(self):
         self.last_activity = datetime.now()
         self.deck = []
         self.players = list(self.config["players"])
@@ -56,22 +57,16 @@ class Game:
         self.expand_deck()
         self.shuffle_deck()
         self.hands = {
-            player: ["defuse"] + [self.deck.pop() for _ in range(7)]
-            for player in self.players
+            player: [self.deck.pop() for _ in range(7)] for player in self.players
         }
         if self.config.get("short", not len(self.players) > 2):
             self.trim_deck(3, 2)
-        self.deck += ["radioeggtive"] * (
-            "radioeggtive" in self.config.get("expansions", [])
-        )
-        self.deck += ["eggsplode"] * int(
-            self.config.get(
-                "deck_eggsplode_cards",
-                len(self.players) - 1,
-            )
-        )
-        self.deck += ["defuse"] * int(self.config.get("deck_defuse_cards", 0))
+        for action in self.setup_actions:
+            action(self)
         self.shuffle_deck()
+
+    async def start(self, interaction: discord.Interaction):
+        self.setup()
         await self.send(get_message("game_started"), anchor=interaction)
         await self.events.turn_start()
         await self.action_timer()
@@ -92,12 +87,14 @@ class Game:
         self.play_actions = {}
         self.draw_actions = {}
         self.turn_warnings = []
+        self.setup_actions = []
         for card_set in self.config.get("expansions", []) + ["base"]:
             try:
                 module = import_module(f".cards.{card_set}", __package__)
                 self.play_actions.update(getattr(module, "PLAY_ACTIONS", {}))
                 self.draw_actions.update(getattr(module, "DRAW_ACTIONS", {}))
                 self.turn_warnings.extend(getattr(module, "TURN_WARNINGS", []))
+                self.setup_actions.extend(getattr(module, "SETUP_ACTIONS", []))
             except ImportError as e:
                 raise ImportError(f"Card set {card_set} not found.") from e
 
