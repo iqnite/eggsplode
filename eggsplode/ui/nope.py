@@ -111,7 +111,7 @@ class NopeView(BaseView):
             return
         try:
             self.game.hands[interaction.user.id].remove("nope")
-        except ValueError | KeyError:
+        except (ValueError, KeyError):
             await interaction.edit(view=self)
             await interaction.respond(
                 get_message("no_nope_cards"), ephemeral=True, delete_after=5
