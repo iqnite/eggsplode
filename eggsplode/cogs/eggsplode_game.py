@@ -10,6 +10,21 @@ from eggsplode.strings import CARDS, get_card_by_title, get_message
 from eggsplode.ui.start import EndGameView
 
 
+async def card_autocomplete(ctx: discord.AutocompleteContext) -> list[str]:
+    user = ctx.interaction.user
+    if not user or not user.id:
+        return []
+    if not hasattr(ctx.cog, "get_game"):
+        return []
+    game = await getattr(ctx.cog, "get_game")(ctx.interaction, quiet=True)
+    if game is None:
+        return []
+    if not game.hands or user.id not in game.hands:
+        return []
+    hand = game.group_hand(user.id, usable_only=True)
+    return [CARDS[card]["title"] + f" ({count}x)" for card, count in hand.items()]
+
+
 class EggsplodeGame(commands.Cog):
     def __init__(self, app: EggsplodeApp):
         self.app = app
@@ -67,22 +82,6 @@ class EggsplodeGame(commands.Cog):
             return
         await game.draw_callback(ctx.interaction)
 
-    async def card_autocomplete(self, ctx: discord.AutocompleteContext) -> list[str]:
-        user = ctx.interaction.user
-        if not user or not user.id:
-            return []
-        game = await self.get_game(ctx.interaction, quiet=True)
-        if game is None:
-            return []
-        if not game.hands or user.id not in game.hands:
-            return []
-        hand = game.group_hand(user.id, usable_only=True)
-        return [
-            card_title + f" ({count}x)"
-            for card, count in hand.items()
-            if ctx.value.lower() in (card_title := CARDS[card]["title"]).lower()
-        ]
-
     @discord.slash_command(
         name="play",
         description="Play a card from your hand.",
@@ -96,7 +95,7 @@ class EggsplodeGame(commands.Cog):
         description="The card to play.",
         input_type=str,
         required=False,
-        autocomplete=card_autocomplete,
+        autocomplete=discord.utils.basic_autocomplete(card_autocomplete),
     )
     async def play_card(self, ctx: discord.ApplicationContext, card: str | None = None):
         if not ctx.interaction.user:
