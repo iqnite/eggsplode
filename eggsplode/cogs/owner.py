@@ -121,7 +121,7 @@ class Owner(commands.Cog):
         description="The status to set the bot to.",
         input_type=str,
         required=False,
-        autocomplete=lambda _: list(discord.Status.__members__.keys()),
+        choices=list(discord.Status.__members__.keys()),
     )
     @discord.option(
         name="activity",
@@ -134,7 +134,7 @@ class Owner(commands.Cog):
         description="The type of activity to set the bot to.",
         input_type=str,
         required=False,
-        autocomplete=lambda _: list(discord.ActivityType.__members__.keys()),
+        choices=list(discord.ActivityType.__members__.keys()),
     )
     @commands.is_owner()
     async def set_status(
