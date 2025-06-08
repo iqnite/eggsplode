@@ -182,6 +182,12 @@ async def radioeggtive_face_up(game: "Game", interaction: discord.Interaction, _
     await game.events.turn_end()
 
 
+def setup(game: "Game"):
+    game.deck += ["radioeggtive"] * (
+        "radioeggtive" in game.config.get("expansions", [])
+    )
+
+
 PLAY_ACTIONS = {
     "draw_from_bottom": draw_from_bottom,
     "targeted_attegg": targeted_attegg,
@@ -196,4 +202,8 @@ DRAW_ACTIONS = {
 
 TURN_WARNINGS = [
     radioeggtive_warning,
+]
+
+SETUP_ACTIONS = [
+    setup,
 ]

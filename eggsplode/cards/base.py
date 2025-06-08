@@ -210,6 +210,21 @@ def deck_count(game: "Game") -> str:
     )
 
 
+def setup(game: "Game"):
+    for hand in game.hands.values():
+        hand.append("defuse")
+    game.deck += ["defuse"] * int(game.config.get("deck_defuse_cards", 0))
+    game.deck += ["eggsplode"] * max(
+        int(
+            game.config.get(
+                "deck_eggsplode_cards",
+                max(len(game.players) - 1, 2),
+            )
+        ),
+        len(game.players) - 1,
+    )
+
+
 PLAY_ACTIONS = {
     "attegg": attegg,
     "skip": skip,
@@ -226,4 +241,8 @@ DRAW_ACTIONS = {
 
 TURN_WARNINGS = [
     deck_count,
+]
+
+SETUP_ACTIONS = [
+    setup,
 ]
