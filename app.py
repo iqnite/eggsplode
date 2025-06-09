@@ -26,7 +26,7 @@ if log_path != "":
     handler = RotatingFileHandler(
         log_path,
         maxBytes=int(CONFIG.get("log_bytes", 5242880)),  # Default 5 MB
-        backupCount=int(CONFIG.get("log_backups", 99)),  # Default 99 backups
+        backupCount=int(CONFIG.get("log_backups", 9)),  # Default 9 backups
         encoding="utf-8",
     )
     formatter = logging.Formatter(
@@ -35,7 +35,9 @@ if log_path != "":
     )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(
+        getattr(logging, CONFIG.get("log_level", "INFO").upper(), logging.INFO)
+    )
 
     sys.excepthook = handle_exception
 
@@ -44,7 +46,7 @@ app = EggsplodeApp(
 )
 
 if __name__ == "__main__":
-    if CONFIG.get("log_path", "") != "":
+    if log_path != "":
         logger.info("PROGRAM STARTED!")
     print("PROGRAM STARTED!")
     app.run(DISCORD_TOKEN)
