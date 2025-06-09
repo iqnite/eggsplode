@@ -12,14 +12,21 @@ from eggsplode.commands import EggsplodeApp
 from eggsplode.strings import DISCORD_TOKEN, CONFIG
 
 if not DISCORD_TOKEN:
-    raise TypeError("DISCORD_TOKEN must be set in .env file. ")
+    raise TypeError("DISCORD_TOKEN must be set in .env file.")
 
 logger = logging.getLogger("discord")
-if CONFIG.get("log_path", "") != "":
+
+
+def handle_exception(exc_type, value, traceback):
+    logger.exception("Uncaught exception", exc_info=(exc_type, value, traceback))
+
+
+log_path = CONFIG.get("log_path", "")
+if log_path != "":
     handler = RotatingFileHandler(
-        CONFIG.get("log_path"),
-        maxBytes=5 * 1024 * 1024,
-        backupCount=5,
+        log_path,
+        maxBytes=int(CONFIG.get("log_bytes", 5242880)),  # Default 5 MB
+        backupCount=int(CONFIG.get("log_backups", 99)),  # Default 99 backups
         encoding="utf-8",
     )
     formatter = logging.Formatter(
@@ -29,7 +36,8 @@ if CONFIG.get("log_path", "") != "":
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
-    sys.excepthook = logger.error
+
+    sys.excepthook = handle_exception
 
 app = EggsplodeApp(
     activity=discord.Activity(type=discord.ActivityType.watching, name="you")
