@@ -241,6 +241,7 @@ class Game:
                     CARDS[card]["emoji"],
                     interaction.user.id,
                     CARDS[card]["title"],
+                    CARDS[card]["description"],
                 ),
             )
             await self.send(view=view)

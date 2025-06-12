@@ -145,7 +145,7 @@
     "not_implemented": "🙁 Sorry, not implemented yet.",
     "not_your_turn": "❌ It's not your turn!",
     "page_count": "-# Page {} of {}",
-    "play_card": "{} <@{}> wants to **{}**!",
+    "play_card": "{} <@{}> wants to [**{}**](https://github.com/iqnite/eggsplode/wiki/Cards \"{}\")!",
     "play_prompt": "**Play** as many cards as you want, then **draw** a card to end your turn!",
     "play_prompt_radioeggtive": "☢️ Face up Radioeggtive comes in {} turns.",
     "play_prompt_radioeggtive_next": "☢️ Face up Radioeggtive comes in the next turn!",
