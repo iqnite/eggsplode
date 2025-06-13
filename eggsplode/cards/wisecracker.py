@@ -27,8 +27,8 @@ async def wisecracker(game: "Game", interaction: discord.Interaction):
         return
     players_with_wisecracker = game.players_with_cards("wisecracker")
     if players_with_wisecracker:
-        await wisecracker_finish(game, interaction, players_with_wisecracker[0])
         game.hands[players_with_wisecracker[0]].remove("wisecracker")
+        await wisecracker_finish(game, interaction, players_with_wisecracker[0])
         return
     game.current_player_hand.append("wisecracker")
     await game.send(
@@ -49,14 +49,14 @@ async def wisecracker_finish(
             anchor=interaction,
         )
     else:
-        del game.players[game.players.index(target_player_id)]
-        del game.hands[target_player_id]
         await game.send(
             view=TextView(
                 "wisecracker_eggsploded", game.current_player_id, target_player_id
             ),
             anchor=interaction,
         )
+        del game.players[game.players.index(target_player_id)]
+        del game.hands[target_player_id]
         if len(game.players) == 1:
             await game_over(game, interaction)
             return
