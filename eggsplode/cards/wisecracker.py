@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING
 import discord
 from eggsplode.cards.base import game_over
 from eggsplode.ui import ChoosePlayerView
-from eggsplode.strings import get_message
+from eggsplode.strings import format_message
+from eggsplode.ui.base import TextView
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
@@ -23,9 +24,7 @@ async def wisecracker(game: "Game", interaction: discord.Interaction):
             condition=lambda user_id: user_id != game.current_player_id,
         )
         await view.create_user_selection()
-        await interaction.respond(
-            get_message("targeted_attegg_prompt"), view=view, ephemeral=True
-        )
+        await interaction.respond(view=view, ephemeral=True)
         return
     players_with_wisecracker = game.players_with_cards("wisecracker")
     if players_with_wisecracker:
@@ -33,7 +32,9 @@ async def wisecracker(game: "Game", interaction: discord.Interaction):
         game.hands[players_with_wisecracker[0]].remove("wisecracker")
         return
     game.current_player_hand.append("wisecracker")
-    await game.send(get_message("wisecracker_exposed").format(game.current_player_id), anchor=interaction)
+    await game.send(
+        view=TextView("wisecracker_exposed", game.current_player_id), anchor=interaction
+    )
     await game.events.action_end()
 
 
@@ -43,8 +44,8 @@ async def wisecracker_finish(
     if "defuse" in game.hands[target_player_id]:
         game.hands[target_player_id].remove("defuse")
         await game.send(
-            get_message("wisecracker_defused").format(
-                game.current_player_id, target_player_id
+            view=TextView(
+                "wisecracker_defused", game.current_player_id, target_player_id
             ),
             anchor=interaction,
         )
@@ -52,8 +53,8 @@ async def wisecracker_finish(
         del game.players[game.players.index(target_player_id)]
         del game.hands[target_player_id]
         await game.send(
-            get_message("wisecracker_eggsploded").format(
-                game.current_player_id, target_player_id
+            view=TextView(
+                "wisecracker_eggsploded", game.current_player_id, target_player_id
             ),
             anchor=interaction,
         )

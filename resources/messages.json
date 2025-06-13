@@ -145,7 +145,7 @@
     "not_implemented": "🙁 Sorry, not implemented yet.",
     "not_your_turn": "❌ It's not your turn!",
     "page_count": "-# Page {} of {}",
-    "play_card": "{} <@{}> wants to [**{}**](https://github.com/iqnite/eggsplode/wiki/Cards \"{}\")!",
+    "play_card": "{} <@{}> wants to {}!",
     "play_prompt": "**Play** as many cards as you want, then **draw** a card to end your turn!",
     "play_prompt_radioeggtive": "☢️ Face up Radioeggtive comes in {} turns.",
     "play_prompt_radioeggtive_next": "☢️ Face up Radioeggtive comes in the next turn!",
@@ -177,12 +177,13 @@
     "status_user_installs": "User Installs: {}",
     "steal_prompt": "Choose a player to steal a card from.",
     "stolen_card_public": "🎭 <@{}> stole a card from <@{}>!",
-    "stolen_card_them": "<@{}> stole 1 **{} {}** from you!",
-    "stolen_card_you": "You stole: **{} {}**",
+    "stolen_card_them": "<@{}> stole 1 {} {} from you!",
+    "stolen_card_you": "You stole: {} {}",
     "targeted_attegg_prompt": "Choose a player to attack.",
     "terminal_response": "Running terminal command: `{}`",
     "timeout": "*Time's up.*",
     "timer": "-# Finishes <t:{}:R>",
+    "tooltip": "[**{}**](https://github.com/iqnite/eggsplode/wiki/Cards \"{}\")",
     "turn_warning": "-# Cards remaining on the deck: {} | Eggsplode cards: {}",
     "user_drew_card": "🃏 <@{}> drew a card!",
     "user_not_in_any_games": "❌ You are not in any games! Start a new one with </start:1325457141628141661>!",
@@ -192,5 +193,5 @@
     "wisecracker_defused": "## 🔧 <@{}> used a Wise-Cracker card and forced <@{}> to defuse!",
     "wisecracker_eggsploded": "## 💥 <@{}> used a Wise-Cracker and made <@{}> eggsplode!",
     "wisecracker_exposed": "## 🧠 <@{}> tried to use a Wise-Cracker. Unfortunately, nobody else had one, so they took it back into their hand!",
-    "you_drew_card": "You drew: **{} {}**!"
+    "you_drew_card": "You drew: {} {}!"
 }

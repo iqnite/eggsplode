@@ -5,7 +5,7 @@ Contains the views for the short interactions in the game, such as "Defuse".
 from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 
-from eggsplode.strings import CARDS, get_message
+from eggsplode.strings import format_message, tooltip
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
@@ -61,7 +61,7 @@ class ChoosePlayerView(discord.ui.View):
             if (user := await self.game.app.get_or_fetch_user(user_id))
         ]
         self.user_select = discord.ui.Select(
-            placeholder="Select another player",
+            placeholder="Select a player",
             min_values=1,
             max_values=1,
             options=options,
@@ -95,57 +95,69 @@ class DefuseView(SelectionView):
         self.card = card
         self.prev_card = prev_card if prev_card else card
         self.card_position = 0
-        self.generate_move_prompt()
+        self.move_prompt_display = discord.ui.TextDisplay(self.move_prompt)
+        self.add_item(self.move_prompt_display)
+        self.top_button = discord.ui.Button(
+            label="Top", style=discord.ButtonStyle.blurple, emoji="⏫"
+        )
+        self.top_button.callback = self.top
+        self.add_item(self.top_button)
+        self.move_up_button = discord.ui.Button(
+            label="Move up", style=discord.ButtonStyle.blurple, emoji="⬆️"
+        )
+        self.move_up_button.callback = self.move_up
+        self.add_item(self.move_up_button)
+        self.move_down_button = discord.ui.Button(
+            label="Move down", style=discord.ButtonStyle.blurple, emoji="⬇️"
+        )
+        self.move_down_button.callback = self.move_down
+        self.add_item(self.move_down_button)
+        self.bottom_button = discord.ui.Button(
+            label="Bottom", style=discord.ButtonStyle.blurple, emoji="⏬"
+        )
+        self.bottom_button.callback = self.bottom
+        self.add_item(self.bottom_button)
         self.game.events.game_end += self.stop
 
     async def finish(self):
         self.game.deck.insert(self.card_position, self.card)
         await self.callback_action()
 
-    @discord.ui.button(label="Top", style=discord.ButtonStyle.blurple, emoji="⏫")
-    async def top(self, _, interaction: discord.Interaction):
+    async def top(self, interaction: discord.Interaction):
         self.card_position = len(self.game.deck)
         await self.update_view(interaction)
 
-    @discord.ui.button(label="Move up", style=discord.ButtonStyle.blurple, emoji="⬆️")
-    async def move_up(self, _, interaction: discord.Interaction):
+    async def move_up(self, interaction: discord.Interaction):
         if self.card_position < len(self.game.deck):
             self.card_position += 1
         else:
             self.card_position = 0
         await self.update_view(interaction)
 
-    @discord.ui.button(label="Move down", style=discord.ButtonStyle.blurple, emoji="⬇️")
-    async def move_down(self, _, interaction: discord.Interaction):
+    async def move_down(self, interaction: discord.Interaction):
         if self.card_position > 0:
             self.card_position -= 1
         else:
             self.card_position = len(self.game.deck)
         await self.update_view(interaction)
 
-    @discord.ui.button(label="Bottom", style=discord.ButtonStyle.blurple, emoji="⏬")
-    async def bottom(self, _, interaction: discord.Interaction):
+    async def bottom(self, interaction: discord.Interaction):
         self.card_position = 0
         await self.update_view(interaction)
 
     async def update_view(self, interaction: discord.Interaction):
-        await interaction.edit(
-            content=self.generate_move_prompt(),
-            view=self,
-        )
+        self.move_prompt_display.content = self.move_prompt
+        await interaction.edit(view=self)
 
-    def generate_move_prompt(self):
-        return get_message("move_prompt").format(
-            CARDS[self.prev_card]["title"],
+    @property
+    def move_prompt(self) -> str:
+        return format_message(
+            "move_prompt",
+            tooltip(self.prev_card),
             self.card_position,
             len(self.game.deck),
             "\n".join(
-                get_message("players_list_item").format(player)
+                format_message("players_list_item", player)
                 for player in self.game.players
             ),
-        )
-
-    async def send(self, interaction: discord.Interaction):
-        await interaction.respond(
-            self.generate_move_prompt(), view=self, ephemeral=True
         )

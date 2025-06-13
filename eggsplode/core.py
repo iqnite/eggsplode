@@ -9,7 +9,8 @@ import random
 from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 from eggsplode.ui import NopeView, PlayView, TurnView
-from eggsplode.strings import CARDS, EXPANSIONS, get_message, replace_emojis
+from eggsplode.strings import CARDS, EXPANSIONS, format_message, replace_emojis, tooltip
+from eggsplode.ui.base import TextView
 
 if TYPE_CHECKING:
     from eggsplode.commands import EggsplodeApp
@@ -67,7 +68,7 @@ class Game:
 
     async def start(self, interaction: discord.Interaction):
         self.setup()
-        await self.send(get_message("game_started"), anchor=interaction)
+        await self.send(view=TextView("game_started"), anchor=interaction)
         await self.events.turn_start()
         await self.action_timer()
 
@@ -132,7 +133,7 @@ class Game:
     @property
     def player_list(self) -> str:
         return "\n".join(
-            get_message("players_list_item").format(player)
+            format_message("players_list_item", player)
             for player in self.config["players"]
         )
 
@@ -141,7 +142,8 @@ class Game:
         return "\n".join(
             (
                 *(
-                    get_message("bold_list_item").format(
+                    format_message(
+                        "bold_list_item",
                         replace_emojis(EXPANSIONS[expansion]["emoji"]),
                         EXPANSIONS[expansion]["name"],
                     )
@@ -150,7 +152,7 @@ class Game:
                 (
                     ""
                     if self.config.get("expansions", [])
-                    else get_message("no_expansions")
+                    else format_message("no_expansions")
                 ),
             )
         )
@@ -199,12 +201,12 @@ class Game:
             raise TypeError("interaction.user is None")
         if interaction.user.id != self.current_player_id:
             await interaction.respond(
-                get_message("not_your_turn"), ephemeral=True, delete_after=5
+                view=TextView("not_your_turn"), ephemeral=True, delete_after=5
             )
             return False
         if self.paused:
             await interaction.respond(
-                get_message("awaiting_prompt"), ephemeral=True, delete_after=5
+                view=TextView("awaiting_prompt"), ephemeral=True, delete_after=5
             )
             return False
         return True
@@ -237,11 +239,11 @@ class Game:
             view = NopeView(
                 self,
                 ok_callback_action=lambda _: self.play(interaction, card),
-                message=get_message("play_card").format(
+                message=format_message(
+                    "play_card",
                     CARDS[card]["emoji"],
                     interaction.user.id,
-                    CARDS[card]["title"],
-                    CARDS[card]["description"],
+                    tooltip(card),
                 ),
             )
             await self.send(view=view)
@@ -253,11 +255,13 @@ class Game:
         self.anchor_interaction = interaction
         card, hold = await self.draw(interaction, self.deck.pop(index), timed_out)
         if hold:
-            await self.send(get_message("user_drew_card").format(turn_player))
+            await self.send(view=TextView("user_drew_card", turn_player))
             if not timed_out:
                 await interaction.respond(
-                    get_message("you_drew_card").format(
-                        replace_emojis(CARDS[card]["emoji"]), CARDS[card]["title"]
+                    view=TextView(
+                        "you_drew_card",
+                        replace_emojis(CARDS[card]["emoji"]),
+                        tooltip(card),
                     ),
                     ephemeral=True,
                 )
@@ -305,11 +309,11 @@ class Game:
         self.pause()
         self.inactivity_count += 1
         if self.inactivity_count > 5:
-            await self.send(get_message("game_timeout"))
+            await self.send(view=TextView("game_timeout"))
             await self.events.game_end()
             return
         self.last_activity = datetime.now()
-        await self.send(get_message("timeout"))
+        await self.send(view=TextView("timeout"))
         await self.draw_from(self.anchor_interaction, timed_out=True)
         if not self.running:
             return
@@ -361,21 +365,9 @@ class Game:
         except discord.errors.InteractionResponded:
             await self.anchor_interaction.followup.send(view=use_view)
 
-    def cards_help(self, user_id: int, template: str = "") -> str:
-        grouped_hand = self.group_hand(user_id)
-        return "\n".join(
-            template.format(
-                replace_emojis(CARDS[card]["emoji"]),
-                CARDS[card]["title"],
-                count,
-                CARDS[card]["description"],
-            )
-            for card, count in grouped_hand.items()
-        )
-
     @property
     def turn_prompt(self) -> str:
-        return get_message("next_turn").format(self.current_player_id)
+        return format_message("next_turn", self.current_player_id)
 
     @property
     def warnings(self) -> str:
