@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-async def attegg(game: "Game", interaction: discord.Interaction):
+async def attegg(game: "Game", _):
     view = NopeView(
         game=game,
         message=format_message(
@@ -28,7 +28,7 @@ async def attegg(game: "Game", interaction: discord.Interaction):
     await game.send(view=view)
 
 
-async def shuffle(game: "Game", interaction: discord.Interaction):
+async def shuffle(game: "Game", _):
     game.shuffle_deck()
     await game.send(view=TextView("shuffled", game.current_player_id))
     await game.events.action_end()
@@ -189,7 +189,7 @@ async def eggsplode(
     await game.events.turn_end()
 
 
-async def game_over(game: "Game", interaction: discord.Interaction):
+async def game_over(game: "Game", _):
     await game.send(view=TextView("game_over", game.players[0]))
     await game.events.game_end()
 

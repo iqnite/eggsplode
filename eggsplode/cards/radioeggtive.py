@@ -30,13 +30,13 @@ def radioeggtive_warning(game: "Game") -> str:
     )
 
 
-async def reverse(game: "Game", interaction: discord.Interaction):
+async def reverse(game: "Game", _):
     game.reverse()
     await game.send(view=TextView("reversed", game.current_player_id))
     await game.events.turn_end()
 
 
-async def alter_future_finish(game: "Game", interaction: discord.Interaction):
+async def alter_future_finish(game: "Game", _):
     await game.send(view=TextView("altered_future", game.current_player_id))
     await game.events.action_end()
 
@@ -112,9 +112,7 @@ async def alter_future(game: "Game", interaction: discord.Interaction):
     await interaction.respond(view=view, ephemeral=True)
 
 
-async def targeted_attegg_begin(
-    game: "Game", interaction: discord.Interaction, target_player_id: int
-):
+async def targeted_attegg_begin(game: "Game", _, target_player_id: int):
     view = NopeView(
         game,
         message=format_message(
