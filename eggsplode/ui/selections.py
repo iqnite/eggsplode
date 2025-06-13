@@ -12,6 +12,13 @@ if TYPE_CHECKING:
 
 
 class SelectionView(discord.ui.View):
+    def __init__(self, timeout: int = 20, disable_on_timeout: bool = True):
+        super().__init__(timeout=timeout, disable_on_timeout=disable_on_timeout)
+        self.confirm_button = discord.ui.Button(
+            label="Confirm", style=discord.ButtonStyle.green, emoji="✅"
+        )
+        self.confirm_button.callback = self.confirm
+
     async def on_timeout(self):
         try:
             await super().on_timeout()
@@ -21,10 +28,9 @@ class SelectionView(discord.ui.View):
     async def finish(self):
         pass
 
-    @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green, emoji="✅")
-    async def confirm(self, _, interaction: discord.Interaction):
+    async def confirm(self, interaction: discord.Interaction):
         self.disable_all_items()
-        await interaction.edit(view=self, delete_after=0)
+        await interaction.edit(view=self)
         self.stop()
         await self.finish()
 
@@ -72,7 +78,6 @@ class ChoosePlayerView(discord.ui.View):
     async def selection_callback(self, interaction: discord.Interaction):
         if not (interaction and self.user_select):
             return
-        self.on_timeout = super().on_timeout
         self.stop()
         self.disable_all_items()
         await interaction.edit(view=self, delete_after=0)
@@ -117,6 +122,7 @@ class DefuseView(SelectionView):
         )
         self.bottom_button.callback = self.bottom
         self.add_item(self.bottom_button)
+        self.add_item(self.confirm_button)
         self.game.events.game_end += self.stop
 
     async def finish(self):
