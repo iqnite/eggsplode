@@ -6,7 +6,6 @@ import discord
 from discord.ext import commands
 from eggsplode.commands import EggsplodeApp
 from eggsplode.ui import HelpView, InfoView
-from eggsplode.strings import format_message
 from eggsplode.ui.base import TextView
 
 
@@ -51,7 +50,7 @@ class Misc(commands.Cog):
         try:
             await ctx.respond(
                 view=TextView(
-                    text=message.content.replace("eg", "egg")
+                    message.content.replace("eg", "egg")
                     .replace("egg", "**egg**")
                     .replace("Egg", "**EGG**")
                     .replace("EGG", "**__EGG__**")
@@ -59,7 +58,8 @@ class Misc(commands.Cog):
                     .replace("ack", "egg")
                     .replace("ac", "egg")
                     .replace("O", "🥚")
-                    .replace("0", "🥚")
+                    .replace("0", "🥚"),
+                    verbatim=True,
                 )
             )
         except discord.HTTPException:
