@@ -65,18 +65,13 @@ class StartGameView(discord.ui.View):
         self.settings_container.add_text(format_message("expansions_description"))
         self.settings_container.add_item(self.expansion_select)
         self.settings_container.add_separator()
-        self.settings_container.add_section(
-            discord.ui.TextDisplay(format_message("short_mode")),
-            discord.ui.TextDisplay(format_message("short_mode_description")),
-            accessory=self.short_mode_button,
-        )
-        self.settings_container.add_separator()
         self.advanced_settings_button = discord.ui.Button(
             label="View", style=discord.ButtonStyle.secondary, emoji="⚙️"
         )
         self.advanced_settings_button.callback = self.advanced_settings
         self.settings_container.add_section(
             discord.ui.TextDisplay(format_message("advanced_settings")),
+            discord.ui.TextDisplay(format_message("advanced_settings_description")),
             accessory=self.advanced_settings_button,
         )
         self.add_item(self.settings_container)
@@ -180,7 +175,7 @@ class StartGameView(discord.ui.View):
 
     async def advanced_settings(self, interaction: discord.Interaction):
         await interaction.response.send_modal(
-            SettingsModal(game=self.game, title="Advanced Settings")
+            SettingsModal(game=self.game, title="Balancing Settings")
         )
 
 
@@ -189,6 +184,14 @@ class SettingsModal(discord.ui.Modal):
         super().__init__(*args, **kwargs)
         self.game = game
         self.inputs = {
+            "deck_size": {
+                "input": discord.ui.InputText(
+                    label="Maximum cards on deck",
+                    placeholder="Auto",
+                    value=self.game.config.get("deck_size", None),
+                    required=False,
+                ),
+            },
             "deck_eggsplode_cards": {
                 "input": discord.ui.InputText(
                     label="Eggsplode cards in deck",
@@ -211,13 +214,13 @@ class SettingsModal(discord.ui.Modal):
             },
             "turn_timeout": {
                 "input": discord.ui.InputText(
-                    label="[Experimental] Turn timeout (seconds)",
+                    label="[Beta] Turn timeout (seconds)",
                     placeholder="60",
                     value=self.game.config.get("turn_timeout", None),
                     required=False,
                 ),
                 "min": 10,
-                "max": 600,
+                "max": 120,
             },
         }
         for _, i in self.inputs.items():
