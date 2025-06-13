@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 import discord
 from eggsplode.cards.base import game_over
 from eggsplode.ui import ChoosePlayerView
-from eggsplode.strings import format_message
 from eggsplode.ui.base import TextView
 
 if TYPE_CHECKING:

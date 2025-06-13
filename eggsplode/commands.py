@@ -6,7 +6,6 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 from eggsplode.core import Game
-from eggsplode.strings import format_message
 from eggsplode.ui import StartGameView
 from eggsplode.ui.base import TextView
 
