@@ -137,6 +137,7 @@ class NopeView(BaseView):
     async def ok_callback(self, interaction: discord.Interaction):
         self.timer_display.content = self.timer_text
         if not interaction.user:
+            await interaction.edit(view=self)
             return
         if self.noped:
             await interaction.edit(view=self)

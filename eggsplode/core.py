@@ -229,8 +229,6 @@ class Game:
     async def play_callback(self, interaction: discord.Interaction, card: str):
         if not await self.action_check(interaction):
             return
-        if not interaction.user:
-            raise TypeError("interaction.user is None")
         self.current_player_hand.remove(card)
         await self.events.action_start()
         if CARDS[card].get("explicit", False):
@@ -242,7 +240,7 @@ class Game:
                 message=format_message(
                     "play_card",
                     CARDS[card]["emoji"],
-                    interaction.user.id,
+                    self.current_player_id,
                     tooltip(card),
                 ),
             )

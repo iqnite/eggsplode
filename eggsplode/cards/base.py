@@ -13,14 +13,12 @@ if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-async def attegg(game: "Game", interaction: discord.Interaction):
-    if not interaction.user:
-        return
+async def attegg(game: "Game", _):
     view = NopeView(
         game=game,
         message=format_message(
             "before_attegg",
-            interaction.user.id,
+            game.current_player_id,
             game.next_player_id,
             game.draw_in_turn + 2,
         ),
@@ -30,34 +28,30 @@ async def attegg(game: "Game", interaction: discord.Interaction):
     await game.send(view=view)
 
 
-async def shuffle(game: "Game", interaction: discord.Interaction):
-    if not interaction.user:
-        return
+async def shuffle(game: "Game", _):
     game.shuffle_deck()
-    await game.send(view=TextView("shuffled", interaction.user.id))
+    await game.send(view=TextView("shuffled", game.current_player_id))
     await game.events.action_end()
 
 
 async def predict(game: "Game", interaction: discord.Interaction):
-    if not interaction.user:
-        return
     next_cards = "\n".join(
         format_message(
             "bold_list_item", replace_emojis(CARDS[card]["emoji"]), tooltip(card)
         )
         for card in game.deck[-1:-4:-1]
     )
-    await game.send(view=TextView("predicted", interaction.user.id))
+    await game.send(view=TextView("predicted", game.current_player_id))
     await interaction.respond(
-        view=TextView(text="\n".join((format_message("next_cards"), next_cards))),
+        view=TextView(
+            "\n".join((format_message("next_cards"), next_cards)), verbatim=True
+        ),
         ephemeral=True,
     )
     await game.events.action_end()
 
 
 async def food_combo(game: "Game", interaction: discord.Interaction, card: str):
-    if not interaction.user:
-        return
     if not game.any_player_has_cards():
         await interaction.respond(
             view=TextView("no_players_have_cards"),
@@ -92,14 +86,12 @@ async def food_combo_begin(
     target_player_id: int,
     food_card: str,
 ):
-    if not interaction.user:
-        return
     view = NopeView(
         game,
         message=format_message(
             "before_steal",
             replace_emojis(CARDS[food_card]["emoji"]),
-            interaction.user.id,
+            game.current_player_id,
             target_player_id,
         ),
         target_player_id=target_player_id,
@@ -116,8 +108,6 @@ async def food_combo_finish(
     target_interaction: discord.Interaction | None,
     target_player_id: int,
 ):
-    if not interaction.user:
-        return
     target_hand = game.hands[target_player_id]
     if not target_hand:
         await game.send(
@@ -199,9 +189,7 @@ async def eggsplode(
     await game.events.turn_end()
 
 
-async def game_over(game: "Game", interaction: discord.Interaction):
-    if not interaction.user:
-        return
+async def game_over(game: "Game", _):
     await game.send(view=TextView("game_over", game.players[0]))
     await game.events.game_end()
 

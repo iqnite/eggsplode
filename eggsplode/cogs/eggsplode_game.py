@@ -42,7 +42,7 @@ class EggsplodeGame(commands.Cog):
             or not game.running
         ):
             if not quiet:
-                await interaction.respond(TextView("game_not_found"), ephemeral=True)
+                await interaction.respond(view=TextView("game_not_found"), ephemeral=True)
             return None
         if interaction.user.id not in game.players + game.config.get("players", []):
             if not quiet:
@@ -135,7 +135,7 @@ class EggsplodeGame(commands.Cog):
         found_games = self.app.games_with_user(ctx.interaction.user.id)
         await ctx.respond(
             view=TextView(
-                text=(
+                (
                     format_message(
                         "list_games_title",
                         "\n".join(
@@ -144,7 +144,8 @@ class EggsplodeGame(commands.Cog):
                     )
                     if found_games
                     else format_message("user_not_in_any_games")
-                )
+                ),
+                verbatim=True,
             ),
             ephemeral=True,
         )

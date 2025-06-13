@@ -109,8 +109,6 @@ class PlayView(discord.ui.View):
         return button
 
     async def play_card(self, card: str, interaction: discord.Interaction):
-        if not interaction.user:
-            raise TypeError("interaction.user is None")
         if not self.playable:
             await interaction.edit(view=TextView("not_your_turn"), delete_after=5)
             return
