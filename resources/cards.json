@@ -133,5 +133,54 @@
         "count": 4,
         "usable": true,
         "expansion": "radioeggtive"
+    },
+    "wisecracker": {
+        "title": "Wise-Cracker",
+        "description": "Make the player with the other Wise-Cracker eggsplode. If no one has a Wise-Cracker, you eggsplode. Play in pair to decide who gets eggsploded.",
+        "emoji": "🧠",
+        "count": 0,
+        "usable": true,
+        "explicit": true,
+        "expansion": "wisecracker"
+    },
+    "bury": {
+        "title": "Bury",
+        "description": "End your turn by looking at the top card and putting it back into the deck.",
+        "emoji": "🪦",
+        "count": 2,
+        "usable": true,
+        "expansion": "wisecracker"
+    },
+    "self-attegg": {
+        "title": "Self Attegg",
+        "description": "Play 3 turns in a row.",
+        "emoji": "↩️",
+        "count": 4,
+        "usable": true,
+        "expansion": "wisecracker"
+    },
+    "share-future": {
+        "title": "Share the future",
+        "description": "Rearrange the next 3 cards on the deck and show them to the next player.",
+        "emoji": "👀",
+        "count": 2,
+        "usable": true,
+        "expansion": "wisecracker"
+    },
+    "super-skip": {
+        "title": "Super Skip",
+        "description": "End your turn without drawing. If you're under the effect of an Attegg, end all of your turns.",
+        "emoji": "🚀",
+        "count": 1,
+        "usable": true,
+        "expansion": "wisecracker"
+    },
+    "dig-deeper": {
+        "title": "Dig Deeper",
+        "description": "End your turn by looking at the top card on the deck. Decide whether to keep it or put it back and blindly draw the next one.",
+        "emoji": "⛏️",
+        "count": 4,
+        "usable": true,
+        "expansion": "wisecracker"
     }
 }

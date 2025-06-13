@@ -189,5 +189,8 @@
     "user_not_in_game": "❌ You are not in this game!",
     "version_eggsplode": "Eggsplode Version: `{}`",
     "version_pycord": "Pycord Version: `{}`",
+    "wisecracker_defused": "## 🔧 <@{}> used a Wise-Cracker card and forced <@{}> to defuse!",
+    "wisecracker_eggsploded": "## 💥 <@{}> used a Wise-Cracker and made <@{}> eggsplode!",
+    "wisecracker_exposed": "## 🧠 <@{}> tried to use a Wise-Cracker. Unfortunately, nobody else had one, so they took it back into their hand!",
     "you_drew_card": "You drew: **{} {}**!"
 }

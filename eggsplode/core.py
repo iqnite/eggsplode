@@ -269,6 +269,13 @@ class Game:
         self.current_player -= 1
         self.draw_in_turn = 0
 
+    def players_with_cards(self, *cards: str) -> list[int]:
+        return [
+            player
+            for player in self.players
+            if any(card in self.hands[player] for card in cards)
+        ]
+
     def any_player_has_cards(self) -> bool:
         eligible_players = self.players.copy()
         eligible_players.remove(self.current_player_id)
