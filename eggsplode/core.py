@@ -60,8 +60,13 @@ class Game:
         self.hands = {
             player: [self.deck.pop() for _ in range(7)] for player in self.players
         }
-        if self.config.get("short", not len(self.players) > 2):
-            self.trim_deck(3, 2)
+        if (
+            deck_size := self.config.get(
+                "deck_size", 25 if len(self.players) == 2 else None
+            )
+        ) is not None:
+            while len(self.deck) > int(deck_size):
+                self.deck.pop()
         for action in self.setup_actions:
             action(self)
         self.shuffle_deck()
