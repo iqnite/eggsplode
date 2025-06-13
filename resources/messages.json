@@ -24,7 +24,7 @@
     "end_game_permission_denied": "❌ You don't have permission to interact with this view!",
     "end_game_warning": "⚠️ **This will end the game and remove all players from it.**\nAre you sure you want to end the game?",
     "expansions": "### Eggspansions",
-    "expansions_description": "Eggspansions are additional cards that can be added to the game.",
+    "expansions_description": "🆕 Eggspansions are additional cards that can be added to the game.",
     "expansions_updated": "✅ Eggspansions updated!",
     "game_already_exists": "❌ This channel already has a game running!",
     "game_cancelled": "**🚫 Everyone left, so the game has been cancelled. You can start a new game with </start:1325457141628141661>.**",
