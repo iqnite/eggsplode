@@ -9,7 +9,7 @@ import random
 from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 from eggsplode.ui import NopeView, PlayView, TurnView
-from eggsplode.strings import CARDS, EXPANSIONS, format_message, replace_emojis, tooltip
+from eggsplode.strings import CARDS, format_message, replace_emojis, tooltip
 from eggsplode.ui.base import TextView
 
 if TYPE_CHECKING:
@@ -135,26 +135,6 @@ class Game:
         return "\n".join(
             format_message("players_list_item", player)
             for player in self.config["players"]
-        )
-
-    @property
-    def expansion_list(self) -> str:
-        return "\n".join(
-            (
-                *(
-                    format_message(
-                        "bold_list_item",
-                        replace_emojis(EXPANSIONS[expansion]["emoji"]),
-                        EXPANSIONS[expansion]["name"],
-                    )
-                    for expansion in self.config.get("expansions", [])
-                ),
-                (
-                    ""
-                    if self.config.get("expansions", [])
-                    else format_message("no_expansions")
-                ),
-            )
         )
 
     async def next_turn(self):

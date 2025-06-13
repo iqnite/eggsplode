@@ -37,7 +37,7 @@ async def shuffle(game: "Game", _):
 async def predict(game: "Game", interaction: discord.Interaction):
     next_cards = "\n".join(
         format_message(
-            "bold_list_item", replace_emojis(CARDS[card]["emoji"]), tooltip(card)
+            "list_item_2", replace_emojis(CARDS[card]["emoji"]), tooltip(card)
         )
         for card in game.deck[-1:-4:-1]
     )
