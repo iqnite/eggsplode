@@ -7,8 +7,9 @@ import random
 import discord
 
 from eggsplode.cards.base import attegg_finish, game_over
-from eggsplode.strings import CARDS, get_message, replace_emojis
+from eggsplode.strings import CARDS, format_message, replace_emojis
 from eggsplode.ui import NopeView, ChoosePlayerView, DefuseView, SelectionView
+from eggsplode.ui.base import TextView
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
@@ -25,7 +26,7 @@ async def draw_from_bottom(game: "Game", interaction: discord.Interaction):
 def radioeggtive_warning(game: "Game") -> str:
     radioeggtive_countdown = game.card_comes_in("radioeggtive_face_up")
     return (
-        get_message("play_prompt_radioeggtive_now")
+        format_message("play_prompt_radioeggtive_now")
         if radioeggtive_countdown == 0
         else ""
     )
@@ -35,14 +36,14 @@ async def reverse(game: "Game", interaction: discord.Interaction):
     if not interaction.user:
         return
     game.reverse()
-    await game.send(get_message("reversed").format(interaction.user.id))
+    await game.send(view=TextView("reversed", interaction.user.id))
     await game.events.turn_end()
 
 
 async def alter_future_finish(game: "Game", interaction: discord.Interaction):
     if not interaction.user:
         return
-    await game.send(get_message("altered_future").format(interaction.user.id))
+    await game.send(view=TextView("altered_future", interaction.user.id))
     await game.events.action_end()
 
 
@@ -77,8 +78,10 @@ class AlterFutureView(SelectionView):
         self.selects = []
         for i in range(self.amount_of_cards):
             select = discord.ui.Select(
-                placeholder=get_message("alter_future_placeholder").format(
-                    i + 1, CARDS[self.game.deck[-i - 1]]["title"]
+                placeholder=format_message(
+                    "alter_future_placeholder",
+                    i + 1,
+                    CARDS[self.game.deck[-i - 1]]["title"],
                 ),
                 min_values=1,
                 max_values=1,
@@ -124,7 +127,8 @@ async def targeted_attegg_begin(
         return
     view = NopeView(
         game,
-        message=get_message("before_targeted_attegg").format(
+        message=format_message(
+            "before_targeted_attegg",
             interaction.user.id,
             target_player_id,
             game.draw_in_turn + 2,
@@ -145,13 +149,11 @@ async def targeted_attegg(game: "Game", interaction: discord.Interaction):
         ),
     )
     await view.create_user_selection()
-    await interaction.respond(
-        get_message("targeted_attegg_prompt"), view=view, ephemeral=True
-    )
+    await interaction.respond(view=view, ephemeral=True)
 
 
 async def radioeggtive_finish(game: "Game"):
-    await game.send(get_message("radioeggtive").format(game.current_player_id))
+    await game.send(view=TextView("radioeggtive", game.current_player_id))
     await game.events.turn_end()
 
 
@@ -160,7 +162,7 @@ async def radioeggtive(
 ):
     if timed_out:
         game.deck.insert(random.randint(0, len(game.deck)), "radioeggtive_face_up")
-        await game.send(get_message("radioeggtive").format(game.current_player_id))
+        await game.send(view=TextView("radioeggtive", game.current_player_id))
     else:
         view = DefuseView(
             game,
@@ -168,14 +170,14 @@ async def radioeggtive(
             card="radioeggtive_face_up",
             prev_card="radioeggtive",
         )
-        await view.send(interaction)
+        await interaction.respond(view=view, ephemeral=True)
 
 
 async def radioeggtive_face_up(game: "Game", interaction: discord.Interaction, _):
     prev_player = game.current_player_id
     game.remove_player(prev_player)
     game.draw_in_turn = 0
-    await game.send(get_message("radioeggtive_face_up").format(prev_player))
+    await game.send(view=TextView("radioeggtive_face_up", prev_player))
     if len(game.players) == 1:
         await game_over(game, interaction)
         return

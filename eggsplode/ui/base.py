@@ -5,7 +5,7 @@ Contains the BaseView class for the Eggsplode game.
 from typing import TYPE_CHECKING
 import discord
 
-from eggsplode.strings import get_message
+from eggsplode.strings import format_message
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
@@ -22,8 +22,15 @@ class BaseView(discord.ui.View):
             return False
         if interaction.user is None or interaction.user.id not in self.game.players:
             await interaction.response.send_message(
-                get_message("user_not_in_game"), ephemeral=True
+                format_message("user_not_in_game"), ephemeral=True
             )
             return False
         await interaction.response.defer(invisible=True)
         return True
+
+
+class TextView(discord.ui.View):
+    def __init__(self, key="", *format_args, text=""):
+        super().__init__(
+            discord.ui.TextDisplay(text or format_message(key, *format_args))
+        )

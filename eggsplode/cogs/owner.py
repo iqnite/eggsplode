@@ -6,7 +6,7 @@ import asyncio
 import discord
 from discord.ext import commands
 from eggsplode.commands import EggsplodeApp
-from eggsplode.strings import get_message, TEST_GUILD_ID, CONFIG
+from eggsplode.strings import format_message, TEST_GUILD_ID, CONFIG
 
 
 class Owner(commands.Cog):
@@ -52,10 +52,11 @@ class Owner(commands.Cog):
         self.app.cleanup()
         self.app.admin_maintenance = not self.app.admin_maintenance
         await ctx.respond(
-            get_message("maintenance_mode_toggle").format(
+            format_message(
+                "maintenance_mode_toggle",
                 "enabled" if self.app.admin_maintenance else "disabled",
                 (
-                    get_message("maintenance_mode_no_games_running")
+                    format_message("maintenance_mode_no_games_running")
                     if not self.app.games
                     else ""
                 ),
@@ -88,12 +89,12 @@ class Owner(commands.Cog):
             f.write(stdout.decode() + "\n" + stderr.decode())
         if process.returncode == 0:
             await ctx.edit(
-                content=get_message("command_success"),
+                content=format_message("command_success"),
                 file=discord.File(fp="temp/output.txt"),
             )
         else:
             await ctx.edit(
-                content=get_message("command_failed"),
+                content=format_message("command_failed"),
                 file=discord.File(fp="temp/output.txt"),
             )
 
@@ -105,8 +106,8 @@ class Owner(commands.Cog):
     @commands.is_owner()
     async def list_games(self, ctx):
         await ctx.respond(
-            get_message("list_games_title").format(
-                "\n".join(f"- {i}" for i in self.app.games)
+            format_message(
+                "list_games_title", "\n".join(f"- {i}" for i in self.app.games)
             ),
             ephemeral=True,
         )
@@ -155,7 +156,7 @@ class Owner(commands.Cog):
             ),
             status=discord.Status[status or "online"],
         )
-        await ctx.respond(get_message("set_status_success"), ephemeral=True)
+        await ctx.respond(format_message("set_status_success"), ephemeral=True)
 
 
 def setup(app: EggsplodeApp):

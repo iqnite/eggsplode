@@ -7,7 +7,8 @@ import time
 from typing import TYPE_CHECKING
 import psutil
 import discord
-from eggsplode.strings import EXPANSIONS, INFO, get_message, replace_emojis
+from eggsplode.strings import EXPANSIONS, INFO, format_message, replace_emojis
+from eggsplode.ui.base import TextView
 
 if TYPE_CHECKING:
     from eggsplode.commands import EggsplodeApp
@@ -19,7 +20,7 @@ async def check_permissions(game: "Game", interaction: discord.Interaction):
         return
     if interaction.user.id != game.config["players"][0]:
         await interaction.respond(
-            get_message("not_game_creator"),
+            view=TextView("not_game_creator"),
             ephemeral=True,
             delete_after=5,
         )
@@ -34,7 +35,7 @@ class StartGameView(discord.ui.View):
         self.game.events.game_end += self.terminate_view
         self.create_settings()
         self.header = discord.ui.Section()
-        self.title = discord.ui.TextDisplay(get_message("start"))
+        self.title = discord.ui.TextDisplay(format_message("start"))
         self.header.add_item(self.title)
         self.start_game_button = discord.ui.Button(
             label="Start", style=discord.ButtonStyle.green, emoji="🚀"
@@ -48,7 +49,7 @@ class StartGameView(discord.ui.View):
         )
         self.join_game_button.callback = self.join_game
         self.players_container.add_section(
-            discord.ui.TextDisplay(get_message("players")),
+            discord.ui.TextDisplay(format_message("players")),
             accessory=self.join_game_button,
         )
         self.players_display = discord.ui.TextDisplay(self.game.player_list)
@@ -59,15 +60,16 @@ class StartGameView(discord.ui.View):
         )
         self.settings_container = discord.ui.Container()
         self.settings_container.add_section(
-            discord.ui.TextDisplay(get_message("settings")), accessory=self.help_button
+            discord.ui.TextDisplay(format_message("settings")),
+            accessory=self.help_button,
         )
-        self.settings_container.add_text(get_message("expansions"))
-        self.settings_container.add_text(get_message("expansions_description"))
+        self.settings_container.add_text(format_message("expansions"))
+        self.settings_container.add_text(format_message("expansions_description"))
         self.settings_container.add_item(self.expansion_select)
         self.settings_container.add_separator()
         self.settings_container.add_section(
-            discord.ui.TextDisplay(get_message("short_mode")),
-            discord.ui.TextDisplay(get_message("short_mode_description")),
+            discord.ui.TextDisplay(format_message("short_mode")),
+            discord.ui.TextDisplay(format_message("short_mode_description")),
             accessory=self.short_mode_button,
         )
         self.settings_container.add_separator()
@@ -76,7 +78,7 @@ class StartGameView(discord.ui.View):
         )
         self.advanced_settings_button.callback = self.advanced_settings
         self.settings_container.add_section(
-            discord.ui.TextDisplay(get_message("advanced_settings")),
+            discord.ui.TextDisplay(format_message("advanced_settings")),
             accessory=self.advanced_settings_button,
         )
         self.add_item(self.settings_container)
@@ -84,7 +86,7 @@ class StartGameView(discord.ui.View):
     async def on_timeout(self):
         await self.game.events.game_end()
         self.terminate_view()
-        self.title.content = get_message("game_timeout")
+        self.title.content = format_message("game_timeout")
         await super().on_timeout()
 
     async def join_game(self, interaction: discord.Interaction):
@@ -95,7 +97,7 @@ class StartGameView(discord.ui.View):
             if not self.game.config["players"]:
                 await self.game.events.game_end()
                 self.terminate_view()
-                self.title.content = get_message("game_cancelled")
+                self.title.content = format_message("game_cancelled")
                 await interaction.edit(view=self)
                 return
         else:
@@ -115,7 +117,7 @@ class StartGameView(discord.ui.View):
             return
         if len(self.game.config["players"]) < 2:
             await interaction.respond(
-                get_message("not_enough_players_to_start"),
+                view=TextView("not_enough_players_to_start"),
                 ephemeral=True,
                 delete_after=5,
             )
@@ -123,7 +125,7 @@ class StartGameView(discord.ui.View):
         await interaction.response.defer()
         self.stop()
         self.disable_all_items()
-        self.start_game_button.label = get_message("started")
+        self.start_game_button.label = format_message("started")
         await interaction.edit(view=self)
         await self.game.start(interaction)
 
@@ -133,7 +135,7 @@ class StartGameView(discord.ui.View):
     def create_settings(self):
         self.expansion_select = discord.ui.Select(
             options=self.generate_expansion_options(),
-            placeholder=get_message("no_expansions"),
+            placeholder=format_message("no_expansions"),
             min_values=0,
             max_values=len(EXPANSIONS),
         )
@@ -228,13 +230,13 @@ class SettingsModal(discord.ui.Modal):
             return
         if not await check_permissions(self.game, interaction):
             return
-        response = get_message("settings_updated")
+        response = format_message("settings_updated")
         for input_name, item in self.inputs.items():
             item_input = item["input"]
             if item_input.value == "":
                 self.game.config.pop(input_name, None)
-                response += "\n" + get_message("settings_updated_success").format(
-                    item_input.label, item_input.placeholder
+                response += "\n" + format_message(
+                    "settings_updated_success", item_input.label, item_input.placeholder
                 )
                 continue
             if not (
@@ -245,15 +247,20 @@ class SettingsModal(discord.ui.Modal):
                     item.get("max", None),
                 )
             )[0]:
-                response += "\n" + get_message("settings_updated_error").format(
-                    item_input.label, item_input.value, validation[1]
+                response += "\n" + format_message(
+                    "settings_updated_error",
+                    item_input.label,
+                    item_input.value,
+                    validation[1],
                 )
                 continue
             self.game.config[input_name] = item_input.value
-            response += "\n" + get_message("settings_updated_success").format(
-                item_input.label, item_input.value
+            response += "\n" + format_message(
+                "settings_updated_success", item_input.label, item_input.value
             )
-        await interaction.respond(response, ephemeral=True, delete_after=5)
+        await interaction.respond(
+            view=TextView(text=response), ephemeral=True, delete_after=5
+        )
 
     @staticmethod
     def validate(value, required_type=None, min_value=None, max_value=None):
@@ -288,12 +295,12 @@ class HelpView(discord.ui.View):
         )
         self.section_select.callback = self.section_callback
         self.add_item(self.section_select)
-        self.help_text = discord.ui.TextDisplay(get_message("help0"))
+        self.help_text = discord.ui.TextDisplay(format_message("help0"))
         self.add_item(self.help_text)
 
     async def section_callback(self, interaction: discord.Interaction):
         assert isinstance(self.section_select.values[0], str)
-        self.help_text.content = get_message(
+        self.help_text.content = format_message(
             f"help{int(self.section_select.values[0])}"
         )
         await interaction.edit(view=self)
@@ -304,10 +311,10 @@ class EndGameView(discord.ui.View):
         super().__init__(timeout=30, disable_on_timeout=True)
         self.game = game
         self.user_id = user_id
-        self.warning = discord.ui.TextDisplay(get_message("end_game_warning"))
+        self.warning = discord.ui.TextDisplay(format_message("end_game_warning"))
         self.add_item(self.warning)
         self.button = discord.ui.Button(
-            label=get_message("end_game_button"), style=discord.ButtonStyle.danger
+            label=format_message("end_game_button"), style=discord.ButtonStyle.danger
         )
         self.button.callback = self.end_game_callback
         self.add_item(self.button)
@@ -315,7 +322,7 @@ class EndGameView(discord.ui.View):
     async def end_game_callback(self, interaction: discord.Interaction):
         if not interaction.user or interaction.user.id != self.user_id:
             await interaction.respond(
-                get_message("end_game_permission_denied"), ephemeral=True
+                view=TextView("end_game_permission_denied"), ephemeral=True
             )
             return
         if not interaction or not self.game:
@@ -325,7 +332,7 @@ class EndGameView(discord.ui.View):
         if self.game.running:
             await self.game.events.game_end()
         self.stop()
-        await interaction.respond(get_message("game_ended").format(self.user_id))
+        await interaction.respond(view=TextView("game_ended", self.user_id))
 
 
 class InfoView(discord.ui.View):
@@ -335,10 +342,10 @@ class InfoView(discord.ui.View):
         self.software_info = discord.ui.Container()
         self.software_info.add_section(
             discord.ui.TextDisplay(
-                get_message("version_eggsplode").format(INFO["version"])
+                format_message("version_eggsplode", INFO["version"])
             ),
             discord.ui.TextDisplay(
-                get_message("version_pycord").format(discord.__version__)
+                format_message("version_pycord", discord.__version__)
             ),
             accessory=discord.ui.Button(
                 label="Release Notes",
@@ -349,31 +356,29 @@ class InfoView(discord.ui.View):
         self.add_item(self.software_info)
         self.system_info = discord.ui.Container()
         self.system_info.add_text(
-            get_message("status_latency").format(self.app.latency * 1000)
+            format_message("status_latency", self.app.latency * 1000)
         )
         uptime = get_uptime()
         self.system_info.add_text(
-            get_message("status_uptime").format(
+            format_message(
+                "status_uptime",
                 uptime.days,
                 uptime.seconds // 3600,
                 (uptime.seconds // 60) % 60,
                 uptime.seconds % 60,
             )
         )
-        # self.system_info.add_text(
-        #     get_message("status_cpu").format(psutil.cpu_percent())
-        # )
         self.system_info.add_text(
-            get_message("status_memory").format(psutil.virtual_memory().percent)
+            format_message("status_memory", psutil.virtual_memory().percent)
         )
         self.add_item(self.system_info)
         self.discord_info = discord.ui.Container()
         self.discord_info.add_section(
             discord.ui.TextDisplay(
-                get_message("status_server_installs").format(len(self.app.guilds))
+                format_message("status_server_installs", len(self.app.guilds))
             ),
             # discord.ui.TextDisplay(
-            #     get_message("status_user_installs").format(len(self.app.users))
+            #     format_message("status_user_installs", len(self.app.users))
             # ),
             accessory=discord.ui.Button(
                 label="Install",
@@ -382,7 +387,7 @@ class InfoView(discord.ui.View):
             ),
         )
         if self.app.admin_maintenance:
-            self.discord_info.add_text(get_message("maintenance"))
+            self.discord_info.add_text(format_message("maintenance"))
         self.add_item(self.discord_info)
         self.add_item(
             discord.ui.Button(
