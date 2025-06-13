@@ -53,6 +53,7 @@ class AlterFutureView(SelectionView):
         self.amount_of_cards = min(amount_of_cards, len(self.game.deck))
         self.callback_action = callback_action
         self.selects: list[discord.ui.Select] = []
+        self.add_item(self.confirm_button)
         self.create_selections()
 
     def create_selections(self):
