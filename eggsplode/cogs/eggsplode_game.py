@@ -42,7 +42,7 @@ class EggsplodeGame(commands.Cog):
             or not game.running
         ):
             if not quiet:
-                await interaction.respond(TextView("game_not_found"), ephemeral=True)
+                await interaction.respond(view=TextView("game_not_found"), ephemeral=True)
             return None
         if interaction.user.id not in game.players + game.config.get("players", []):
             if not quiet:
