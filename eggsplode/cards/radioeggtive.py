@@ -16,8 +16,6 @@ if TYPE_CHECKING:
 
 
 async def draw_from_bottom(game: "Game", interaction: discord.Interaction):
-    if not interaction.user:
-        return
     _, hold = await game.draw_from(interaction, index=0)
     if hold:
         await game.events.turn_end()
@@ -33,17 +31,13 @@ def radioeggtive_warning(game: "Game") -> str:
 
 
 async def reverse(game: "Game", interaction: discord.Interaction):
-    if not interaction.user:
-        return
     game.reverse()
-    await game.send(view=TextView("reversed", interaction.user.id))
+    await game.send(view=TextView("reversed", game.current_player_id))
     await game.events.turn_end()
 
 
 async def alter_future_finish(game: "Game", interaction: discord.Interaction):
-    if not interaction.user:
-        return
-    await game.send(view=TextView("altered_future", interaction.user.id))
+    await game.send(view=TextView("altered_future", game.current_player_id))
     await game.events.action_end()
 
 
@@ -114,8 +108,6 @@ class AlterFutureView(SelectionView):
 
 
 async def alter_future(game: "Game", interaction: discord.Interaction):
-    if not interaction.user:
-        return
     view = AlterFutureView(game, lambda: alter_future_finish(game, interaction), 3)
     await interaction.respond(view=view, ephemeral=True)
 
@@ -123,13 +115,11 @@ async def alter_future(game: "Game", interaction: discord.Interaction):
 async def targeted_attegg_begin(
     game: "Game", interaction: discord.Interaction, target_player_id: int
 ):
-    if not interaction.user:
-        return
     view = NopeView(
         game,
         message=format_message(
             "before_targeted_attegg",
-            interaction.user.id,
+            game.current_player_id,
             target_player_id,
             game.draw_in_turn + 2,
         ),
@@ -140,8 +130,6 @@ async def targeted_attegg_begin(
 
 
 async def targeted_attegg(game: "Game", interaction: discord.Interaction):
-    if not interaction.user:
-        return
     view = ChoosePlayerView(
         game,
         lambda target_player_id: targeted_attegg_begin(

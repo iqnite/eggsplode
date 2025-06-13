@@ -16,9 +16,7 @@ if TYPE_CHECKING:
 
 
 async def check_permissions(game: "Game", interaction: discord.Interaction):
-    if not interaction.user:
-        return
-    if interaction.user.id != game.config["players"][0]:
+    if (not interaction.user) or interaction.user.id != game.config["players"][0]:
         await interaction.respond(
             view=TextView("not_game_creator"),
             ephemeral=True,
@@ -259,7 +257,7 @@ class SettingsModal(discord.ui.Modal):
                 "settings_updated_success", item_input.label, item_input.value
             )
         await interaction.respond(
-            view=TextView(text=response), ephemeral=True, delete_after=5
+            view=TextView(response, verbatim=True), ephemeral=True, delete_after=5
         )
 
     @staticmethod
@@ -320,7 +318,7 @@ class EndGameView(discord.ui.View):
         self.add_item(self.button)
 
     async def end_game_callback(self, interaction: discord.Interaction):
-        if not interaction.user or interaction.user.id != self.user_id:
+        if (not interaction.user) or interaction.user.id != self.user_id:
             await interaction.respond(
                 view=TextView("end_game_permission_denied"), ephemeral=True
             )

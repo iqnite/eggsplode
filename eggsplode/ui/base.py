@@ -30,7 +30,11 @@ class BaseView(discord.ui.View):
 
 
 class TextView(discord.ui.View):
-    def __init__(self, key="", *format_args, text=""):
+    def __init__(self, key_or_text, *format_args, verbatim=False):
         super().__init__(
-            discord.ui.TextDisplay(text or format_message(key, *format_args))
+            discord.ui.TextDisplay(
+                key_or_text.format(*format_args)
+                if verbatim
+                else format_message(key_or_text, *format_args)
+            )
         )
