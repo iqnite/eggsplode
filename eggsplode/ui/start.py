@@ -65,12 +65,6 @@ class StartGameView(discord.ui.View):
         self.settings_container.add_text(format_message("expansions_description"))
         self.settings_container.add_item(self.expansion_select)
         self.settings_container.add_separator()
-        # self.settings_container.add_section(
-        #     discord.ui.TextDisplay(format_message("short_mode")),
-        #     discord.ui.TextDisplay(format_message("short_mode_description")),
-        #     accessory=self.short_mode_button,
-        # )
-        # self.settings_container.add_separator()
         self.advanced_settings_button = discord.ui.Button(
             label="View", style=discord.ButtonStyle.secondary, emoji="⚙️"
         )
@@ -190,6 +184,14 @@ class SettingsModal(discord.ui.Modal):
         super().__init__(*args, **kwargs)
         self.game = game
         self.inputs = {
+            "deck_size": {
+                "input": discord.ui.InputText(
+                    label="Maximum cards on deck",
+                    placeholder="Auto",
+                    value=self.game.config.get("deck_size", None),
+                    required=False,
+                ),
+            },
             "deck_eggsplode_cards": {
                 "input": discord.ui.InputText(
                     label="Eggsplode cards in deck",
@@ -209,14 +211,6 @@ class SettingsModal(discord.ui.Modal):
                 ),
                 "min": 0,
                 "max": 100,
-            },
-            "deck_size": {
-                "input": discord.ui.InputText(
-                    label="Maximum cards on deck",
-                    placeholder="Auto",
-                    value=self.game.config.get("deck_size", None),
-                    required=False,
-                ),
             },
             "turn_timeout": {
                 "input": discord.ui.InputText(

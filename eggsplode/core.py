@@ -65,8 +65,7 @@ class Game:
                 "deck_size", 25 if len(self.players) == 2 else None
             )
         ) is not None:
-            while len(self.deck) > int(deck_size):
-                self.deck.pop()
+            self.deck = self.deck[:int(deck_size)]
         for action in self.setup_actions:
             action(self)
         self.shuffle_deck()

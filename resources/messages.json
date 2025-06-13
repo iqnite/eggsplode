@@ -1,7 +1,7 @@
 {
     "action_noped": "🛑 This action has been noped!",
     "advanced_settings": "### Balancing settings",
-    "advanced_settings_description": "Customize the amount of cards in the deck and turn timers.",
+    "advanced_settings_description": "🆕 Customize the amount of cards in the deck and turn timers.",
     "already_in_game": "❌ You are already in the game!",
     "alter_future_placeholder": "{}. card: {}",
     "altered_future": "🪄 <@{}> rearranged the next 3 cards on the deck!",
