@@ -114,7 +114,7 @@ class Owner(commands.Cog):
                         game_id,
                         (
                             "(active)"
-                            if hasattr(game, "running") and game.running
+                            if getattr(game, "running", False)
                             else "(inactive)"
                         ),
                     )
