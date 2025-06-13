@@ -6,8 +6,9 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 from eggsplode.core import Game
-from eggsplode.strings import get_message
+from eggsplode.strings import format_message
 from eggsplode.ui import StartGameView
+from eggsplode.ui.base import TextView
 
 
 class EggsplodeApp(commands.Bot):
@@ -48,14 +49,14 @@ class EggsplodeApp(commands.Bot):
     async def create_game(self, interaction: discord.Interaction, config=None):
         self.cleanup()
         if self.admin_maintenance:
-            await interaction.respond(get_message("maintenance"), ephemeral=True)
+            await interaction.respond(view=TextView("maintenance"), ephemeral=True)
             return
         game_id = interaction.channel_id
         if not (game_id and interaction.user):
             return
         if self.games.get(game_id, None):
             await interaction.respond(
-                get_message("game_already_exists"), ephemeral=True
+                view=TextView("game_already_exists"), ephemeral=True
             )
             return
         await interaction.response.defer()

@@ -6,7 +6,8 @@ import discord
 from discord.ext import commands
 from eggsplode.commands import EggsplodeApp
 from eggsplode.core import Game
-from eggsplode.strings import CARDS, get_card_by_title, get_message
+from eggsplode.strings import CARDS, get_card_by_title, format_message
+from eggsplode.ui.base import TextView
 from eggsplode.ui.start import EndGameView
 
 
@@ -41,18 +42,18 @@ class EggsplodeGame(commands.Cog):
             or not game.running
         ):
             if not quiet:
-                await interaction.respond(get_message("game_not_found"), ephemeral=True)
+                await interaction.respond(TextView("game_not_found"), ephemeral=True)
             return None
         if interaction.user.id not in game.players + game.config.get("players", []):
             if not quiet:
                 await interaction.respond(
-                    get_message("user_not_in_game"), ephemeral=True
+                    view=TextView("user_not_in_game"), ephemeral=True
                 )
             return None
         if not game.hands:
             if not quiet:
                 await interaction.respond(
-                    get_message("game_not_started"), ephemeral=True
+                    view=TextView("game_not_started"), ephemeral=True
                 )
             return None
         return game
@@ -110,7 +111,8 @@ class EggsplodeGame(commands.Cog):
                     raise ValueError("Card not in hand")
             except ValueError:
                 await ctx.respond(
-                    get_message("card_not_found").format(card), ephemeral=True
+                    view=TextView("card_not_found", card),
+                    ephemeral=True,
                 )
                 return
             game.anchor_interaction = ctx.interaction
@@ -132,14 +134,17 @@ class EggsplodeGame(commands.Cog):
             return
         found_games = self.app.games_with_user(ctx.interaction.user.id)
         await ctx.respond(
-            (
-                get_message("list_games_title").format(
-                    "\n".join(
-                        get_message("list_games_item").format(i) for i in found_games
+            view=TextView(
+                text=(
+                    format_message(
+                        "list_games_title",
+                        "\n".join(
+                            format_message("list_games_item", i) for i in found_games
+                        ),
                     )
+                    if found_games
+                    else format_message("user_not_in_any_games")
                 )
-                if found_games
-                else get_message("user_not_in_any_games")
             ),
             ephemeral=True,
         )
@@ -159,7 +164,7 @@ class EggsplodeGame(commands.Cog):
             or (game := self.app.games[game_id]) is None
             or not game.running
         ):
-            await ctx.respond(get_message("game_not_found"), ephemeral=True)
+            await ctx.respond(view=TextView("game_not_found"), ephemeral=True)
             return
         if game is None or not ctx.interaction.user:
             return

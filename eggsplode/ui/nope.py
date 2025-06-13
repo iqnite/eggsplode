@@ -5,8 +5,8 @@ Contains the Nope views for the game.
 from datetime import datetime, timedelta
 from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
-from eggsplode.strings import get_message
-from eggsplode.ui.base import BaseView
+from eggsplode.strings import format_message
+from eggsplode.ui.base import BaseView, TextView
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
@@ -61,7 +61,8 @@ class NopeView(BaseView):
     @property
     def timer_text(self) -> str:
         return (
-            get_message("timer").format(
+            format_message(
+                "timer",
                 int((datetime.now() + timedelta(seconds=self.timeout)).timestamp()),
             )
             if self.timeout
@@ -105,7 +106,7 @@ class NopeView(BaseView):
             return
         if not self.noped and self.game.current_player_id == interaction.user.id:
             await interaction.respond(
-                get_message("no_self_nope"), ephemeral=True, delete_after=5
+                view=TextView("no_self_nope"), ephemeral=True, delete_after=5
             )
             await interaction.edit(view=self)
             return
@@ -114,16 +115,16 @@ class NopeView(BaseView):
         except (ValueError, KeyError):
             await interaction.edit(view=self)
             await interaction.respond(
-                get_message("no_nope_cards"), ephemeral=True, delete_after=5
+                view=TextView("no_nope_cards"), ephemeral=True, delete_after=5
             )
         else:
             self.nope_count += 1
             self.nope_button.label = "Nope!" if not self.noped else "Yup!"
             self.toggle_strike_through()
             self.action_messages.append(
-                get_message("message_edit_on_nope").format(interaction.user.id)
+                format_message("message_edit_on_nope", interaction.user.id)
                 if self.noped
-                else get_message("message_edit_on_yup").format(interaction.user.id)
+                else format_message("message_edit_on_yup", interaction.user.id)
             )
             self.action_text_display.content = "\n".join(self.action_messages)
             if self.noped:
@@ -140,13 +141,13 @@ class NopeView(BaseView):
         if self.noped:
             await interaction.edit(view=self)
             await interaction.respond(
-                get_message("action_noped"), ephemeral=True, delete_after=5
+                view=TextView("action_noped"), ephemeral=True, delete_after=5
             )
             return
         if self.target_player_id is None:
             if self.game.current_player_id == interaction.user.id:
                 await interaction.respond(
-                    get_message("no_self_ok"), ephemeral=True, delete_after=5
+                    view=TextView("no_self_ok"), ephemeral=True, delete_after=5
                 )
                 await interaction.edit(view=self)
                 return
@@ -161,7 +162,7 @@ class NopeView(BaseView):
             return
         if interaction.user.id != self.target_player_id:
             await interaction.respond(
-                get_message("not_your_turn"), ephemeral=True, delete_after=5
+                view=TextView("not_your_turn"), ephemeral=True, delete_after=5
             )
             await interaction.edit(view=self)
             return

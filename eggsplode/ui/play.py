@@ -4,7 +4,8 @@ Contains the PlayView class, which is used to display the play interface for a g
 
 from typing import TYPE_CHECKING
 import discord
-from eggsplode.strings import CARDS, MAX_COMPONENTS, get_message
+from eggsplode.strings import CARDS, MAX_COMPONENTS, format_message
+from eggsplode.ui.base import TextView
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
@@ -20,7 +21,7 @@ class PlayView(discord.ui.View):
         self.action_id = game.action_id
         self.card_selects = []
         if self.playable:
-            self.play_prompt = discord.ui.TextDisplay(get_message("play_prompt"))
+            self.play_prompt = discord.ui.TextDisplay(format_message("play_prompt"))
             self.add_item(self.play_prompt)
         self.back_button: discord.ui.Button | None = None
         self.forward_button: discord.ui.Button | None = None
@@ -49,7 +50,8 @@ class PlayView(discord.ui.View):
             )
             section = discord.ui.Section(
                 discord.ui.TextDisplay(
-                    get_message("play_section").format(
+                    format_message(
+                        "play_section",
                         CARDS[card]["emoji"],
                         CARDS[card]["title"],
                         CARDS[card]["description"],
@@ -73,7 +75,9 @@ class PlayView(discord.ui.View):
         for item in self.children[1:]:
             self.remove_item(item)
         for item in self.card_selects[
-            self.page_number * self.MAX_SECTIONS : (self.page_number + 1) * self.MAX_SECTIONS
+            self.page_number
+            * self.MAX_SECTIONS : (self.page_number + 1)
+            * self.MAX_SECTIONS
         ]:
             self.add_item(item)
 
@@ -108,19 +112,11 @@ class PlayView(discord.ui.View):
         if not interaction.user:
             raise TypeError("interaction.user is None")
         if not self.playable:
-            await interaction.edit(
-                view=discord.ui.View(
-                    discord.ui.TextDisplay(get_message("not_your_turn"))
-                ),
-                delete_after=5,
-            )
+            await interaction.edit(view=TextView("not_your_turn"), delete_after=5)
             return
         if self.action_id != self.game.action_id:
             await interaction.edit(
-                view=discord.ui.View(
-                    discord.ui.TextDisplay(get_message("invalid_turn"))
-                ),
-                delete_after=10,
+                view=TextView(format_message("invalid_turn")), delete_after=10
             )
             return
         self.game.action_id += 1
