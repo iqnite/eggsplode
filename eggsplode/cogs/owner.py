@@ -107,7 +107,19 @@ class Owner(commands.Cog):
     async def list_games(self, ctx):
         await ctx.respond(
             format_message(
-                "list_games_title", "\n".join(f"- {i}" for i in self.app.games)
+                "list_games_title",
+                "\n".join(
+                    format_message(
+                        "list_item_2",
+                        game_id,
+                        (
+                            "(active)"
+                            if hasattr(game, "running") and game.running
+                            else "(inactive)"
+                        ),
+                    )
+                    for game_id, game in self.app.games.items()
+                ),
             ),
             ephemeral=True,
         )
