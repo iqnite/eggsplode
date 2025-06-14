@@ -151,7 +151,7 @@
         "usable": true,
         "expansion": "wisecracker"
     },
-    "self-attegg": {
+    "self_attegg": {
         "title": "Self Attegg",
         "description": "Play 3 turns in a row.",
         "emoji": "↩️",
@@ -159,7 +159,7 @@
         "usable": true,
         "expansion": "wisecracker"
     },
-    "share-future": {
+    "share_future": {
         "title": "Share the future",
         "description": "Rearrange the next 3 cards on the deck and show them to the next player.",
         "emoji": "👀",
@@ -167,7 +167,7 @@
         "usable": true,
         "expansion": "wisecracker"
     },
-    "super-skip": {
+    "super_skip": {
         "title": "Super Skip",
         "description": "End your turn without drawing. If you're under the effect of an Attegg, end all of your turns.",
         "emoji": "🚀",
@@ -175,7 +175,7 @@
         "usable": true,
         "expansion": "wisecracker"
     },
-    "dig-deeper": {
+    "dig_deeper": {
         "title": "Dig Deeper",
         "description": "End your turn by looking at the top card on the deck. Decide whether to keep it or put it back and blindly draw the next one.",
         "emoji": "⛏️",
