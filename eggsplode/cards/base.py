@@ -20,7 +20,7 @@ async def attegg(game: "Game", _):
             "before_attegg",
             game.current_player_id,
             game.next_player_id,
-            game.draw_in_turn + 2,
+            game.remaining_turns + 2,
         ),
         target_player_id=game.next_player_id,
         ok_callback_action=lambda _: attegg_finish(game),
@@ -151,10 +151,10 @@ async def defuse_finish(game: "Game"):
 
 async def attegg_finish(game: "Game", target_player_id=None):
     target_player_id = target_player_id or game.next_player_id
-    prev_to_draw_in_turn = game.draw_in_turn
-    game.draw_in_turn = 0
+    prev_to_draw_in_turn = game.remaining_turns
+    game.remaining_turns = 0
     game.current_player_id = target_player_id
-    game.draw_in_turn = prev_to_draw_in_turn + 3
+    game.remaining_turns = prev_to_draw_in_turn + 3
     await game.events.turn_end()
 
 
@@ -181,7 +181,7 @@ async def eggsplode(
         return
     prev_player = game.current_player_id
     game.remove_player(prev_player)
-    game.draw_in_turn = 0
+    game.remaining_turns = 0
     await game.send(view=TextView("eggsploded", prev_player))
     if len(game.players) == 1:
         await game_over(game, interaction)

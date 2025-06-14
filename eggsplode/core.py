@@ -25,7 +25,7 @@ class Game:
         self.deck: list[str] = []
         self.current_player: int = 0
         self.action_id: int = 0
-        self.draw_in_turn: int = 0
+        self.remaining_turns: int = 0
         self.events = EventSet()
         self.last_activity = datetime.now()
         self.running = True
@@ -65,7 +65,7 @@ class Game:
                 "deck_size", 25 if len(self.players) == 2 else None
             )
         ) is not None:
-            self.deck = self.deck[:int(deck_size)]
+            self.deck = self.deck[: int(deck_size)]
         for action in self.setup_actions:
             action(self)
         self.shuffle_deck()
@@ -132,7 +132,9 @@ class Game:
 
     @property
     def next_turn_player_id(self) -> int:
-        return self.next_player_id if self.draw_in_turn == 0 else self.current_player_id
+        return (
+            self.next_player_id if self.remaining_turns == 0 else self.current_player_id
+        )
 
     @property
     def player_list(self) -> str:
@@ -144,10 +146,10 @@ class Game:
     async def next_turn(self):
         self.action_id += 1
         self.last_activity = datetime.now()
-        if self.draw_in_turn > 1:
-            self.draw_in_turn -= 1
-            if self.draw_in_turn == 1:
-                self.draw_in_turn = 0
+        if self.remaining_turns > 1:
+            self.remaining_turns -= 1
+            if self.remaining_turns == 1:
+                self.remaining_turns = 0
         else:
             self.current_player = self.next_player
         await self.events.turn_start()
@@ -253,7 +255,14 @@ class Game:
         del self.players[self.players.index(user_id)]
         del self.hands[user_id]
         self.current_player -= 1
-        self.draw_in_turn = 0
+        self.remaining_turns = 0
+
+    def players_with_cards(self, *cards: str) -> list[int]:
+        return [
+            player
+            for player in self.players
+            if any(card in self.hands[player] for card in cards)
+        ]
 
     def any_player_has_cards(self) -> bool:
         eligible_players = self.players.copy()
@@ -316,7 +325,7 @@ class Game:
         self.hands = {}
         self.deck = []
         self.action_id = 0
-        self.draw_in_turn = 0
+        self.remaining_turns = 0
 
     async def send(
         self,
