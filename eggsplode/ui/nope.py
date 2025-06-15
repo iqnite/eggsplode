@@ -131,7 +131,6 @@ class NopeView(BaseView):
                 self.remove_item(self.ok_button)
             else:
                 self.add_item(self.ok_button)
-        self.game.anchor_interaction = interaction
         await interaction.edit(view=self)
 
     async def ok_callback(self, interaction: discord.Interaction):
@@ -159,7 +158,7 @@ class NopeView(BaseView):
             self.ok_button.label = self.ok_label
             await interaction.edit(view=self)
             if len(self.players_confirmed) == len(self.game.players) - 1:
-                await self.finalish_confirmation(interaction)
+                await self.finish_confirmation(interaction)
             return
         if interaction.user.id != self.target_player_id:
             await interaction.respond(
@@ -167,9 +166,9 @@ class NopeView(BaseView):
             )
             await interaction.edit(view=self)
             return
-        await self.finalish_confirmation(interaction)
+        await self.finish_confirmation(interaction)
 
-    async def finalish_confirmation(self, interaction: discord.Interaction):
+    async def finish_confirmation(self, interaction: discord.Interaction):
         self.game.anchor_interaction = interaction
         self.disabled = True
         self.stop()

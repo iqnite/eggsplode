@@ -1,6 +1,10 @@
 {
-  "radioeggtive": {
-    "name": "Radioeggtive",
-    "emoji": "☢️"
-  }
+    "radioeggtive": {
+        "name": "Radioeggtive",
+        "emoji": "☢️"
+    },
+    "wisecracker": {
+        "name": "Wise-Cracker (Beta)",
+        "emoji": "🧠"
+    }
 }

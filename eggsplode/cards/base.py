@@ -20,7 +20,7 @@ async def attegg(game: "Game", _):
             "before_attegg",
             game.current_player_id,
             game.next_player_id,
-            game.draw_in_turn + 2,
+            game.remaining_turns + 2,
         ),
         target_player_id=game.next_player_id,
         ok_callback_action=lambda _: attegg_finish(game),
@@ -35,20 +35,28 @@ async def shuffle(game: "Game", _):
 
 
 async def predict(game: "Game", interaction: discord.Interaction):
+    await game.send(view=TextView("predicted", game.current_player_id))
+    await show_next_cards(interaction, game.deck)
+    await game.events.action_end()
+
+
+async def show_next_cards(
+    interaction: discord.Interaction,
+    deck: list[str],
+    amount: int = 3,
+):
     next_cards = "\n".join(
         format_message(
             "list_item_2", replace_emojis(CARDS[card]["emoji"]), tooltip(card)
         )
-        for card in game.deck[-1:-4:-1]
+        for card in deck[-1 : -amount - 1 : -1]
     )
-    await game.send(view=TextView("predicted", game.current_player_id))
     await interaction.respond(
         view=TextView(
             "\n".join((format_message("next_cards"), next_cards)), verbatim=True
         ),
         ephemeral=True,
     )
-    await game.events.action_end()
 
 
 async def food_combo(game: "Game", interaction: discord.Interaction, card: str):
@@ -149,12 +157,12 @@ async def defuse_finish(game: "Game"):
     await game.events.turn_end()
 
 
-async def attegg_finish(game: "Game", target_player_id=None):
+async def attegg_finish(game: "Game", target_player_id=None, turns: int = 3):
     target_player_id = target_player_id or game.next_player_id
-    prev_to_draw_in_turn = game.draw_in_turn
-    game.draw_in_turn = 0
+    prev_to_draw_in_turn = game.remaining_turns
+    game.remaining_turns = 0
     game.current_player_id = target_player_id
-    game.draw_in_turn = prev_to_draw_in_turn + 3
+    game.remaining_turns = prev_to_draw_in_turn + turns
     await game.events.turn_end()
 
 
@@ -181,7 +189,7 @@ async def eggsplode(
         return
     prev_player = game.current_player_id
     game.remove_player(prev_player)
-    game.draw_in_turn = 0
+    game.remaining_turns = 0
     await game.send(view=TextView("eggsploded", prev_player))
     if len(game.players) == 1:
         await game_over(game, interaction)

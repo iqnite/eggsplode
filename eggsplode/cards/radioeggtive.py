@@ -61,7 +61,7 @@ class AlterFutureView(SelectionView):
             discord.SelectOption(
                 value=f"{i}:{card}",
                 label=CARDS[card]["title"],
-                description=CARDS[card]["description"],
+                description=CARDS[card]["description"][:99],
                 emoji=replace_emojis(CARDS[card]["emoji"]),
             )
             for i, card in enumerate(
@@ -86,7 +86,7 @@ class AlterFutureView(SelectionView):
             self.selects.append(select)
             self.add_item(select)
 
-    async def finish(self):
+    async def finish(self, interaction=None):
         await self.callback_action()
 
     async def selection_callback(self, interaction: discord.Interaction):
@@ -120,7 +120,7 @@ async def targeted_attegg_begin(game: "Game", _, target_player_id: int):
             "before_targeted_attegg",
             game.current_player_id,
             target_player_id,
-            game.draw_in_turn + 2,
+            game.remaining_turns + 2,
         ),
         target_player_id=target_player_id,
         ok_callback_action=lambda _: attegg_finish(game, target_player_id),
@@ -163,7 +163,7 @@ async def radioeggtive(
 async def radioeggtive_face_up(game: "Game", interaction: discord.Interaction, _):
     prev_player = game.current_player_id
     game.remove_player(prev_player)
-    game.draw_in_turn = 0
+    game.remaining_turns = 0
     await game.send(view=TextView("radioeggtive_face_up", prev_player))
     if len(game.players) == 1:
         await game_over(game, interaction)
