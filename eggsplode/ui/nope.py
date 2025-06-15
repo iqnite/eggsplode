@@ -103,7 +103,7 @@ class NopeView(BaseView):
         self.timer_display.content = self.timer_text
         if not interaction.user:
             await interaction.edit(view=self)
-            raise ValueError("Interaction user is None")
+            return
         if not self.noped and self.game.current_player_id == interaction.user.id:
             await interaction.respond(
                 view=TextView("no_self_nope"), ephemeral=True, delete_after=5
