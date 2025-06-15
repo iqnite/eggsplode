@@ -166,7 +166,7 @@
     "settings_updated": "**Game settings updated**",
     "settings_updated_error": "❌ {}: {} ({})",
     "settings_updated_success": "✅ {}: {}",
-    "shared_future": "🔮 <@{}> rearranged the next 3 cards on the deck and allowed <@{}> to view them!",
+    "shared_future": "👀 <@{}> rearranged the next 3 cards on the deck and allowed <@{}> to view them!",
     "short_mode": "### Short mode",
     "short_mode_description": "Removes 50-60% of the cards from the deck. Enabled by default for 2 players.",
     "shuffled": "🌀 <@{}> shuffled the deck!",
