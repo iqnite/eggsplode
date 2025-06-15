@@ -149,12 +149,12 @@ async def defuse_finish(game: "Game"):
     await game.events.turn_end()
 
 
-async def attegg_finish(game: "Game", target_player_id=None):
+async def attegg_finish(game: "Game", target_player_id=None, turns: int = 3):
     target_player_id = target_player_id or game.next_player_id
     prev_to_draw_in_turn = game.remaining_turns
     game.remaining_turns = 0
     game.current_player_id = target_player_id
-    game.remaining_turns = prev_to_draw_in_turn + 3
+    game.remaining_turns = prev_to_draw_in_turn + turns
     await game.events.turn_end()
 
 

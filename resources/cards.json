@@ -152,8 +152,8 @@
         "expansion": "wisecracker"
     },
     "self_attegg": {
-        "title": "Self Attegg",
-        "description": "Play 3 turns in a row.",
+        "title": "Self-Attegg",
+        "description": "Play 2 more turns in a row.",
         "emoji": "↩️",
         "count": 4,
         "usable": true,

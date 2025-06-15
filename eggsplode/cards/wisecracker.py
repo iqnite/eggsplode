@@ -4,7 +4,7 @@ Contains card effects for the Wise-Cracker expansion.
 
 from typing import TYPE_CHECKING
 import discord
-from eggsplode.cards.base import game_over, skip
+from eggsplode.cards.base import game_over, skip, attegg_finish
 from eggsplode.ui import ChoosePlayerView
 from eggsplode.ui.base import TextView
 
@@ -63,9 +63,13 @@ async def wisecracker_finish(
     await game.events.action_end()
 
 
-async def super_skip(game: "Game", interaction: discord.Interaction):
+async def super_skip(game: "Game", _):
     game.remaining_turns = 0
-    await skip(game, interaction)
+    await skip(game, _)
+
+
+async def self_attegg(game: "Game", _):
+    await attegg_finish(game, game.current_player_id, turns=4)
 
 
 def setup(game: "Game"):
@@ -75,6 +79,7 @@ def setup(game: "Game"):
 PLAY_ACTIONS = {
     "wisecracker": wisecracker,
     "super_skip": super_skip,
+    "self_attegg": self_attegg,
 }
 
 SETUP_ACTIONS = [
