@@ -54,8 +54,9 @@ class StartGameView(discord.ui.View):
         self.players_container.add_item(self.players_display)
         self.add_item(self.players_container)
         self.help_button = discord.ui.Button(
-            label="Help", url="https://github.com/iqnite/eggsplode/wiki", emoji="❓"
+            label="Help", style=discord.ButtonStyle.secondary, emoji="❓"
         )
+        self.help_button.callback = self.help
         self.settings_container = discord.ui.Container()
         self.settings_container.add_section(
             discord.ui.TextDisplay(format_message("settings")),
@@ -280,31 +281,37 @@ class SettingsModal(discord.ui.Modal):
 class HelpView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
-        self.section_select = discord.ui.Select(
-            placeholder="Section",
-            options=[
-                discord.SelectOption(label="Getting started", emoji="🚀", value="0"),
-                discord.SelectOption(label="Cards (1)", emoji="🎴", value="1"),
-                discord.SelectOption(label="Cards (2)", emoji="🎴", value="2"),
-                discord.SelectOption(
-                    label="Radioeggtive Eggspansion", emoji="🧩", value="3"
-                ),
-                discord.SelectOption(label="Credits", emoji="👏", value="4"),
-            ],
-            max_values=1,
-            min_values=1,
-        )
-        self.section_select.callback = self.section_callback
-        self.add_item(self.section_select)
+        # self.section_select = discord.ui.Select(
+        #     placeholder="Section",
+        #     options=[
+        #         discord.SelectOption(label="Getting started", emoji="🚀", value="0"),
+        #         discord.SelectOption(label="Cards (1)", emoji="🎴", value="1"),
+        #         discord.SelectOption(label="Cards (2)", emoji="🎴", value="2"),
+        #         discord.SelectOption(
+        #             label="Radioeggtive Eggspansion", emoji="🧩", value="3"
+        #         ),
+        #         discord.SelectOption(label="Credits", emoji="👏", value="4"),
+        #     ],
+        #     max_values=1,
+        #     min_values=1,
+        # )
+        # self.section_select.callback = self.section_callback
+        # self.add_item(self.section_select)
         self.help_text = discord.ui.TextDisplay(format_message("help0"))
         self.add_item(self.help_text)
-
-    async def section_callback(self, interaction: discord.Interaction):
-        assert isinstance(self.section_select.values[0], str)
-        self.help_text.content = format_message(
-            f"help{int(self.section_select.values[0])}"
+        self.cards_help_button = discord.ui.Button(
+            label="Cards",
+            url="https://github.com/iqnite/eggsplode/wiki/Cards",
+            emoji="🎴",
         )
-        await interaction.edit(view=self)
+        self.add_item(self.cards_help_button)
+
+    # async def section_callback(self, interaction: discord.Interaction):
+    #     assert isinstance(self.section_select.values[0], str)
+    #     self.help_text.content = format_message(
+    #         f"help{int(self.section_select.values[0])}"
+    #     )
+    #     await interaction.edit(view=self)
 
 
 class EndGameView(discord.ui.View):
