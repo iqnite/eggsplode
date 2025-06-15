@@ -136,7 +136,7 @@
     },
     "wisecracker": {
         "title": "Wise-Cracker",
-        "description": "Make the player with the other Wise-Cracker eggsplode. If no one has a Wise-Cracker, you eggsplode. Play in pair to decide who must eggsplode.",
+        "description": "Make the player with the other Wise-Cracker eggsplode. Play in pair to decide who must eggsplode.",
         "emoji": "🧠",
         "count": 0,
         "usable": true,
