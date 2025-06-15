@@ -61,7 +61,7 @@ class AlterFutureView(SelectionView):
             discord.SelectOption(
                 value=f"{i}:{card}",
                 label=CARDS[card]["title"],
-                description=CARDS[card]["description"],
+                description=CARDS[card]["description"][:99],
                 emoji=replace_emojis(CARDS[card]["emoji"]),
             )
             for i, card in enumerate(

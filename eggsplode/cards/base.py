@@ -35,20 +35,28 @@ async def shuffle(game: "Game", _):
 
 
 async def predict(game: "Game", interaction: discord.Interaction):
+    await game.send(view=TextView("predicted", game.current_player_id))
+    await show_next_cards(interaction, game.deck)
+    await game.events.action_end()
+
+
+async def show_next_cards(
+    interaction: discord.Interaction,
+    deck: list[str],
+    amount: int = 3,
+):
     next_cards = "\n".join(
         format_message(
             "list_item_2", replace_emojis(CARDS[card]["emoji"]), tooltip(card)
         )
-        for card in game.deck[-1:-4:-1]
+        for card in deck[-1 : -amount - 1 : -1]
     )
-    await game.send(view=TextView("predicted", game.current_player_id))
     await interaction.respond(
         view=TextView(
             "\n".join((format_message("next_cards"), next_cards)), verbatim=True
         ),
         ephemeral=True,
     )
-    await game.events.action_end()
 
 
 async def food_combo(game: "Game", interaction: discord.Interaction, card: str):
