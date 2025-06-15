@@ -86,7 +86,7 @@ class AlterFutureView(SelectionView):
             self.selects.append(select)
             self.add_item(select)
 
-    async def finish(self):
+    async def finish(self, interaction=None):
         await self.callback_action()
 
     async def selection_callback(self, interaction: discord.Interaction):
