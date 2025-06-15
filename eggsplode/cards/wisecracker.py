@@ -41,9 +41,7 @@ async def wisecracker_finish(game: "Game", _, target_player_id: int):
     if "defuse" in game.hands[target_player_id]:
         game.hands[target_player_id].remove("defuse")
         await game.send(
-            view=TextView(
-                "wisecracker_defused", current_player_id, target_player_id
-            ),
+            view=TextView("wisecracker_defused", current_player_id, target_player_id),
         )
     else:
         await game.send(
@@ -130,10 +128,9 @@ class ShareFutureView(discord.ui.View):
 
 async def dig_deeper(game: "Game", interaction: discord.Interaction):
     if len(game.deck) < 2:
-        await interaction.respond(
-            view=TextView("not_enough_cards_to_dig_deeper"), ephemeral=True
-        )
+        await interaction.respond(view=TextView("not_enough_cards_to_dig_deeper"))
         game.current_player_hand.append("dig_deeper")
+        await game.events.action_end()
         return
     game.anchor_interaction = interaction
     await interaction.respond(view=DigDeeperView(game), ephemeral=True)
