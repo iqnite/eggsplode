@@ -28,7 +28,7 @@ _No eggs were injured while making this game._
 - The project is based on the [Pycord](https://pycord.dev/) library.
 - The game concept is based on the card game [Exploding Kittens](https://explodingkittens.com/).
 - Thanks to all the early testers for their feedback and patience!
-- And of course, thanks to you for playing!
+- And of course, thank you for playing!
 
 ## Installing (Test version)
 
