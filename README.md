@@ -30,6 +30,8 @@ _No eggs were injured while making this game._
 - Thanks to all the early testers for their feedback and patience!
 - And of course, thank you for playing!
 
+Parts of the code review and debugging process were assisted by GitHub Copilot.
+
 ## Installing (Test version)
 
 ### 1. Bot Setup
