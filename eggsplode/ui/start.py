@@ -86,6 +86,7 @@ class StartGameView(discord.ui.View):
     async def join_game(self, interaction: discord.Interaction):
         if not interaction.user:
             return
+        await interaction.response.defer(invisible=True)
         if interaction.user.id in self.game.config["players"]:
             self.game.config["players"].remove(interaction.user.id)
             if not self.game.config["players"]:
