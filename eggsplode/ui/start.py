@@ -356,7 +356,7 @@ class InfoView(discord.ui.View):
                 format_message("version_pycord", discord.__version__)
             ),
             accessory=discord.ui.Button(
-                label="Release Notes",
+                label="Change log",
                 url="https://github.com/iqnite/eggsplode/releases",
                 emoji="📜",
             ),
