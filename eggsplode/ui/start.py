@@ -8,7 +8,7 @@ import time
 from typing import TYPE_CHECKING
 import psutil
 import discord
-from eggsplode.strings import RECIPES, INFO, format_message, replace_emojis
+from eggsplode.strings import MESSAGES, RECIPES, INFO, format_message, replace_emojis
 from eggsplode.ui.base import TextView
 
 if TYPE_CHECKING:
@@ -32,8 +32,9 @@ class StartGameView(discord.ui.View):
         super().__init__(timeout=600, disable_on_timeout=True)
         self.game = game
         self.game.events.game_end += self.terminate_view
-        self.game.config["recipe_name"] = "classic"
+        self.game.config["recipe_id"] = "classic"
         self.game.config["recipe"] = RECIPES["classic"]
+
         self.header = discord.ui.Section()
         self.title = discord.ui.TextDisplay(format_message("start"))
         self.header.add_item(self.title)
@@ -43,6 +44,7 @@ class StartGameView(discord.ui.View):
         self.start_game_button.callback = self.start_game
         self.header.accessory = self.start_game_button
         self.add_item(self.header)
+
         self.players_container = discord.ui.Container()
         self.join_game_button = discord.ui.Button(
             label="Join", style=discord.ButtonStyle.blurple, emoji="👋"
@@ -55,6 +57,7 @@ class StartGameView(discord.ui.View):
         self.players_display = discord.ui.TextDisplay(self.game.player_list)
         self.players_container.add_item(self.players_display)
         self.add_item(self.players_container)
+
         self.help_button = discord.ui.Button(
             label="Help", style=discord.ButtonStyle.secondary, emoji="❓"
         )
@@ -65,7 +68,7 @@ class StartGameView(discord.ui.View):
             accessory=self.help_button,
         )
         self.recipe_select = discord.ui.Select(
-            options=self.generate_recipe_options(),
+            options=self.recipe_options,
             placeholder="Custom",
             min_values=1,
             max_values=1,
@@ -78,9 +81,9 @@ class StartGameView(discord.ui.View):
         self.settings_container.add_section(
             discord.ui.TextDisplay(format_message("recipe")),
             discord.ui.TextDisplay(format_message("recipe_description")),
-            self.recipe_select,
             accessory=self.edit_recipe_button,
         )
+        self.settings_container.add_item(self.recipe_select)
         self.settings_container.add_separator()
         self.advanced_settings_button = discord.ui.Button(
             label="View", style=discord.ButtonStyle.secondary, emoji="⚙️"
@@ -143,28 +146,29 @@ class StartGameView(discord.ui.View):
     async def help(self, interaction: discord.Interaction):
         await interaction.respond(view=HelpView(), ephemeral=True)
 
-    def generate_recipe_options(self):
+    @property
+    def recipe_options(self) -> list[discord.SelectOption]:
         return [
             discord.SelectOption(
-                value=name,
+                value=id,
                 label=recipe["name"],
                 description=recipe["description"],
                 emoji=replace_emojis(recipe["emoji"]),
-                default=name == self.game.config["recipe_name"],
+                default=id == self.game.config["recipe_id"],
             )
-            for name, recipe in RECIPES.items()
+            for id, recipe in RECIPES.items()
         ]
 
     async def recipe_callback(self, interaction: discord.Interaction):
         await interaction.edit(view=self)
         if await check_permissions(self.game, interaction):
-            recipe_name = self.game.config["recipe_name"] = self.recipe_select.values[0]
-            self.game.config["recipe"] = RECIPES[recipe_name]
-        self.recipe_select.options = self.generate_recipe_options()
+            recipe_id = self.game.config["recipe_id"] = self.recipe_select.values[0]
+            self.game.config["recipe"] = RECIPES[recipe_id]
+        self.recipe_select.options = self.recipe_options
         await interaction.edit(view=self)
 
     async def advanced_settings(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(SettingsModal(game=self.game))
+        await interaction.response.send_modal(SettingsModal(self.game))
 
     async def edit_recipe(self, interaction: discord.Interaction):
         await interaction.response.send_modal(EditRecipeModal(self))
@@ -182,8 +186,12 @@ class EditRecipeModal(discord.ui.Modal):
             label="Recipe JSON",
             style=discord.InputTextStyle.long,
             value=json.dumps(self.game.config["recipe"], indent=2),
+            placeholder=MESSAGES["recipe_json_placeholder"],
             required=True,
+            min_length=2,
+            max_length=4000,
         )
+        self.add_item(self.recipe_input)
 
     async def callback(self, interaction: discord.Interaction):
         recipe_json = self.recipe_input.value
@@ -211,10 +219,8 @@ class EditRecipeModal(discord.ui.Modal):
             )
             return
         self.game.config["recipe"] = recipe_json
-        self.game.config["recipe_name"] = ""
-        self.parent_view.recipe_select.options = (
-            self.parent_view.generate_recipe_options()
-        )
+        self.game.config["recipe_id"] = ""
+        self.parent_view.recipe_select.options = self.parent_view.recipe_options
         await interaction.followup.edit_message(
             self.parent_message.id, view=self.parent_view
         )
