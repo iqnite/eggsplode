@@ -234,7 +234,7 @@ class SettingsModal(discord.ui.Modal):
             "deck_size": {
                 "input": discord.ui.InputText(
                     label="Maximum cards on deck",
-                    placeholder="Auto",
+                    placeholder="25",
                     value=self.game.config.get("deck_size", None),
                     required=False,
                 ),

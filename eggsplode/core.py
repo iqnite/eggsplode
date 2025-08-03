@@ -114,7 +114,7 @@ class Game:
 
     def trim_deck(self):
         i = 0
-        while len(self.deck) > self.config.get("deck_size", len(self.deck)):
+        while len(self.deck) > self.config.get("deck_size", 25):
             card = self.deck.pop(0)
             info = self.recipe_cards[card]
             if isinstance(info, dict) and info.get("preserve", False):
