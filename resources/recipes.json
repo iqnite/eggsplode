@@ -151,6 +151,12 @@
         "emoji": "🗃️",
         "cards_per_player": 6,
         "cards": {
+            "eggsplode": {
+                "amount": 1,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
+            },
             "defuse": {
                 "hand_out": 1
             },
