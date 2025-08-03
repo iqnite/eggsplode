@@ -7,6 +7,7 @@ import unittest
 from unittest.mock import MagicMock
 from eggsplode.core import Game
 from eggsplode.strings import RECIPES
+from eggsplode.ui.start import COVERED_RECIPE_EXCEPTIONS
 
 
 class TestGameSetup(unittest.TestCase):
@@ -30,7 +31,7 @@ class TestGameSetup(unittest.TestCase):
     def players(self, value: list):
         self.game.config["players"] = value
 
-    def assertDeckCountEqual(self, card, amount):
+    def assert_deck_count_equal(self, card, amount):
         self.assertEqual(self.game.deck.count(card), amount)
 
     def test_empty(self):
@@ -47,9 +48,9 @@ class TestGameSetup(unittest.TestCase):
         for hand in self.game.hands.values():
             self.assertEqual(hand.count("defuse"), 1)
             self.assertEqual(len(hand), 8)
-        self.assertDeckCountEqual("eggsplode", 3)
-        self.assertDeckCountEqual("defuse", 2)
-        self.assertDeckCountEqual("radioeggtive", 0)
+        self.assert_deck_count_equal("eggsplode", 3)
+        self.assert_deck_count_equal("defuse", 2)
+        self.assert_deck_count_equal("radioeggtive", 0)
 
     def test_expand(self):
         self.players = ["forb", "dorb", "sorb", "iorb", "gorb", "morb"]
@@ -58,24 +59,24 @@ class TestGameSetup(unittest.TestCase):
         for hand in self.game.hands.values():
             self.assertEqual(hand.count("defuse"), 1)
             self.assertEqual(len(hand), 8)
-        self.assertDeckCountEqual("eggsplode", 5)
-        self.assertDeckCountEqual("defuse", 4)
+        self.assert_deck_count_equal("eggsplode", 5)
+        self.assert_deck_count_equal("defuse", 4)
 
     def test_expand_radioeggtive(self):
         self.players = ["forb", "dorb", "sorb", "iorb", "gorb", "morb"]
         self.recipe = RECIPES["classic_radioeggtive"]
         self.game.setup()
-        self.assertDeckCountEqual("radioeggtive", 1)
-        self.assertDeckCountEqual("eggsplode", 4)
-        self.assertDeckCountEqual("defuse", 4)
+        self.assert_deck_count_equal("radioeggtive", 1)
+        self.assert_deck_count_equal("eggsplode", 4)
+        self.assert_deck_count_equal("defuse", 4)
 
     def test_expand_eggsperiment(self):
         self.players = ["forb", "dorb", "sorb", "iorb", "gorb", "morb"]
         self.recipe = RECIPES["classic_eggsperiment"]
         self.game.setup()
-        self.assertDeckCountEqual("eggsperiment", 2)
-        self.assertDeckCountEqual("eggsplode", 5)
-        self.assertDeckCountEqual("defuse", 4)
+        self.assert_deck_count_equal("eggsperiment", 2)
+        self.assert_deck_count_equal("eggsplode", 5)
+        self.assert_deck_count_equal("defuse", 4)
 
     def test_trim_eggsperiment(self):
         self.players = ["forb", "dorb", "sorb", "iorb", "gorb"]
@@ -83,9 +84,9 @@ class TestGameSetup(unittest.TestCase):
         self.game.config["deck_size"] = 5
         for _ in range(5):
             self.game.setup()
-            self.assertDeckCountEqual("eggsperiment", 2)
-            self.assertDeckCountEqual("eggsplode", 4)
-            self.assertDeckCountEqual("defuse", 4)
+            self.assert_deck_count_equal("eggsperiment", 2)
+            self.assert_deck_count_equal("eggsplode", 4)
+            self.assert_deck_count_equal("defuse", 4)
 
     def test_auto_amount(self):
         self.players = ["forb", "dorb", "sorb"]
@@ -98,8 +99,8 @@ class TestGameSetup(unittest.TestCase):
         self.game.setup()
         for hand in self.game.hands.values():
             self.assertEqual(hand.count("radioeggtive"), 0)
-        self.assertDeckCountEqual("radioeggtive", 2)
-        self.assertDeckCountEqual("eggsplode", 0)
+        self.assert_deck_count_equal("radioeggtive", 2)
+        self.assert_deck_count_equal("eggsplode", 0)
 
 
 class TestRecipeLoading(unittest.TestCase):
@@ -135,14 +136,5 @@ class TestRecipeLoading(unittest.TestCase):
             r'{"cards": 1}',
         ] + [r'{"cards": {"foo": {' + card + r"}}}" for card in dummy_cards]
         for recipe in dummy_recipes:
-            with self.assertRaises(
-                (
-                    AttributeError,
-                    OverflowError,
-                    TypeError,
-                    ValueError,
-                    json.JSONDecodeError,
-                    ZeroDivisionError,
-                )
-            ):
+            with self.assertRaises(COVERED_RECIPE_EXCEPTIONS):
                 self.game.load_recipe(recipe)

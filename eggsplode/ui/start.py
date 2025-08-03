@@ -16,6 +16,16 @@ if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
+COVERED_RECIPE_EXCEPTIONS = (
+    AttributeError,
+    OverflowError,
+    TypeError,
+    ValueError,
+    json.JSONDecodeError,
+    ZeroDivisionError,
+)
+
+
 async def check_permissions(game: "Game", interaction: discord.Interaction):
     if (not interaction.user) or interaction.user.id != game.config["players"][0]:
         await interaction.respond(
@@ -206,14 +216,7 @@ class EditRecipeModal(discord.ui.Modal):
         await interaction.response.defer()
         try:
             self.game.load_recipe(recipe_json)
-        except (
-            AttributeError,
-            OverflowError,
-            TypeError,
-            ValueError,
-            json.JSONDecodeError,
-            ZeroDivisionError,
-        ) as e:
+        except COVERED_RECIPE_EXCEPTIONS as e:
             await interaction.respond(
                 view=TextView("recipe_json_error", e), ephemeral=True
             )
