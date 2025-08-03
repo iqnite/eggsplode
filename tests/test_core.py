@@ -2,48 +2,133 @@
 Contains tests for the core module.
 """
 
+import json
 import unittest
 from unittest.mock import MagicMock
 from eggsplode.core import Game
+from eggsplode.strings import RECIPES
 
 
-class TestGame(unittest.TestCase):
+class TestGameSetup(unittest.TestCase):
     def setUp(self):
-        self.config = {
-            "players": ["foo", "bar", "baz", "qux"],
-            "expansions": ["radioeggtive"],
-        }
-        self.game = Game(MagicMock(), self.config)
+        super().setUp()
+        self.game = Game(MagicMock(), {"players": [], "recipe": {}})
 
-    def test_setup(self):
+    @property
+    def recipe(self) -> dict:
+        return self.game.config.get("recipe", {})
+
+    @recipe.setter
+    def recipe(self, value: dict):
+        self.game.config["recipe"] = value
+
+    @property
+    def players(self) -> list[str]:
+        return self.game.config.get("players", [])
+
+    @players.setter
+    def players(self, value: list):
+        self.game.config["players"] = value
+
+    def assertDeckCountEqual(self, card, amount):
+        self.assertEqual(self.game.deck.count(card), amount)
+
+    def test_empty(self):
+        self.players = ["forb", "dorb", "sorb"]
+        self.game.setup()
+        for hand in self.game.hands.values():
+            self.assertEqual(len(hand), 0)
+        self.assertEqual(self.game.deck, ["eggsplode"] * 2)
+
+    def test_classic(self):
+        self.players = ["forb", "dorb", "sorb", "gorb"]
+        self.recipe = RECIPES["classic"]
         self.game.setup()
         for hand in self.game.hands.values():
             self.assertEqual(hand.count("defuse"), 1)
             self.assertEqual(len(hand), 8)
-        self.assertEqual(self.game.deck.count("eggsplode"), 3)
-        self.assertEqual(self.game.deck.count("radioeggtive"), 1)
+        self.assertDeckCountEqual("eggsplode", 3)
+        self.assertDeckCountEqual("defuse", 2)
+        self.assertDeckCountEqual("radioeggtive", 0)
 
-        self.game.config["expansions"].remove("radioeggtive")
+    def test_expand(self):
+        self.players = ["forb", "dorb", "sorb", "iorb", "gorb", "morb"]
+        self.recipe = RECIPES["classic"]
         self.game.setup()
-        self.assertEqual(self.game.deck.count("radioeggtive"), 0)
+        for hand in self.game.hands.values():
+            self.assertEqual(hand.count("defuse"), 1)
+            self.assertEqual(len(hand), 8)
+        self.assertDeckCountEqual("eggsplode", 5)
+        self.assertDeckCountEqual("defuse", 4)
 
-        self.game.config["deck_eggsplode_cards"] = 2
+    def test_expand_radioeggtive(self):
+        self.players = ["forb", "dorb", "sorb", "iorb", "gorb", "morb"]
+        self.recipe = RECIPES["classic_radioeggtive"]
         self.game.setup()
-        self.assertEqual(self.game.deck.count("eggsplode"), 3)
+        self.assertDeckCountEqual("radioeggtive", 1)
+        self.assertDeckCountEqual("eggsplode", 4)
+        self.assertDeckCountEqual("defuse", 4)
 
-        self.game.config["deck_eggsplode_cards"] = 10
+    def test_expand_eggsperiment(self):
+        self.players = ["forb", "dorb", "sorb", "iorb", "gorb", "morb"]
+        self.recipe = RECIPES["classic_eggsperiment"]
         self.game.setup()
-        self.assertEqual(self.game.deck.count("eggsplode"), 10)
+        self.assertDeckCountEqual("eggsperiment", 2)
+        self.assertDeckCountEqual("eggsplode", 5)
+        self.assertDeckCountEqual("defuse", 4)
 
-        self.game.config["deck_defuse_cards"] = 2
-        self.game.setup()
-        self.assertEqual(self.game.deck.count("defuse"), 2)
+    def test_trim_eggsperiment(self):
+        self.players = ["forb", "dorb", "sorb", "iorb", "gorb"]
+        self.recipe = RECIPES["classic_eggsperiment"]
+        self.game.config["deck_size"] = 5
+        for _ in range(5):
+            self.game.setup()
+            self.assertDeckCountEqual("eggsperiment", 2)
+            self.assertDeckCountEqual("eggsplode", 4)
+            self.assertDeckCountEqual("defuse", 4)
 
-        self.game.config["players"] = ["foo", "bar"]
-        self.game.config["deck_eggsplode_cards"] = 1
-        self.game.setup()
-        self.assertEqual(self.game.deck.count("eggsplode"), 1)
 
-        del self.game.config["deck_eggsplode_cards"]
-        self.game.setup()
-        self.assertEqual(self.game.deck.count("eggsplode"), 2)
+class TestRecipeLoading(unittest.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.game = Game(MagicMock(), {"players": ["forb", "sorb"]})
+
+    def test_empty(self):
+        self.game.load_recipe(r"{}")
+        self.assertEqual(self.game.deck, ["eggsplode"])
+
+    def test_no_dict(self):
+        with self.assertRaises(TypeError):
+            self.game.load_recipe(r'"test"')
+
+    def test_invalid(self):
+        dummy_recipe = r'"cards": {"foo": 99, "bar": {"x": 99}}}'
+        with self.assertRaises(json.JSONDecodeError):
+            self.game.load_recipe(dummy_recipe)
+
+    def test_wrong_types(self):
+        dummy_cards = [
+            r"True",
+            r"-1",
+            r'"amount": True',
+            r'"hand_out": True',
+            r'"expand_beyond": True',
+            r'"expand_beyond": 0',
+            r'"auto_amount": True',
+        ]
+        dummy_recipes = [
+            r'{"cards_per_player": "1"}',
+            r'{"cards": 1}',
+        ] + [r'{"cards": {"foo": {' + card + r"}}}" for card in dummy_cards]
+        for recipe in dummy_recipes:
+            with self.assertRaises(
+                (
+                    AttributeError,
+                    OverflowError,
+                    TypeError,
+                    ValueError,
+                    json.JSONDecodeError,
+                    ZeroDivisionError,
+                )
+            ):
+                self.game.load_recipe(recipe)

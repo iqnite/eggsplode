@@ -22,8 +22,8 @@ with open("resources/messages.json", encoding="utf-8") as f:
     MESSAGES = json.load(f)
 with open("resources/cards.json", encoding="utf-8") as f:
     CARDS = json.load(f)
-with open("resources/expansions.json", encoding="utf-8") as f:
-    EXPANSIONS = json.load(f)
+with open("resources/recipes.json", encoding="utf-8") as f:
+    RECIPES = json.load(f)
 try:
     with open("resources/emojis.json", encoding="utf-8") as f:
         EMOJIS = json.load(f)
