@@ -83,6 +83,48 @@
             "dig_deeper": 4
         }
     },
+    "all_cards": {
+        "name": "All Cards",
+        "description": "The classic game + the Radioeggtive and Eggsperiment expansions",
+        "emoji": "💯",
+        "cards": {
+            "defuse": {
+                "amount": 2,
+                "hand_out": 1,
+                "preserve": true
+            },
+            "nope": 5,
+            "attegg": 4,
+            "skip": 4,
+            "shuffle": 4,
+            "see_future": 5,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4,
+            "food3": 4,
+            "radioeggtive": {
+                "amount": 1,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
+            },
+            "draw_from_bottom": 4,
+            "targeted_attegg": 4,
+            "alter_future": 4,
+            "reverse": 4,
+            "eggsperiment": {
+                "amount": 2,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
+            },
+            "bury": 2,
+            "self_attegg": 4,
+            "share_future": 2,
+            "super_skip": 1,
+            "dig_deeper": 4
+        }
+    },
     "mind_games": {
         "name": "Mind Games",
         "description": "You know so much, but you can do so little.",
