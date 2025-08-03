@@ -87,6 +87,20 @@ class TestGameSetup(unittest.TestCase):
             self.assertDeckCountEqual("eggsplode", 4)
             self.assertDeckCountEqual("defuse", 4)
 
+    def test_auto_amount(self):
+        self.players = ["forb", "dorb", "sorb"]
+        self.recipe = {
+            "cards": {
+                "radioeggtive": {"auto_amount": -1, "hand_out": 0, "preserve": True}
+            }
+        }
+        self.game.config["deck_size"] = None
+        self.game.setup()
+        for hand in self.game.hands.values():
+            self.assertEqual(hand.count("radioeggtive"), 0)
+        self.assertDeckCountEqual("radioeggtive", 2)
+        self.assertDeckCountEqual("eggsplode", 0)
+
 
 class TestRecipeLoading(unittest.TestCase):
     def setUp(self):

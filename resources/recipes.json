@@ -214,7 +214,7 @@
             "nope": 4
         }
     },
-    "Power Plant": {
+    "power_plant": {
         "name": "Power Plant",
         "description": "Radioeggtive only.",
         "emoji": "☢️",

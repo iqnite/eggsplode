@@ -72,7 +72,7 @@ class Game:
             else:
                 # Handle automatic card amount
                 if "auto_amount" in info:
-                    cards_to_add = ["card"] * max(
+                    cards_to_add = [card] * max(
                         0, len(self.players) + info["auto_amount"]
                     )
                 else:
@@ -114,9 +114,15 @@ class Game:
 
     def trim_deck(self):
         i = 0
-        while len(self.deck) > int(self.config.get("deck_size", 25)):
+        max_deck_size = self.config.get("deck_size", 25)
+        if not max_deck_size:
+            return
+        max_deck_size = int(max_deck_size)
+        while len(self.deck) > max_deck_size:
             card = self.deck.pop(0)
-            info = self.recipe_cards[card]
+            info = self.recipe_cards.get(card)
+            if info is None:
+                continue
             if isinstance(info, dict) and info.get("preserve", False):
                 self.deck.append(card)
                 i += 1
