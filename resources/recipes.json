@@ -331,7 +331,7 @@
     },
     "nope_sauce": {
         "name": "Nope sauce",
-        "descripion": "Will not go the way you planned.",
+        "description": "Will not go the way you planned.",
         "emoji": "🛑",
         "cards": {
             "defuse": {
