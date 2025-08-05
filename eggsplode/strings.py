@@ -9,28 +9,28 @@ from dotenv import load_dotenv
 MAX_COMPONENTS = 40
 
 load_dotenv()
-DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+DISCORD_TOKEN: str = os.getenv("DISCORD_TOKEN", "")
 
 with open("resources/info.json", encoding="utf-8") as f:
-    INFO = json.load(f)
+    INFO: dict = json.load(f)
 try:
     with open("resources/config.json", encoding="utf-8") as f:
-        CONFIG = json.load(f)
+        CONFIG: dict = json.load(f)
 except FileNotFoundError:
     CONFIG = {}
 with open("resources/messages.json", encoding="utf-8") as f:
-    MESSAGES = json.load(f)
+    MESSAGES: dict = json.load(f)
 with open("resources/cards.json", encoding="utf-8") as f:
-    CARDS = json.load(f)
-with open("resources/expansions.json", encoding="utf-8") as f:
-    EXPANSIONS = json.load(f)
+    CARDS: dict = json.load(f)
+with open("resources/recipes.json", encoding="utf-8") as f:
+    RECIPES: dict = json.load(f)
 try:
     with open("resources/emojis.json", encoding="utf-8") as f:
-        EMOJIS = json.load(f)
+        EMOJIS: dict = json.load(f)
 except FileNotFoundError:
     EMOJIS = {}
 
-TEST_GUILD_ID = CONFIG.get("test_guild_id", 0)
+TEST_GUILD_ID: int = CONFIG.get("test_guild_id", 0)
 
 
 def replace_emojis(text: str) -> str:

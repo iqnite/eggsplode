@@ -3,14 +3,14 @@ Contains the game logic for the Eggsplode game.
 """
 
 import asyncio
-from datetime import datetime, timedelta
-from importlib import import_module
+import json
 import random
+from datetime import datetime, timedelta
 from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
-from eggsplode.ui import NopeView, PlayView, TurnView
+from eggsplode import cards
+from eggsplode.ui import NopeView, PlayView, TurnView, TextView
 from eggsplode.strings import CARDS, format_message, replace_emojis, tooltip
-from eggsplode.ui.base import TextView
 
 if TYPE_CHECKING:
     from eggsplode.commands import EggsplodeApp
@@ -20,6 +20,7 @@ class Game:
     def __init__(self, app: "EggsplodeApp", config: dict):
         self.app = app
         self.config = config
+        self.recipe_cards: dict[str, int | dict] = {}
         self.players: list[int] = []
         self.hands: dict[int, list[str]] = {}
         self.deck: list[str] = []
@@ -32,12 +33,13 @@ class Game:
         self.paused = False
         self.inactivity_count = 0
         self.anchor_interaction: discord.Interaction | None = None
-        self.play_actions: dict[str, Callable[[Game, discord.Interaction], Coroutine]]
+        self.play_actions: dict[
+            str, Callable[[Game, discord.Interaction], Coroutine]
+        ] = cards.PLAY_ACTIONS
         self.draw_actions: dict[
             str, Callable[[Game, discord.Interaction, bool | None], Coroutine]
-        ]
-        self.turn_warnings: list[Callable[[Game], str]]
-        self.setup_actions: list[Callable[[Game], None]]
+        ] = cards.DRAW_ACTIONS
+        self.turn_warnings: list[Callable[[Game], str]] = cards.TURN_WARNINGS
         self.events.turn_end += self.next_turn
         self.events.game_end += self.end
         self.events.action_start += self.pause
@@ -46,62 +48,101 @@ class Game:
         self.events.turn_start += self.resume
 
     def setup(self):
-        self.last_activity = datetime.now()
-        self.deck = []
+        self.load_recipe(self.config["recipe"])
+
+    def load_recipe(self, recipe: str | bytes | bytearray | dict):
+        if not isinstance(recipe, dict):
+            recipe = json.loads(recipe)
+        if not isinstance(recipe, dict):
+            raise TypeError(f"Recipe must be a dict, but is a {type(recipe)}")
+
+        self.recipe_cards = recipe.get("cards", {})
         self.players = list(self.config["players"])
-        self.load_cards()
-        for card in CARDS:
-            if CARDS[card].get("expansion", "base") in self.config.get(
-                "expansions", []
-            ) + ["base"]:
-                self.deck += [card] * CARDS[card].get("count", 0)
-        self.expand_deck()
+        self.deck = []
+        self.hands = {player: [] for player in self.players}
+        hand_out_pool = []
+
+        for card, info in self.recipe_cards.items():
+            if isinstance(info, int):
+                cards_to_add = [card] * info * self.multiply_card_beyond(5)
+                hand_out_pool += cards_to_add
+                self.deck += cards_to_add
+            else:
+                # Handle automatic card amount
+                if "auto_amount" in info:
+                    cards_to_add = [card] * max(
+                        0, len(self.players) + info["auto_amount"]
+                    )
+                else:
+                    cards_to_add = (
+                        [card]
+                        * info.get("amount", 0)
+                        * self.multiply_card_beyond(info.get("expand_beyond", 5))
+                    )
+
+                self.deck += cards_to_add
+                if "hand_out" not in info:
+                    hand_out_pool += cards_to_add
+
+                # Hand out fixed cards
+                for _ in range(info.get("hand_out", 0)):
+                    for hand in self.hands.values():
+                        hand.append(card)
+
+        # Hand out remaining cards
+        max_cards_per_player = min(
+            recipe.get("cards_per_player", 8), len(hand_out_pool) // len(self.players)
+        )
+        for hand in self.hands.values():
+            while len(hand) < max_cards_per_player:
+                hand.append(
+                    hand_out_pool.pop(random.randint(0, len(hand_out_pool) - 1))
+                )
+
+        self.trim_deck()
+        self.ensure_minimum_eggsplode()
         self.shuffle_deck()
-        self.hands = {
-            player: [self.deck.pop() for _ in range(7)] for player in self.players
-        }
-        if (
-            deck_size := self.config.get(
-                "deck_size", 25 if len(self.players) == 2 else None
-            )
-        ) is not None:
-            self.deck = self.deck[: int(deck_size)]
-        for action in self.setup_actions:
-            action(self)
-        self.shuffle_deck()
+
+    def ensure_minimum_eggsplode(self):
+        while (
+            self.deck.count("eggsplode") + self.deck.count("radioeggtive")
+            < len(self.players) - 1
+        ):
+            self.deck.append("eggsplode")
+
+    def trim_deck(self):
+        max_deck_size = self.config.get("deck_size", 25)
+        if not max_deck_size:
+            return
+        max_deck_size = int(max_deck_size)
+        # Prevent infinite loop if no more cards can be removed
+        loop_counter = 0
+        max_loops = len(self.deck)
+        while len(self.deck) > max_deck_size and loop_counter <= max_loops:
+            loop_counter += 1
+            card = self.deck.pop(0)
+            info = self.recipe_cards.get(card)
+            if info is None:
+                continue
+            if isinstance(info, dict) and info.get("preserve", False):
+                self.deck.append(card)
+
+    def multiply_card_beyond(self, multiply_beyond: int | None) -> int:
+        return (
+            (1 + len(self.players) // multiply_beyond)
+            if multiply_beyond is not None
+            else 1
+        )
 
     async def start(self, interaction: discord.Interaction):
         self.setup()
+        self.last_activity = datetime.now()
         await self.send(view=TextView("game_started"), anchor=interaction)
         await self.events.turn_start()
         await self.action_timer()
 
-    def trim_deck(self, min_part, max_part):
-        deck_size = len(self.deck)
-        cards_to_remove = random.randint(deck_size // min_part, deck_size // max_part)
-        for _ in range(cards_to_remove):
-            self.deck.pop(random.randint(0, len(self.deck) - 1))
-
     def shuffle_deck(self):
         random.shuffle(self.deck)
-
-    def expand_deck(self):
-        self.deck = self.deck * (1 + len(self.players) // 5)
-
-    def load_cards(self):
-        self.play_actions = {}
-        self.draw_actions = {}
-        self.turn_warnings = []
-        self.setup_actions = []
-        for card_set in self.config.get("expansions", []) + ["base"]:
-            try:
-                module = import_module(f".cards.{card_set}", __package__)
-                self.play_actions.update(getattr(module, "PLAY_ACTIONS", {}))
-                self.draw_actions.update(getattr(module, "DRAW_ACTIONS", {}))
-                self.turn_warnings.extend(getattr(module, "TURN_WARNINGS", []))
-                self.setup_actions.extend(getattr(module, "SETUP_ACTIONS", []))
-            except ImportError as e:
-                raise ImportError(f"Card set {card_set} not found.") from e
 
     @property
     def current_player_id(self) -> int:
@@ -257,11 +298,11 @@ class Game:
         self.current_player -= 1
         self.remaining_turns = 0
 
-    def players_with_cards(self, *cards: str) -> list[int]:
+    def players_with_cards(self, *card_names: str) -> list[int]:
         return [
             player
             for player in self.players
-            if any(card in self.hands[player] for card in cards)
+            if any(card in self.hands[player] for card in card_names)
         ]
 
     def any_player_has_cards(self) -> bool:

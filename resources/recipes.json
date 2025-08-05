@@ -1,0 +1,454 @@
+{
+    "classic": {
+        "name": "Classic",
+        "description": "The classic Eggsplode game",
+        "emoji": "💥",
+        "cards": {
+            "defuse": {
+                "amount": 2,
+                "hand_out": 1,
+                "preserve": true
+            },
+            "nope": 5,
+            "attegg": 4,
+            "skip": 4,
+            "shuffle": 4,
+            "see_future": 5,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4,
+            "food3": 4
+        }
+    },
+    "classic_radioeggtive": {
+        "name": "Radioeggtive Expansion",
+        "description": "The Radioeggtive expansion + the classic game",
+        "emoji": "☢️",
+        "cards": {
+            "defuse": {
+                "amount": 2,
+                "hand_out": 1,
+                "preserve": true
+            },
+            "nope": 5,
+            "attegg": 4,
+            "skip": 4,
+            "shuffle": 4,
+            "see_future": 5,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4,
+            "food3": 4,
+            "radioeggtive": {
+                "amount": 1,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
+            },
+            "draw_from_bottom": 4,
+            "targeted_attegg": 4,
+            "alter_future": 4,
+            "reverse": 4
+        }
+    },
+    "classic_eggsperiment": {
+        "name": "Eggsperiment Expansion",
+        "description": "The Eggsperiment expansion + the classic game",
+        "emoji": "🧪",
+        "cards": {
+            "defuse": {
+                "amount": 2,
+                "hand_out": 1,
+                "preserve": true
+            },
+            "nope": 5,
+            "attegg": 4,
+            "skip": 4,
+            "shuffle": 4,
+            "see_future": 5,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4,
+            "food3": 4,
+            "eggsperiment": {
+                "amount": 2,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
+            },
+            "bury": 2,
+            "self_attegg": 4,
+            "share_future": 2,
+            "super_skip": 1,
+            "dig_deeper": 4
+        }
+    },
+    "all_cards": {
+        "name": "(Almost) all cards",
+        "description": "The classic game + the Radioeggtive and Eggsperiment expansions",
+        "emoji": "💯",
+        "cards": {
+            "defuse": {
+                "amount": 2,
+                "hand_out": 1,
+                "preserve": true
+            },
+            "nope": 5,
+            "attegg": 4,
+            "skip": 4,
+            "shuffle": 4,
+            "see_future": 5,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4,
+            "food3": 4,
+            "radioeggtive": {
+                "amount": 1,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
+            },
+            "draw_from_bottom": 4,
+            "targeted_attegg": 4,
+            "alter_future": 4,
+            "reverse": 4,
+            "eggsperiment": {
+                "amount": 2,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
+            },
+            "bury": 2,
+            "self_attegg": 4,
+            "share_future": 2,
+            "super_skip": 1,
+            "dig_deeper": 4
+        }
+    },
+    "mind_games": {
+        "name": "Mind Games",
+        "description": "You know so much, but you can do so little.",
+        "emoji": "🧠",
+        "cards_per_player": 6,
+        "cards": {
+            "defuse": {
+                "hand_out": 1
+            },
+            "bury": 4,
+            "see_future": 6,
+            "skip": 4,
+            "draw_from_bottom": 2,
+            "reverse": 4,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4,
+            "food3": 4
+        }
+    },
+    "card_hoarders": {
+        "name": "Card Hoarders",
+        "description": "No skipping, only drawing.",
+        "emoji": "🗃️",
+        "cards_per_player": 6,
+        "cards": {
+            "eggsplode": {
+                "amount": 1,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
+            },
+            "defuse": {
+                "hand_out": 1
+            },
+            "radioeggtive": {
+                "amount": 1,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
+            },
+            "see_future": 4,
+            "share_future": 4,
+            "swap_top_bottom": 3,
+            "draw_from_bottom": 2,
+            "shuffle": 3,
+            "nope": 4,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4
+        }
+    },
+    "egg_fight": {
+        "name": "Egg fight",
+        "description": "Highly aggressive. Ideal for quick games.",
+        "emoji": "👊",
+        "cards_per_player": 3,
+        "cards": {
+            "defuse": {
+                "hand_out": 1
+            },
+            "attegg": 4,
+            "targeted_attegg": 2,
+            "nope": 3,
+            "alter_future_now": 2,
+            "reverse": 3
+        }
+    },
+    "attegg_of_atteggs": {
+        "name": "Attegg of the Atteggs",
+        "description": "Stegg those Atteggs!",
+        "emoji": "⚡",
+        "cards": {
+            "defuse": {
+                "amount": 1,
+                "hand_out": 1,
+                "preserve": true
+            },
+            "attegg": 6,
+            "targeted_attegg": 4,
+            "skip": 4,
+            "super_skip": 2,
+            "reverse": 3,
+            "see_future": 3,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4,
+            "nope": 4
+        }
+    },
+    "power_plant": {
+        "name": "Power Plant",
+        "description": "Radioeggtive only.",
+        "emoji": "☢️",
+        "cards_per_player": 7,
+        "cards": {
+            "radioeggtive": {
+                "auto_amount": -1,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
+            },
+            "skip": 5,
+            "nope": 4,
+            "shuffle": 5,
+            "alter_future": 3,
+            "share_future": 4,
+            "draw_from_bottom": 3,
+            "swap_top_bottom": 3,
+            "reverse": 4,
+            "food0": 6,
+            "food1": 6
+        }
+    },
+    "danger_mode": {
+        "name": "Danger Mode",
+        "description": "Highly explosive. Ideal for quick games.",
+        "emoji": "🌩️",
+        "cards": {
+            "eggsplode": {
+                "auto_amount": 2
+            },
+            "defuse": {
+                "amount": 1,
+                "hand_out": 1,
+                "preserve": true
+            },
+            "attegg": 4,
+            "targeted_attegg": 2,
+            "super_skip": 1,
+            "shuffle": 3,
+            "reverse": 5,
+            "draw_from_bottom": 2,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4
+        }
+    },
+    "classic_optimized": {
+        "name": "Classic 2",
+        "description": "A slight optimization of the classic game.",
+        "emoji": "💥",
+        "cards": {
+            "defuse": {
+                "amount": 1,
+                "hand_out": 1,
+                "preserve": true
+            },
+            "nope": {
+                "auto_amount": 2
+            },
+            "attegg": {
+                "auto_amount": 0
+            },
+            "skip": {
+                "auto_amount": 1
+            },
+            "shuffle": {
+                "auto_amount": 1
+            },
+            "see_future": 4,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4
+        }
+    },
+    "eye_for_an_eye": {
+        "name": "Eye for an Eye",
+        "description": "See the horrible things about to happen to you.",
+        "emoji": "👁️",
+        "cards": {
+            "defuse": {
+                "amount": 1,
+                "hand_out": 1,
+                "preserve": true
+            },
+            "radioeggtive": {
+                "amount": 1,
+                "expand_beyond": null,
+                "preserve": true
+            },
+            "see_future": 5,
+            "alter_future": 3,
+            "alter_future_now": 2,
+            "share_future": 4,
+            "shuffle": 2,
+            "attegg": 4,
+            "skip": 4,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4
+        }
+    },
+    "blitz": {
+        "name": "Blitz mode",
+        "description": "Just a few cards to survive a tiny, but eggsplosive deck.",
+        "emoji": "⚡",
+        "cards_per_player": 2,
+        "cards": {
+            "defuse": {
+                "hand_out": 1
+            },
+            "skip": 4,
+            "reverse": 2,
+            "nope": 2
+        }
+    },
+    "nope_sauce": {
+        "name": "Nope sauce",
+        "description": "Will not go the way you planned.",
+        "emoji": "🛑",
+        "cards": {
+            "defuse": {
+                "hand_out": 1
+            },
+            "nope": 8,
+            "shuffle": 4,
+            "skip": 4,
+            "alter_future_now": 2,
+            "swap_top_bottom": 2,
+            "attegg": 3,
+            "targeted_attegg": 2,
+            "bury": 3,
+            "food0": 10,
+            "reverse": 4
+        }
+    },
+    "eggzilla": {
+        "name": "Eggzilla",
+        "description": "Overpowered cards only.",
+        "emoji": "🦖",
+        "cards": {
+            "defuse": {
+                "amount": 3,
+                "hand_out": 1,
+                "preserve": true
+            },
+            "radioeggtive": {
+                "amount": 1,
+                "expand_beyond": null,
+                "preserve": true
+            },
+            "nope": 4,
+            "see_future": 3,
+            "share_future": 4,
+            "attegg": 4,
+            "bury": 2,
+            "draw_from_bottom": 2,
+            "skip": 4,
+            "super_skip": 2,
+            "food1": 12
+        }
+    },
+    "sharing_is_caring": {
+        "name": "Sharing is caring",
+        "description": "What's mine is yours, and what's yours is mine.",
+        "emoji": "♥️",
+        "cards_per_player": 6,
+        "cards": {
+            "defuse": {
+                "amount": 1,
+                "hand_out": 1,
+                "preserve": true
+            },
+            "food0": 6,
+            "food1": 6,
+            "food2": 6,
+            "share_future": 4,
+            "skip": 4,
+            "eggsperiment": {
+                "amount": 2,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
+            }
+        }
+    },
+    "operation_elimination": {
+        "name": "Operation Elimination",
+        "description": "A brutal game of betrayal until the last card.",
+        "emoji": "💢",
+        "cards": {
+            "defuse": {
+                "hand_out": 1
+            },
+            "radioeggtive": {
+                "amount": 1,
+                "expand_beyond": null,
+                "preserve": true
+            },
+            "super_skip": 2,
+            "skip": 5,
+            "reverse": 5,
+            "attegg": 6,
+            "targeted_attegg": 4,
+            "self_attegg": 4,
+            "shuffle": 5,
+            "nope": 8
+        }
+    },
+    "no_risk_no_fun": {
+        "name": "No risk, no fun",
+        "description": "A risk vs reward game, where safety isn't always safe.",
+        "emoji": "🎲",
+        "cards_per_player": 6,
+        "cards": {
+            "defuse": {
+                "amount": 4,
+                "hand_out": 1,
+                "preserve": true
+            },
+            "eggsplode": {
+                "auto_amount": 0,
+                "hand_out": 0,
+                "preserve": true
+            },
+            "self_attegg": 4,
+            "food0": 4,
+            "reverse": 3,
+            "alter_future_now": 2,
+            "share_future": 3,
+            "food1": 4,
+            "food2": 6,
+            "food3": 6
+        }
+    }
+}
