@@ -2,5 +2,3 @@
 git+https://github.com/Pycord-Development/pycord.git
 python-dotenv
 psutil
-coverage
-pylint
