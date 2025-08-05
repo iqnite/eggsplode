@@ -241,7 +241,7 @@
     },
     "danger_mode": {
         "name": "Danger Mode",
-        "description": "Higly explosive. Ideal for quick games.",
+        "description": "Highly explosive. Ideal for quick games.",
         "emoji": "🌩️",
         "cards": {
             "eggsplode": {
