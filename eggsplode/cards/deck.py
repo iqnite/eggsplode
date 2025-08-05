@@ -20,7 +20,7 @@ async def shuffle(game: "Game", _):
 async def swap_top_bottom(game: "Game", interaction: discord.Interaction):
     if len(game.deck) < 2:
         await interaction.respond(
-            view=TextView("not_enough_cards", game.current_player_id)
+            view=TextView("not_enough_cards", game.current_player_id), ephemeral=True
         )
         game.current_player_hand.append("swap_top_bottom")
         await game.events.action_end()
