@@ -98,7 +98,9 @@ class DigDeeperView(SelectionView):
 
 async def dig_deeper(game: "Game", interaction: discord.Interaction):
     if len(game.deck) < 2:
-        await interaction.respond(view=TextView("not_enough_cards_to_dig_deeper"))
+        await interaction.respond(
+            view=TextView("not_enough_cards_to_dig_deeper"), ephemeral=True
+        )
         game.current_player_hand.append("dig_deeper")
         await game.events.action_end()
         return

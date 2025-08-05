@@ -3,6 +3,7 @@ Contains effects for cards and actions affecting the deck.
 """
 
 from typing import TYPE_CHECKING
+import discord
 from eggsplode.strings import format_message
 from eggsplode.ui import TextView
 
@@ -13,6 +14,19 @@ if TYPE_CHECKING:
 async def shuffle(game: "Game", _):
     game.shuffle_deck()
     await game.send(view=TextView("shuffled", game.current_player_id))
+    await game.events.action_end()
+
+
+async def swap_top_bottom(game: "Game", interaction: discord.Interaction):
+    if len(game.deck) < 2:
+        await interaction.respond(
+            view=TextView("not_enough_cards", game.current_player_id), ephemeral=True
+        )
+        game.current_player_hand.append("swap_top_bottom")
+        await game.events.action_end()
+        return
+    game.deck[-1], game.deck[0] = game.deck[0], game.deck[-1]
+    await game.send(view=TextView("swapped_top_bottom", game.current_player_id))
     await game.events.action_end()
 
 
