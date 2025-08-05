@@ -95,8 +95,6 @@ class Game:
         )
         for hand in self.hands.values():
             while len(hand) < max_cards_per_player:
-                if not hand_out_pool:
-                    break
                 hand.append(
                     hand_out_pool.pop(random.randint(0, len(hand_out_pool) - 1))
                 )
