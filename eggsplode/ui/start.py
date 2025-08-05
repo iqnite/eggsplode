@@ -352,8 +352,6 @@ class LeaveGameView(discord.ui.View):
     async def leave_game_callback(self, interaction: discord.Interaction):
         if not self.game or self.game.started:
             return
-        if not interaction or not interaction.user:
-            return
         await interaction.edit(delete_after=0, view=self)
         await self.parent_view.remove_player(self.user_id, interaction)
 
