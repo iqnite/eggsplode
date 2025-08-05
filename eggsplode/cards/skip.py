@@ -62,7 +62,9 @@ class DigDeeperView(SelectionView):
             ),
             accessory=self.confirm_button,
         )
+        self.confirm_button.emoji = "🤚"
         self.confirm_button.label = "Keep"
+        self.confirm_button.style = discord.ButtonStyle.primary
         self.add_item(self.keep_section)
         self.dig_deeper_button = discord.ui.Button(
             label="Draw next", style=discord.ButtonStyle.secondary, emoji="⛏️"
