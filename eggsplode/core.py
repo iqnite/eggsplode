@@ -5,8 +5,6 @@ Contains the game logic for the Eggsplode game.
 import asyncio
 import json
 import random
-
-#      +-> The world's smallest violin / really needs an audience / ...
 from datetime import datetime, timedelta
 from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
