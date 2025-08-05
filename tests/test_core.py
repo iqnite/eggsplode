@@ -53,6 +53,15 @@ class TestGameSetup(unittest.TestCase):
         self.assert_deck_count_equal("defuse", 2)
         self.assert_deck_count_equal("radioeggtive", 0)
 
+    def test_trim_classic(self):
+        self.players = ["forb", "dorb", "sorb"]
+        self.recipe = RECIPES["classic"]
+        self.game.config["deck_size"] = 10
+        self.game.setup()
+        self.assert_deck_count_equal("eggsplode", 2)
+        self.assert_deck_count_equal("defuse", 2)
+        self.assertLessEqual(len(self.game.deck), 12)
+
     def test_expand(self):
         self.players = ["forb", "dorb", "sorb", "iorb", "gorb", "morb"]
         self.recipe = RECIPES["classic"]

@@ -111,22 +111,21 @@ class Game:
             self.deck.append("eggsplode")
 
     def trim_deck(self):
-        i = 0
         max_deck_size = self.config.get("deck_size", 25)
         if not max_deck_size:
             return
         max_deck_size = int(max_deck_size)
-        while len(self.deck) > max_deck_size:
+        # Prevent infinite loop if no more cards can be removed
+        loop_counter = 0
+        max_loops = len(self.deck)
+        while len(self.deck) > max_deck_size and loop_counter <= max_loops:
+            loop_counter += 1
             card = self.deck.pop(0)
             info = self.recipe_cards.get(card)
             if info is None:
                 continue
             if isinstance(info, dict) and info.get("preserve", False):
                 self.deck.append(card)
-                i += 1
-                if i > len(self.deck):
-                    break
-                continue
 
     def multiply_card_beyond(self, multiply_beyond: int | None) -> int:
         return (
