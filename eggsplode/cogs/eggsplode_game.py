@@ -39,10 +39,12 @@ class EggsplodeGame(commands.Cog):
         if (
             game_id not in self.app.games
             or (game := self.app.games[game_id]) is None
-            or not game.running
+            or not game.active
         ):
             if not quiet:
-                await interaction.respond(view=TextView("game_not_found"), ephemeral=True)
+                await interaction.respond(
+                    view=TextView("game_not_found"), ephemeral=True
+                )
             return None
         if interaction.user.id not in game.players + game.config.get("players", []):
             if not quiet:
@@ -50,7 +52,7 @@ class EggsplodeGame(commands.Cog):
                     view=TextView("user_not_in_game"), ephemeral=True
                 )
             return None
-        if not game.hands:
+        if not game.started:
             if not quiet:
                 await interaction.respond(
                     view=TextView("game_not_started"), ephemeral=True
@@ -163,13 +165,13 @@ class EggsplodeGame(commands.Cog):
         if (
             game_id not in self.app.games
             or (game := self.app.games[game_id]) is None
-            or not game.running
+            or not game.active
         ):
             await ctx.respond(view=TextView("game_not_found"), ephemeral=True)
             return
-        if game is None or not ctx.interaction.user:
+        if game is None:
             return
-        view = EndGameView(game, ctx.interaction.user.id)
+        view = EndGameView(game)
         await ctx.respond(view=view, ephemeral=True)
 
 

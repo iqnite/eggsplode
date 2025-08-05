@@ -6,6 +6,7 @@ import datetime
 import json
 import time
 from typing import TYPE_CHECKING
+from discord.ui.item import Item
 import psutil
 import discord
 from eggsplode.strings import MESSAGES, RECIPES, INFO, format_message, replace_emojis
@@ -118,17 +119,24 @@ class StartGameView(discord.ui.View):
             return
         await interaction.response.defer(invisible=True)
         if interaction.user.id in self.game.config["players"]:
-            self.game.config["players"].remove(interaction.user.id)
-            if not self.game.config["players"]:
-                await self.game.events.game_end()
-                self.terminate_view()
-                self.title.content = format_message("game_cancelled")
-                await interaction.edit(view=self)
-                return
-        else:
-            self.game.config["players"].append(interaction.user.id)
+            await interaction.respond(
+                view=LeaveGameView(self, interaction.user.id), ephemeral=True
+            )
+            return
+        self.game.config["players"].append(interaction.user.id)
         self.players_display.content = self.game.player_list
         await interaction.edit(view=self)
+
+    async def remove_player(self, user_id: int, interaction: discord.Interaction):
+        if not self.message:
+            return
+        self.game.config["players"].remove(user_id)
+        self.players_display.content = self.game.player_list
+        if not self.game.config["players"]:
+            await self.game.events.game_end()
+            self.terminate_view()
+            self.title.content = format_message("game_cancelled")
+        await interaction.followup.edit_message(self.message.id, view=self)
 
     def terminate_view(self):
         self.stop()
@@ -328,11 +336,33 @@ class HelpView(discord.ui.View):
     #     await interaction.edit(view=self)
 
 
+class LeaveGameView(discord.ui.View):
+    def __init__(self, parent_view: StartGameView, user_id: int):
+        super().__init__(timeout=30, disable_on_timeout=True)
+        self.parent_view = parent_view
+        self.game = parent_view.game
+        self.user_id = user_id
+        self.warning = discord.ui.TextDisplay(format_message("leave_game_warning"))
+        self.add_item(self.warning)
+        self.button = discord.ui.Button(
+            label=format_message("leave_game_button"), style=discord.ButtonStyle.danger
+        )
+        self.button.callback = self.leave_game_callback
+        self.add_item(self.button)
+
+    async def leave_game_callback(self, interaction: discord.Interaction):
+        if not self.game or self.game.started:
+            return
+        if not interaction or not interaction.user:
+            return
+        await interaction.edit(delete_after=0, view=self)
+        await self.parent_view.remove_player(self.user_id, interaction)
+
+
 class EndGameView(discord.ui.View):
-    def __init__(self, game: "Game", user_id: int):
+    def __init__(self, game: "Game"):
         super().__init__(timeout=30, disable_on_timeout=True)
         self.game = game
-        self.user_id = user_id
         self.warning = discord.ui.TextDisplay(format_message("end_game_warning"))
         self.add_item(self.warning)
         self.button = discord.ui.Button(
@@ -342,19 +372,14 @@ class EndGameView(discord.ui.View):
         self.add_item(self.button)
 
     async def end_game_callback(self, interaction: discord.Interaction):
-        if (not interaction.user) or interaction.user.id != self.user_id:
-            await interaction.respond(
-                view=TextView("end_game_permission_denied"), ephemeral=True
-            )
-            return
         if not interaction or not self.game:
             return
         self.disable_all_items()
         await interaction.edit(view=self)
-        if self.game.running:
+        if self.game:
             await self.game.events.game_end()
         self.stop()
-        await interaction.respond(view=TextView("game_ended", self.user_id))
+        await interaction.respond(view=TextView("game_ended"))
 
 
 class InfoView(discord.ui.View):

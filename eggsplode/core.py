@@ -29,7 +29,8 @@ class Game:
         self.remaining_turns: int = 0
         self.events = EventSet()
         self.last_activity = datetime.now()
-        self.running = True
+        self.active = True
+        self.started = False
         self.paused = False
         self.inactivity_count = 0
         self.anchor_interaction: discord.Interaction | None = None
@@ -137,6 +138,8 @@ class Game:
     async def start(self, interaction: discord.Interaction):
         self.setup()
         self.last_activity = datetime.now()
+        self.inactivity_count = 0
+        self.started = True
         await self.send(view=TextView("game_started"), anchor=interaction)
         await self.events.turn_start()
         await self.action_timer()
@@ -321,7 +324,7 @@ class Game:
         self.current_player = len(self.players) - self.current_player - 1
 
     async def action_timer(self):
-        while self.running:
+        while self.active:
             if (
                 datetime.now() - self.last_activity
                 > timedelta(seconds=float(self.config.get("turn_timeout", 60)))
@@ -340,7 +343,7 @@ class Game:
         self.last_activity = datetime.now()
         await self.send(view=TextView("timeout"))
         await self.draw_from(self.anchor_interaction, timed_out=True)
-        if not self.running:
+        if not self.active:
             return
         await self.events.turn_end()
 
@@ -348,7 +351,7 @@ class Game:
         self.paused = True
 
     async def resume(self):
-        if not self.running:
+        if not self.active:
             return
         self.reset_timer()
         self.action_id += 1
@@ -359,7 +362,8 @@ class Game:
         self.last_activity = datetime.now()
 
     async def end(self):
-        self.running = False
+        self.active = False
+        self.started = False
         self.paused = False
         self.current_player = 0
         self.players = []
@@ -399,7 +403,7 @@ class Game:
         return "\n".join(warning(self) for warning in self.turn_warnings)
 
     def __bool__(self) -> bool:
-        return self.running
+        return self.active
 
 
 class Event:
