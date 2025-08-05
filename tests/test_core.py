@@ -110,7 +110,12 @@ class TestGameSetup(unittest.TestCase):
                 self.recipe = recipe
                 self.game.setup()
                 for card in self.game.deck:
-                    self.assertIn(card, cards.PLAY_ACTIONS | cards.DRAW_ACTIONS | {"defuse": ..., "nope": ...})
+                    self.assertIn(
+                        card,
+                        cards.PLAY_ACTIONS
+                        | cards.DRAW_ACTIONS
+                        | {"defuse": ..., "nope": ...},
+                    )
                     self.assertIn(card, CARDS)
 
 
