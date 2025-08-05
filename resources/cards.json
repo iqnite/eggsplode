@@ -96,9 +96,9 @@
         "usable": true
     },
     "swap_top_bottom": {
-        "title": "Draw from the bottom",
-        "description": "End your turn by drawing from the bottom instead of the top.",
-        "emoji": "🔽",
+        "title": "Swap top and bottom",
+        "description": "Swap the top card with the bottom card on the deck.",
+        "emoji": "↕️",
         "usable": true
     },
     "targeted_attegg": {
@@ -110,13 +110,13 @@
     },
     "alter_future": {
         "title": "Alter the future",
-        "description": "Look at the next 3 cards on the deck and rearrange them in any order.",
+        "description": "Look at the next 3 cards on the deck and rearrange them how you want.",
         "emoji": "🪄",
         "usable": true
     },
     "alter_future_now": {
         "title": "Alter the future",
-        "description": "Look at the next 3 cards on the deck and rearrange them in any order.",
+        "description": "Look at the next 3 cards on the deck and rearrange them how you want.",
         "emoji": "🪄",
         "usable": true
     },

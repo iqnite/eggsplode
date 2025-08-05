@@ -16,6 +16,12 @@ async def shuffle(game: "Game", _):
     await game.events.action_end()
 
 
+async def swap_top_bottom(game: "Game", _):
+    game.deck[-1], game.deck[0] = game.deck[0], game.deck[-1]
+    await game.send(view=TextView("swapped_top_bottom", game.current_player_id))
+    await game.events.action_end()
+
+
 def deck_count(game: "Game") -> str:
     return format_message(
         "turn_warning",

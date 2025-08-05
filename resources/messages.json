@@ -188,6 +188,7 @@
     "stolen_card_public": "🎭 <@{}> stole a card from <@{}>!",
     "stolen_card_them": "<@{}> stole 1 {} {} from you!",
     "stolen_card_you": "You stole: {} {}",
+    "swapped_top_bottom": "↕️ <@{}> swapped the top and bottom cards on the deck!",
     "targeted_attegg_prompt": "Choose a player to attack.",
     "terminal_response": "Running terminal command: `{}`",
     "timeout": "*Time's up.*",

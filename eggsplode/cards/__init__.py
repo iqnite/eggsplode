@@ -4,7 +4,7 @@ Contains the string to function mappings for card actions.
 
 from .skip import bury, dig_deeper, draw_from_bottom, reverse, skip, super_skip
 from .bombs import eggsplode, radioeggtive, radioeggtive_face_up, eggsperiment
-from .deck import deck_count, radioeggtive_warning, shuffle
+from .deck import deck_count, radioeggtive_warning, shuffle, swap_top_bottom
 from .steal import food_combo
 from .future import alter_future, see_future, share_future
 from .attegg import attegg, self_attegg, targeted_attegg
@@ -15,7 +15,7 @@ PLAY_ACTIONS = {
     "shuffle": shuffle,
     "see_future": see_future,
     "draw_from_bottom": draw_from_bottom,
-    "swap_top_bottom": draw_from_bottom,
+    "swap_top_bottom": swap_top_bottom,
     "targeted_attegg": targeted_attegg,
     "alter_future": alter_future,
     "alter_future_now": alter_future,
