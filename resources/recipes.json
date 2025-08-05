@@ -84,7 +84,7 @@
         }
     },
     "all_cards": {
-        "name": "All Cards",
+        "name": "(Almost) all cards",
         "description": "The classic game + the Radioeggtive and Eggsperiment expansions",
         "emoji": "💯",
         "cards": {
@@ -168,7 +168,8 @@
             },
             "see_future": 4,
             "share_future": 4,
-            "draw_from_bottom": 5,
+            "swap_top_bottom": 3,
+            "draw_from_bottom": 2,
             "shuffle": 3,
             "nope": 4,
             "food0": 4,
@@ -188,7 +189,7 @@
             "attegg": 4,
             "targeted_attegg": 2,
             "nope": 3,
-            "alter_future": 2,
+            "alter_future_now": 2,
             "reverse": 3
         }
     },
@@ -231,7 +232,8 @@
             "shuffle": 5,
             "alter_future": 3,
             "share_future": 4,
-            "draw_from_bottom": 6,
+            "draw_from_bottom": 3,
+            "swap_top_bottom": 3,
             "reverse": 4,
             "food0": 6,
             "food1": 6
@@ -305,7 +307,8 @@
                 "preserve": true
             },
             "see_future": 5,
-            "alter_future": 5,
+            "alter_future": 3,
+            "alter_future_now": 2,
             "share_future": 4,
             "shuffle": 2,
             "attegg": 4,
@@ -340,8 +343,8 @@
             "nope": 8,
             "shuffle": 4,
             "skip": 4,
-            "alter_future": 2,
-            "draw_from_bottom": 2,
+            "alter_future_now": 2,
+            "swap_top_bottom": 2,
             "attegg": 3,
             "targeted_attegg": 2,
             "bury": 3,
@@ -401,7 +404,7 @@
     },
     "operation_elimination": {
         "name": "Operation Elimination",
-        "description": "A brutal game of betrayal until last card.",
+        "description": "A brutal game of betrayal until the last card.",
         "emoji": "💢",
         "cards": {
             "defuse": {
@@ -441,7 +444,7 @@
             "self_attegg": 4,
             "food0": 4,
             "reverse": 3,
-            "alter_future": 2,
+            "alter_future_now": 2,
             "share_future": 3,
             "food1": 4,
             "food2": 6,

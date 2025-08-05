@@ -95,6 +95,12 @@
         "emoji": "🔽",
         "usable": true
     },
+    "swap_top_bottom": {
+        "title": "Draw from the bottom",
+        "description": "End your turn by drawing from the bottom instead of the top.",
+        "emoji": "🔽",
+        "usable": true
+    },
     "targeted_attegg": {
         "title": "Targeted Attegg",
         "description": "End your turn without drawing and force a player of your choice to take 2 turns in a row.",
@@ -108,6 +114,13 @@
         "emoji": "🪄",
         "usable": true
     },
+    "alter_future_now": {
+        "title": "Alter the future",
+        "description": "Look at the next 3 cards on the deck and rearrange them in any order.",
+        "emoji": "🪄",
+        "usable": true
+    },
+
     "reverse": {
         "title": "Reverse",
         "description": "End your turn without drawing and reverse the order of play.",
