@@ -361,8 +361,8 @@ class InfoView(discord.ui.View):
     def __init__(self, app: "EggsplodeApp"):
         super().__init__(timeout=None)
         self.app = app
-        self.software_info = discord.ui.Container()
-        self.software_info.add_section(
+        self.container = discord.ui.Container()
+        self.container.add_section(
             discord.ui.TextDisplay(
                 format_message("version_eggsplode", INFO["version"])
             ),
@@ -375,13 +375,12 @@ class InfoView(discord.ui.View):
                 emoji="📜",
             ),
         )
-        self.add_item(self.software_info)
-        self.system_info = discord.ui.Container()
-        self.system_info.add_text(
+        self.container.add_separator()
+        self.container.add_text(
             format_message("status_latency", self.app.latency * 1000)
         )
         uptime = get_uptime()
-        self.system_info.add_text(
+        self.container.add_text(
             format_message(
                 "status_uptime",
                 uptime.days,
@@ -390,12 +389,11 @@ class InfoView(discord.ui.View):
                 uptime.seconds % 60,
             )
         )
-        self.system_info.add_text(
+        self.container.add_text(
             format_message("status_memory", psutil.virtual_memory().percent)
         )
-        self.add_item(self.system_info)
-        self.discord_info = discord.ui.Container()
-        self.discord_info.add_section(
+        self.container.add_separator()
+        self.container.add_section(
             discord.ui.TextDisplay(
                 format_message("status_server_installs", len(self.app.guilds))
             ),
@@ -409,8 +407,8 @@ class InfoView(discord.ui.View):
             ),
         )
         if self.app.admin_maintenance:
-            self.discord_info.add_text(format_message("maintenance"))
-        self.add_item(self.discord_info)
+            self.container.add_text(format_message("maintenance"))
+        self.add_item(self.container)
         self.add_item(
             discord.ui.Button(
                 label="Help",
