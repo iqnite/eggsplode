@@ -6,7 +6,6 @@ import datetime
 import json
 import time
 from typing import TYPE_CHECKING
-from discord.ui.item import Item
 import psutil
 import discord
 from eggsplode.strings import MESSAGES, RECIPES, INFO, format_message, replace_emojis
