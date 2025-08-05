@@ -5,8 +5,9 @@ Contains tests for the core module.
 import json
 import unittest
 from unittest.mock import MagicMock
+from eggsplode import cards
 from eggsplode.core import Game
-from eggsplode.strings import RECIPES
+from eggsplode.strings import CARDS, RECIPES
 from eggsplode.ui.start import COVERED_RECIPE_EXCEPTIONS
 
 
@@ -101,6 +102,16 @@ class TestGameSetup(unittest.TestCase):
             self.assertEqual(hand.count("radioeggtive"), 0)
         self.assert_deck_count_equal("radioeggtive", 2)
         self.assert_deck_count_equal("eggsplode", 0)
+
+    def test_all_recipes(self):
+        self.players = ["forb", "dorb", "sorb"]
+        for recipe_name, recipe in RECIPES.items():
+            with self.subTest(recipe=recipe_name):
+                self.recipe = recipe
+                self.game.setup()
+                for card in self.game.deck:
+                    self.assertIn(card, cards.PLAY_ACTIONS | cards.DRAW_ACTIONS | {"defuse": ..., "nope": ...})
+                    self.assertIn(card, CARDS)
 
 
 class TestRecipeLoading(unittest.TestCase):
