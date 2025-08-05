@@ -27,7 +27,7 @@ class EggsplodeApp(commands.Bot):
             i
             for i, game in self.games.items()
             if user_id in game.players + list(game.config.get("players", []))
-            and game.running
+            and game.active
         ]
 
     def cleanup(self):
@@ -41,7 +41,7 @@ class EggsplodeApp(commands.Bot):
     def game_count(self) -> int:
         count = 0
         for game in self.games.values():
-            if game and game.running:
+            if game and game.active:
                 count += 1
         return count
 
