@@ -144,6 +144,7 @@
     "no_self_nope": "❌ You can't nope your own action!",
     "no_self_ok": "❌ You can't confirm your own action!",
     "not_allowed_to_view_cards": "❌ You are not allowed to view the next cards!",
+    "not_enough_cards": "❌ There must be at least 2 cards on the deck to swap the top and bottom cards!",
     "not_enough_cards_to_dig_deeper": "❌ There must be at least 2 cards on the deck to dig deeper!",
     "not_enough_players_to_start": "❌ Not enough players to start the game!",
     "not_game_creator": "❌ Only the first player can start the game or edit the game settings!",
