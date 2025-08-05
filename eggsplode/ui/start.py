@@ -222,7 +222,7 @@ class EditRecipeModal(discord.ui.Modal):
                 view=TextView("recipe_json_error", e), ephemeral=True
             )
             return
-        self.game.config["recipe"] = recipe_json
+        self.game.config["recipe"] = json.loads(recipe_json)
         self.game.config["recipe_id"] = ""
         self.parent_view.recipe_select.options = self.parent_view.recipe_options
         await interaction.followup.edit_message(
