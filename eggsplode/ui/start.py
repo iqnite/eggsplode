@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 
 COVERED_RECIPE_EXCEPTIONS = (
     AttributeError,
+    IndexError,
     OverflowError,
     TypeError,
     ValueError,
