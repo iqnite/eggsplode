@@ -371,7 +371,7 @@ class EndGameView(discord.ui.View):
         self.add_item(self.button)
 
     async def end_game_callback(self, interaction: discord.Interaction):
-        if not interaction or not self.game:
+        if not self.game:
             return
         self.disable_all_items()
         await interaction.edit(view=self)
