@@ -42,9 +42,9 @@ def replace_emojis(text: str) -> str:
 def format_message(key: str, *format_args) -> str:
     message = MESSAGES[key]
     if isinstance(message, str):
-        return replace_emojis(message).format(*format_args)
+        return replace_emojis(message.format(*format_args))
     if isinstance(message, list):
-        return "\n".join([replace_emojis(m).format(*format_args) for m in message])
+        return replace_emojis("\n".join(message).format(*format_args))
     raise ValueError(f"Invalid message format for key: {key}")
 
 
