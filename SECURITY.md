@@ -16,7 +16,7 @@ currently being supported with security updates.
 
 ## Reporting a Vulnerability
 
-If you find a security vulnerability, please report it by sending an email to `iqnitetechnologies@gmail.com`. We will try to fix the issue and release a patch as fast as possible.
+If you find a security vulnerability, please report it by clicking on "Report a vulnerability" under the "Security" tab or by using [this link](https://github.com/iqnite/eggsplode/security/advisories/new). We will try to fix the issue and release a patch as fast as possible.
 
 <!--
 Use this section to tell people how to report a vulnerability.
