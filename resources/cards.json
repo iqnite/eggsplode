@@ -128,8 +128,8 @@
         "usable": true
     },
     "eggsperiment": {
-        "title": "Wise-Cracker",
-        "description": "Make the player with the other Wise-Cracker eggsplode. Play in pair to decide who must eggsplode.",
+        "title": "Eggsperiment",
+        "description": "Make the player with the other Eggsperiment eggsplode. Play in pair to decide who must eggsplode.",
         "emoji": "🧪",
         "usable": true,
         "explicit": true
