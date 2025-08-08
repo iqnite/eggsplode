@@ -271,7 +271,7 @@ class Game:
                     "play_card",
                     CARDS[card]["emoji"],
                     self.current_player_id,
-                    tooltip(card),
+                    tooltip(card, emoji=False),
                 ),
             )
             await self.send(view=view)
@@ -288,7 +288,6 @@ class Game:
                 await interaction.respond(
                     view=TextView(
                         "you_drew_card",
-                        replace_emojis(CARDS[card]["emoji"]),
                         tooltip(card),
                     ),
                     ephemeral=True,

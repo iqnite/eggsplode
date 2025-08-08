@@ -56,7 +56,11 @@ def get_card_by_title(title: str, match_case: bool = False) -> str:
     raise ValueError(f"Card with title '{title}' not found.")
 
 
-def tooltip(card: str) -> str:
+def tooltip(card: str, emoji=True) -> str:
     if card not in CARDS:
         raise ValueError(f"Card '{card}' not found in CARDS.")
-    return format_message("tooltip", CARDS[card]["title"], CARDS[card]["description"])
+    return (
+        replace_emojis(CARDS[card]["emoji"]) + " "
+        if emoji and "emoji" in CARDS[card]
+        else ""
+    ) + format_message("tooltip", CARDS[card]["title"], CARDS[card]["description"])

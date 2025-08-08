@@ -56,7 +56,6 @@ class DigDeeperView(SelectionView):
             discord.ui.TextDisplay(
                 format_message(
                     "next_card",
-                    replace_emojis(CARDS[self.next_card]["emoji"]),
                     tooltip(self.next_card),
                 )
             ),

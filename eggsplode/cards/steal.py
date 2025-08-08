@@ -35,7 +35,6 @@ async def food_combo_finish(
         await interaction.respond(
             view=TextView(
                 "stolen_card_you",
-                replace_emojis(CARDS[stolen_card]["emoji"]),
                 tooltip(stolen_card),
             ),
             ephemeral=True,
@@ -45,7 +44,6 @@ async def food_combo_finish(
                 view=TextView(
                     "stolen_card_them",
                     game.current_player_id,
-                    replace_emojis(CARDS[stolen_card]["emoji"]),
                     tooltip(stolen_card),
                 ),
                 ephemeral=True,
