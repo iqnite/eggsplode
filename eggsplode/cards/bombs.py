@@ -80,17 +80,23 @@ async def radioeggtive_face_up(game: "Game", interaction: discord.Interaction, _
     await game.events.turn_end()
 
 
-async def eggsperiment_finish(game: "Game", _, target_player_id: int):
+async def eggsperiment_finish(game: "Game", _, target_player_id: int, pair=False):
     current_player_id = game.current_player_id
     if "defuse" in game.hands[target_player_id]:
         game.hands[target_player_id].remove("defuse")
         await game.send(
-            view=TextView("eggsperiment_defused", current_player_id, target_player_id),
+            view=TextView(
+                "eggsperiment_pair_defused" if pair else "eggsperiment_defused",
+                current_player_id,
+                target_player_id,
+            ),
         )
     else:
         await game.send(
             view=TextView(
-                "eggsperiment_eggsploded", current_player_id, target_player_id
+                "eggsperiment_pair_eggsploded" if pair else "eggsperiment_eggsploded",
+                current_player_id,
+                target_player_id,
             ),
         )
         del game.players[game.players.index(target_player_id)]
@@ -108,7 +114,7 @@ async def eggsperiment(game: "Game", interaction: discord.Interaction):
         view = ChoosePlayerView(
             game,
             lambda target_player_id: eggsperiment_finish(
-                game, interaction, target_player_id
+                game, interaction, target_player_id, pair=True
             ),
             condition=lambda user_id: user_id != game.current_player_id,
         )

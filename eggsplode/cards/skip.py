@@ -4,7 +4,7 @@ Contains effects for cards that modify a turn's end.
 
 from typing import TYPE_CHECKING
 import discord
-from eggsplode.strings import CARDS, format_message, replace_emojis, tooltip
+from eggsplode.strings import format_message, tooltip
 from eggsplode.ui import DefuseView, SelectionView, TextView
 
 if TYPE_CHECKING:
@@ -56,7 +56,6 @@ class DigDeeperView(SelectionView):
             discord.ui.TextDisplay(
                 format_message(
                     "next_card",
-                    replace_emojis(CARDS[self.next_card]["emoji"]),
                     tooltip(self.next_card),
                 )
             ),

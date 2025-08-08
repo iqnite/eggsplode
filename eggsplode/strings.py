@@ -42,9 +42,9 @@ def replace_emojis(text: str) -> str:
 def format_message(key: str, *format_args) -> str:
     message = MESSAGES[key]
     if isinstance(message, str):
-        return replace_emojis(message).format(*format_args)
+        return replace_emojis(message.format(*format_args))
     if isinstance(message, list):
-        return "\n".join([replace_emojis(m).format(*format_args) for m in message])
+        return replace_emojis("\n".join(message).format(*format_args))
     raise ValueError(f"Invalid message format for key: {key}")
 
 
@@ -56,7 +56,11 @@ def get_card_by_title(title: str, match_case: bool = False) -> str:
     raise ValueError(f"Card with title '{title}' not found.")
 
 
-def tooltip(card: str) -> str:
+def tooltip(card: str, emoji=True) -> str:
     if card not in CARDS:
         raise ValueError(f"Card '{card}' not found in CARDS.")
-    return format_message("tooltip", CARDS[card]["title"], CARDS[card]["description"])
+    return (
+        replace_emojis(CARDS[card]["emoji"]) + " "
+        if emoji and "emoji" in CARDS[card]
+        else ""
+    ) + format_message("tooltip", CARDS[card]["title"], CARDS[card]["description"])

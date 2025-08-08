@@ -24,7 +24,7 @@ async def show_next_cards(
 ):
     next_cards = "\n".join(
         format_message(
-            "list_item_2", replace_emojis(CARDS[card]["emoji"]), tooltip(card)
+            "list_item_1", tooltip(card)
         )
         for card in deck[-1 : -amount - 1 : -1]
     )

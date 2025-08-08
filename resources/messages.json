@@ -129,6 +129,7 @@
     "leave_game_warning": "You have already joined this game. Do you want to leave it?",
     "list_games_item": "- <#{}>",
     "list_games_title": "📋 **Games:**\n{}",
+    "list_item_1": "- {}",
     "list_item_2": "- {} {}",
     "maintenance": "⚠️ The bot is currently under maintenance. [More info](https://discord.gg/8dH5GvGjg4)",
     "maintenance_mode_no_games_running": "✅ No games running.",
@@ -136,7 +137,7 @@
     "message_edit_on_nope": "🛑 <@{}>: **Nope!**",
     "message_edit_on_yup": "🛑 <@{}>: **Yup!**",
     "move_prompt": "🔧 You drew a {} card! Please decide where on the deck you want to put it.\n**Current position: {} (0 = bottom, {} = top)**\n**Players:**\n{}",
-    "next_card": "Next card: {} {}",
+    "next_card": "Next card: {}",
     "next_cards": "### Next 3 cards on the deck:",
     "next_turn": "### ⌛ <@{}>'s turn!",
     "no_cards_to_steal": "🎭 {} wanted to steal a card from {}, but they had no cards left. Better luck next time!",
@@ -189,8 +190,8 @@
     "status_user_installs": "User Installs: {}",
     "steal_prompt": "Choose a player to steal a card from.",
     "stolen_card_public": "🎭 <@{}> stole a card from <@{}>!",
-    "stolen_card_them": "<@{}> stole 1 {} {} from you!",
-    "stolen_card_you": "You stole: {} {}",
+    "stolen_card_them": "<@{}> stole 1 {} from you!",
+    "stolen_card_you": "You stole: {}",
     "swapped_top_bottom": "↕️ <@{}> swapped the top and bottom cards on the deck!",
     "targeted_attegg_prompt": "Choose a player to attack.",
     "terminal_response": "Running terminal command: `{}`",
@@ -206,5 +207,7 @@
     "eggsperiment_defused": "## 🔧 <@{}> used an Eggsperiment card and forced <@{}> to defuse!",
     "eggsperiment_eggsploded": "## 💥 <@{}> used an Eggsperiment card and made <@{}> eggsplode!",
     "eggsperiment_exposed": "## 🧪 <@{}> tried to use an Eggsperiment. Unfortunately, nobody else had one, so they took it back into their hand!",
-    "you_drew_card": "You drew: {} {}!"
+    "eggsperiment_pair_defused": "## 🔧 <@{}> used 2 Eggsperiment cards in pair and forced <@{}> to defuse!",
+    "eggsperiment_pair_eggsploded": "## 💥 <@{}> used 2 Eggsperiment cards in pair and made <@{}> eggsplode!",
+    "you_drew_card": "You drew: {}!"
 }
