@@ -30,6 +30,12 @@
                 "hand_out": 1,
                 "preserve": true
             },
+            "eggsplode": {
+                "amount": 1,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
+            },
             "nope": 5,
             "attegg": 4,
             "skip": 4,
@@ -93,6 +99,12 @@
                 "hand_out": 1,
                 "preserve": true
             },
+            "eggsplode": {
+                "amount": 1,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
+            },
             "nope": 5,
             "attegg": 4,
             "skip": 4,
@@ -151,14 +163,14 @@
         "emoji": "🗃️",
         "cards_per_player": 6,
         "cards": {
+            "defuse": {
+                "hand_out": 1
+            },
             "eggsplode": {
                 "amount": 1,
                 "hand_out": 0,
                 "expand_beyond": null,
                 "preserve": true
-            },
-            "defuse": {
-                "hand_out": 1
             },
             "radioeggtive": {
                 "amount": 1,
@@ -301,6 +313,12 @@
                 "hand_out": 1,
                 "preserve": true
             },
+            "eggsplode": {
+                "amount": 1,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
+            },
             "radioeggtive": {
                 "amount": 1,
                 "expand_beyond": null,
@@ -362,6 +380,12 @@
                 "hand_out": 1,
                 "preserve": true
             },
+            "eggsplode": {
+                "amount": 1,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
+            },
             "radioeggtive": {
                 "amount": 1,
                 "expand_beyond": null,
@@ -409,6 +433,12 @@
         "cards": {
             "defuse": {
                 "hand_out": 1
+            },
+            "eggsplode": {
+                "amount": 1,
+                "hand_out": 0,
+                "expand_beyond": null,
+                "preserve": true
             },
             "radioeggtive": {
                 "amount": 1,
