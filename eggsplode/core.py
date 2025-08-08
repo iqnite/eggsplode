@@ -10,7 +10,7 @@ from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 from eggsplode import cards
 from eggsplode.ui import NopeView, PlayView, TurnView, TextView
-from eggsplode.strings import CARDS, format_message, replace_emojis, tooltip
+from eggsplode.strings import CARDS, format_message, tooltip
 
 if TYPE_CHECKING:
     from eggsplode.commands import EggsplodeApp
