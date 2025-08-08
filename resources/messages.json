@@ -204,8 +204,8 @@
     "user_not_in_game": "❌ You are not in this game!",
     "version_eggsplode": "Eggsplode Version: `{}`",
     "version_pycord": "Pycord Version: `{}`",
-    "eggsperiment_defused": "## 🔧 <@{}> used a Wise-Cracker card and forced <@{}> to defuse!",
-    "eggsperiment_eggsploded": "## 💥 <@{}> used a Wise-Cracker and made <@{}> eggsplode!",
-    "eggsperiment_exposed": "## 🧪 <@{}> tried to use a Wise-Cracker. Unfortunately, nobody else had one, so they took it back into their hand!",
+    "eggsperiment_defused": "## 🔧 <@{}> used an Eggsperiment card and forced <@{}> to defuse!",
+    "eggsperiment_eggsploded": "## 💥 <@{}> used an Eggsperiment card and made <@{}> eggsplode!",
+    "eggsperiment_exposed": "## 🧪 <@{}> tried to use an Eggsperiment. Unfortunately, nobody else had one, so they took it back into their hand!",
     "you_drew_card": "You drew: {}!"
 }
