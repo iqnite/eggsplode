@@ -207,5 +207,7 @@
     "eggsperiment_defused": "## 🔧 <@{}> used an Eggsperiment card and forced <@{}> to defuse!",
     "eggsperiment_eggsploded": "## 💥 <@{}> used an Eggsperiment card and made <@{}> eggsplode!",
     "eggsperiment_exposed": "## 🧪 <@{}> tried to use an Eggsperiment. Unfortunately, nobody else had one, so they took it back into their hand!",
+    "eggsperiment_pair_defused": "## 🔧 <@{}> used 2 Eggsperiment cards in pair and forced <@{}> to defuse!",
+    "eggsperiment_pair_eggsploded": "## 💥 <@{}> used 2 Eggsperiment cards in pair and made <@{}> eggsplode!",
     "you_drew_card": "You drew: {}!"
 }
