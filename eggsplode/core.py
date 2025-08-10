@@ -94,12 +94,14 @@ class Game:
         max_cards_per_player = min(
             recipe.get("cards_per_player", 8), len(hand_out_pool) // len(self.players)
         )
+        random.shuffle(hand_out_pool)
         for hand in self.hands.values():
             while len(hand) < max_cards_per_player:
                 hand.append(
                     hand_out_pool.pop(random.randint(0, len(hand_out_pool) - 1))
                 )
 
+        self.shuffle_deck()
         self.trim_deck()
         self.ensure_minimum_eggsplode()
         self.shuffle_deck()
