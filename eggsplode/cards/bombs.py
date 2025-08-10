@@ -25,13 +25,13 @@ async def eggsplode(
         if timed_out:
             game.deck.insert(random.randint(0, len(game.deck)), "eggsplode")
             await game.send(view=TextView("defused", game.current_player_id))
-        else:
-            view = DefuseView(
-                game,
-                lambda: defuse_finish(game),
-                card="eggsplode",
-            )
-            await interaction.respond(view=view, ephemeral=True)
+            return
+        view = DefuseView(
+            game,
+            lambda: defuse_finish(game),
+            card="eggsplode",
+        )
+        await interaction.respond(view=view, ephemeral=True)
         return
     prev_player = game.current_player_id
     game.remove_player(prev_player)
@@ -40,7 +40,8 @@ async def eggsplode(
     if len(game.players) == 1:
         await game_over(game, interaction)
         return
-    await game.events.turn_end()
+    if not timed_out:
+        await game.events.turn_end()
 
 
 async def defuse_finish(game: "Game"):
@@ -69,7 +70,9 @@ async def radioeggtive(
         await interaction.respond(view=view, ephemeral=True)
 
 
-async def radioeggtive_face_up(game: "Game", interaction: discord.Interaction, _):
+async def radioeggtive_face_up(
+    game: "Game", interaction: discord.Interaction, timed_out: bool | None = False
+):
     prev_player = game.current_player_id
     game.remove_player(prev_player)
     game.remaining_turns = 0
@@ -77,7 +80,8 @@ async def radioeggtive_face_up(game: "Game", interaction: discord.Interaction, _
     if len(game.players) == 1:
         await game_over(game, interaction)
         return
-    await game.events.turn_end()
+    if not timed_out:
+        await game.events.turn_end()
 
 
 async def eggsperiment_finish(game: "Game", _, target_player_id: int, pair=False):
