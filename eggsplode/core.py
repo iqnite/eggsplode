@@ -338,7 +338,10 @@ class Game:
             await asyncio.sleep(5)
 
     async def on_action_timeout(self):
-        assert self.anchor_interaction is not None
+        if self.anchor_interaction is None:
+            raise TypeError("anchor_interaction is None")
+        if not self.active:
+            return
         self.pause()
         self.inactivity_count += 1
         if self.inactivity_count > 5:
@@ -348,8 +351,6 @@ class Game:
         self.last_activity = datetime.now()
         await self.send(view=TextView("timeout"))
         await self.draw_from(self.anchor_interaction, timed_out=True)
-        if not self.active:
-            return
         await self.events.turn_end()
 
     def pause(self):
