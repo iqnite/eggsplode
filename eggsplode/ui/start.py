@@ -253,7 +253,7 @@ class SettingsModal(discord.ui.Modal):
             "turn_timeout": {
                 "input": discord.ui.InputText(
                     label="[Beta] Turn timeout (seconds)",
-                    placeholder="60",
+                    placeholder="40",
                     value=self.game.config.get("turn_timeout", None),
                     required=False,
                 ),

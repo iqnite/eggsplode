@@ -330,7 +330,7 @@ class Game:
         while self.active:
             if (
                 datetime.now() - self.last_activity
-                > timedelta(seconds=float(self.config.get("turn_timeout", 60)))
+                > timedelta(seconds=float(self.config.get("turn_timeout", 40)))
             ) and not self.paused:
                 await self.on_action_timeout()
             await asyncio.sleep(5)
