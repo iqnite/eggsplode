@@ -90,7 +90,16 @@ class Game:
                     for hand in self.hands.values():
                         hand.append(card)
 
-        # Hand out remaining cards
+        self.hand_out(recipe, hand_out_pool)
+
+        self.deck += hand_out_pool
+
+        self.shuffle_deck()
+        self.trim_deck()
+        self.ensure_minimum_eggsplode()
+        self.shuffle_deck()
+
+    def hand_out(self, recipe, hand_out_pool):
         max_cards_per_player = min(
             recipe.get("cards_per_player", 8), len(hand_out_pool) // len(self.players)
         )
@@ -100,13 +109,6 @@ class Game:
                 hand.append(
                     hand_out_pool.pop(random.randint(0, len(hand_out_pool) - 1))
                 )
-
-        self.deck += hand_out_pool
-
-        self.shuffle_deck()
-        self.trim_deck()
-        self.ensure_minimum_eggsplode()
-        self.shuffle_deck()
 
     def ensure_minimum_eggsplode(self):
         while (
