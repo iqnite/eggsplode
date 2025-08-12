@@ -45,12 +45,27 @@ class TestGameSetup(unittest.TestCase):
     def test_classic(self):
         self.players = ["forb", "dorb", "sorb", "gorb"]
         self.recipe = RECIPES["classic"]
+        self.game.config["deck_size"] = 1000
+        expected_cards = {
+            "skip": 4,
+            "nope": 5,
+            "attegg": 4,
+            "shuffle": 4,
+            "see_future": 5,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4,
+            "food3": 4,
+        }
         self.game.setup()
         for hand in self.game.hands.values():
             self.assertEqual(hand.count("defuse"), 1)
             self.assertEqual(len(hand), 8)
         self.assert_deck_count_equal("eggsplode", 3)
         self.assert_deck_count_equal("radioeggtive", 0)
+        for card, count in expected_cards.items():
+            hand_count = sum(hand.count(card) for hand in self.game.hands.values())
+            self.assertEqual(self.game.deck.count(card) + hand_count, count)
 
     def test_trim_classic(self):
         self.players = ["forb", "dorb", "sorb"]

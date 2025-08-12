@@ -65,9 +65,8 @@ class Game:
 
         for card, info in self.recipe_cards.items():
             if isinstance(info, int):
-                cards_to_add = [card] * info * self.multiply_card_beyond(5)
+                cards_to_add = [card] * info * self.card_multiplier(5)
                 hand_out_pool += cards_to_add
-                self.deck += cards_to_add
             else:
                 # Handle automatic card amount
                 if "auto_amount" in info:
@@ -78,11 +77,12 @@ class Game:
                     cards_to_add = (
                         [card]
                         * info.get("amount", 0)
-                        * self.multiply_card_beyond(info.get("expand_beyond", 5))
+                        * self.card_multiplier(info.get("expand_beyond", 5))
                     )
 
-                self.deck += cards_to_add
-                if "hand_out" not in info:
+                if "hand_out" in info:
+                    self.deck += cards_to_add
+                else:
                     hand_out_pool += cards_to_add
 
                 # Hand out fixed cards
@@ -100,6 +100,8 @@ class Game:
                 hand.append(
                     hand_out_pool.pop(random.randint(0, len(hand_out_pool) - 1))
                 )
+
+        self.deck += hand_out_pool
 
         self.shuffle_deck()
         self.trim_deck()
@@ -130,7 +132,7 @@ class Game:
             if isinstance(info, dict) and info.get("preserve", False):
                 self.deck.append(card)
 
-    def multiply_card_beyond(self, multiply_beyond: int | None) -> int:
+    def card_multiplier(self, multiply_beyond: int | None) -> int:
         return (
             (1 + len(self.players) // multiply_beyond)
             if multiply_beyond is not None
