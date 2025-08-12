@@ -6,8 +6,7 @@
         "cards": {
             "defuse": {
                 "amount": 2,
-                "hand_out": 1,
-                "preserve": true
+                "hand_out": 1
             },
             "nope": 5,
             "attegg": 4,
@@ -27,8 +26,7 @@
         "cards": {
             "defuse": {
                 "amount": 2,
-                "hand_out": 1,
-                "preserve": true
+                "hand_out": 1
             },
             "eggsplode": {
                 "amount": 1,
@@ -64,8 +62,7 @@
         "cards": {
             "defuse": {
                 "amount": 2,
-                "hand_out": 1,
-                "preserve": true
+                "hand_out": 1
             },
             "nope": 5,
             "attegg": 4,
@@ -96,8 +93,7 @@
         "cards": {
             "defuse": {
                 "amount": 2,
-                "hand_out": 1,
-                "preserve": true
+                "hand_out": 1
             },
             "eggsplode": {
                 "amount": 1,
@@ -212,8 +208,7 @@
         "cards": {
             "defuse": {
                 "amount": 1,
-                "hand_out": 1,
-                "preserve": true
+                "hand_out": 1
             },
             "attegg": 6,
             "targeted_attegg": 4,
@@ -257,12 +252,13 @@
         "emoji": "🌩️",
         "cards": {
             "eggsplode": {
-                "auto_amount": 2
+                "auto_amount": 2,
+                "hand_out": 0,
+                "preserve": true
             },
             "defuse": {
                 "amount": 1,
-                "hand_out": 1,
-                "preserve": true
+                "hand_out": 1
             },
             "attegg": 4,
             "targeted_attegg": 2,
@@ -282,8 +278,7 @@
         "cards": {
             "defuse": {
                 "amount": 1,
-                "hand_out": 1,
-                "preserve": true
+                "hand_out": 1
             },
             "nope": {
                 "auto_amount": 2
@@ -310,8 +305,7 @@
         "cards": {
             "defuse": {
                 "amount": 1,
-                "hand_out": 1,
-                "preserve": true
+                "hand_out": 1
             },
             "eggsplode": {
                 "amount": 1,
@@ -321,6 +315,7 @@
             },
             "radioeggtive": {
                 "amount": 1,
+                "hand_out": 0,
                 "expand_beyond": null,
                 "preserve": true
             },
@@ -377,8 +372,7 @@
         "cards": {
             "defuse": {
                 "amount": 3,
-                "hand_out": 1,
-                "preserve": true
+                "hand_out": 1
             },
             "eggsplode": {
                 "amount": 1,
@@ -388,6 +382,7 @@
             },
             "radioeggtive": {
                 "amount": 1,
+                "hand_out": 0,
                 "expand_beyond": null,
                 "preserve": true
             },
@@ -410,8 +405,7 @@
         "cards": {
             "defuse": {
                 "amount": 1,
-                "hand_out": 1,
-                "preserve": true
+                "hand_out": 1
             },
             "food0": 6,
             "food1": 6,
@@ -442,6 +436,7 @@
             },
             "radioeggtive": {
                 "amount": 1,
+                "hand_out": 0,
                 "expand_beyond": null,
                 "preserve": true
             },
@@ -463,8 +458,7 @@
         "cards": {
             "defuse": {
                 "amount": 4,
-                "hand_out": 1,
-                "preserve": true
+                "hand_out": 1
             },
             "eggsplode": {
                 "auto_amount": 0,

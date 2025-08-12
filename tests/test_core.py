@@ -50,7 +50,6 @@ class TestGameSetup(unittest.TestCase):
             self.assertEqual(hand.count("defuse"), 1)
             self.assertEqual(len(hand), 8)
         self.assert_deck_count_equal("eggsplode", 3)
-        self.assert_deck_count_equal("defuse", 2)
         self.assert_deck_count_equal("radioeggtive", 0)
 
     def test_trim_classic(self):
@@ -59,7 +58,6 @@ class TestGameSetup(unittest.TestCase):
         self.game.config["deck_size"] = 10
         self.game.setup()
         self.assert_deck_count_equal("eggsplode", 2)
-        self.assert_deck_count_equal("defuse", 2)
         self.assertLessEqual(len(self.game.deck), 12)
 
     def test_expand(self):
@@ -70,7 +68,6 @@ class TestGameSetup(unittest.TestCase):
             self.assertEqual(hand.count("defuse"), 1)
             self.assertEqual(len(hand), 8)
         self.assert_deck_count_equal("eggsplode", 5)
-        self.assert_deck_count_equal("defuse", 4)
 
     def test_expand_radioeggtive(self):
         self.players = ["forb", "dorb", "sorb", "iorb", "gorb", "morb"]
@@ -78,7 +75,6 @@ class TestGameSetup(unittest.TestCase):
         self.game.setup()
         self.assert_deck_count_equal("radioeggtive", 1)
         self.assert_deck_count_equal("eggsplode", 4)
-        self.assert_deck_count_equal("defuse", 4)
 
     def test_expand_eggsperiment(self):
         self.players = ["forb", "dorb", "sorb", "iorb", "gorb", "morb"]
@@ -86,7 +82,6 @@ class TestGameSetup(unittest.TestCase):
         self.game.setup()
         self.assert_deck_count_equal("eggsperiment", 2)
         self.assert_deck_count_equal("eggsplode", 5)
-        self.assert_deck_count_equal("defuse", 4)
 
     def test_trim_eggsperiment(self):
         self.players = ["forb", "dorb", "sorb", "iorb", "gorb"]
@@ -96,7 +91,6 @@ class TestGameSetup(unittest.TestCase):
             self.game.setup()
             self.assert_deck_count_equal("eggsperiment", 2)
             self.assert_deck_count_equal("eggsplode", 4)
-            self.assert_deck_count_equal("defuse", 4)
 
     def test_auto_amount(self):
         self.players = ["forb", "dorb", "sorb"]
