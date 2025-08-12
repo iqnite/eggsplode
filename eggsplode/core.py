@@ -99,7 +99,7 @@ class Game:
         self.ensure_minimum_eggsplode()
         self.shuffle_deck()
 
-    def hand_out(self, recipe, hand_out_pool):
+    def hand_out(self, recipe: dict, hand_out_pool: list):
         max_cards_per_player = min(
             recipe.get("cards_per_player", 8), len(hand_out_pool) // len(self.players)
         )
