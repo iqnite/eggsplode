@@ -135,6 +135,8 @@ class Game:
                 self.deck.append(card)
 
     def card_multiplier(self, multiply_beyond: int | None) -> int:
+        if multiply_beyond == 0:
+            raise ValueError("`multiply_beyond` cannot be 0")
         return (
             (1 + len(self.players) // multiply_beyond)
             if multiply_beyond is not None
