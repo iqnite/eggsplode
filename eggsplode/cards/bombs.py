@@ -6,14 +6,31 @@ Also contains defuse-like actions.
 import random
 from typing import TYPE_CHECKING
 import discord
+from eggsplode.strings import format_message
 from eggsplode.ui import ChoosePlayerView, DefuseView, TextView
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
+class GameOverView(discord.ui.View):
+    def __init__(self, winner):
+        super().__init__(timeout=None)
+        self.add_item(discord.ui.TextDisplay(format_message("game_over", winner)))
+        self.funding_container = discord.ui.Container(color=discord.Color.yellow())
+        self.add_item(self.funding_container)
+        self.funding_container.add_section(
+            discord.ui.TextDisplay(format_message("funding_title")),
+            accessory=discord.ui.Button(
+                label="Buy me a coffee",
+                emoji="☕",
+                url="https://buymeacoffee.com/phorb",
+            ),
+        )
+
+
 async def game_over(game: "Game", _):
-    await game.send(view=TextView("game_over", game.players[0]))
+    await game.send(view=GameOverView(game.players[0]))
     await game.events.game_end()
 
 
