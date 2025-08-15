@@ -26,6 +26,7 @@
     "end_game_button": "Yes, end now",
     "end_game_permission_denied": "❌ You don't have permission to interact with this view!",
     "end_game_warning": "⚠️ **This will end the game and remove all players from it.**\nAre you sure you want to end the game?",
+    "funding_title": "**Enjoyed the game?**",
     "game_already_exists": "❌ This channel already has a game running!",
     "game_cancelled": "**🚫 Everyone left, so the game has been cancelled. You can start a new game with </start:1325457141628141661>.**",
     "game_ended": "🚫 The current game has been ended manually by an administrator.",
