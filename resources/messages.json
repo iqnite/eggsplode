@@ -200,6 +200,7 @@
     "tooltip": "[**{}**](https://github.com/iqnite/eggsplode/wiki/Cards \"{}\")",
     "turn_warning": "-# Cards remaining on the deck: {} | Eggsplode cards: {}",
     "user_drew_card": "🃏 <@{}> drew a card!",
+    "user_has_no_cards": "❌ You have no cards to play!",
     "user_not_in_any_games": "❌ You are not in any games! Start a new one with </start:1325457141628141661>!",
     "user_not_in_game": "❌ You are not in this game!",
     "version_eggsplode": "Eggsplode Version: `{}`",

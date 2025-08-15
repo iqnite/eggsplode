@@ -21,7 +21,13 @@ class PlayView(discord.ui.View):
         self.action_id = game.action_id
         self.card_selects = []
         if self.playable:
-            self.play_prompt = discord.ui.TextDisplay(format_message("play_prompt"))
+            self.play_prompt = discord.ui.TextDisplay(
+                format_message(
+                    "play_prompt"
+                    if self.game.hands[self.user_id]
+                    else "user_has_no_cards"
+                )
+            )
             self.add_item(self.play_prompt)
         self.back_button: discord.ui.Button | None = None
         self.forward_button: discord.ui.Button | None = None
