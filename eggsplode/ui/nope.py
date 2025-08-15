@@ -175,6 +175,7 @@ class NopeView(BaseView):
         self.disable_all_items()
         self.remove_item(self.nope_button)
         self.remove_item(self.ok_button)
+        self.remove_item(self.timer_display)
         await interaction.edit(view=self)
         if self.ok_callback_action:
             await self.ok_callback_action(interaction)
