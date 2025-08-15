@@ -226,7 +226,7 @@ class EditRecipeModal(discord.ui.Modal):
             self.game.load_recipe(recipe_json)
         except COVERED_RECIPE_EXCEPTIONS as e:
             await interaction.respond(
-                view=TextView("recipe_json_error", e), ephemeral=True
+                view=TextView("recipe_json_error", e, recipe_json), ephemeral=True
             )
             return
         self.game.config["recipe"] = json.loads(recipe_json)
