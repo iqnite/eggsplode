@@ -291,7 +291,9 @@ class Game:
         self.anchor_interaction = interaction
         card, hold = await self.draw(interaction, self.deck.pop(index), timed_out)
         if hold:
-            await self.send(view=TextView("user_drew_card", turn_player))
+            await self.send(
+                view=TextView("user_drew_card", turn_player), anchor=interaction
+            )
             if not timed_out:
                 await interaction.respond(
                     view=TextView(
