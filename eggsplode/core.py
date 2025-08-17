@@ -120,7 +120,7 @@ class Game:
             self.deck.append("eggsplode")
 
     def trim_deck(self):
-        max_deck_size = self.config.get("deck_size", 25)
+        max_deck_size = self.config.get("deck_size", None)
         if not max_deck_size:
             return
         max_deck_size = int(max_deck_size)
