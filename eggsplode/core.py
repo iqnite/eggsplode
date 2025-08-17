@@ -64,6 +64,8 @@ class Game:
         hand_out_pool = []
 
         for card, info in self.recipe_cards.items():
+            if card not in CARDS:
+                raise ValueError(f"Card `{card}` does not exist")
             if isinstance(info, int):
                 cards_to_add = [card] * info * self.card_multiplier(5)
                 hand_out_pool += cards_to_add
