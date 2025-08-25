@@ -83,12 +83,12 @@ Time to install the dependencies!
 Python's package manager (pip) will automatically detect the required libraries if you run the following commands.
 
 ```bash
-python3 -m pip install --upgrade pip
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
 > [!TIP]
-> If one of these commands fails, try replacing `python3` with just `python` or `pip` with `pip3`.
+> If one of these commands fails, try replacing `python` with `python3` or `pip` with `pip3`.
 >
 > Although it is best practice to create a virtual environment, it is not strictly necessary. If your operating system enforces it, please google "python virtual environment" and go by a tutorial.
 
