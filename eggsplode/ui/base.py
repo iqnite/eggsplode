@@ -30,11 +30,23 @@ class BaseView(discord.ui.View):
 
 
 class TextView(discord.ui.View):
-    def __init__(self, key_or_text, *format_args, verbatim=False, **format_kwargs):
+    def __init__(
+        self,
+        key_or_text,
+        *format_args,
+        verbatim=False,
+        random_from_list=False,
+        **format_kwargs
+    ):
         super().__init__(
             discord.ui.TextDisplay(
                 key_or_text.format(*format_args, **format_kwargs)
                 if verbatim
-                else format_message(key_or_text, *format_args, **format_kwargs)
+                else format_message(
+                    key_or_text,
+                    *format_args,
+                    random_from_list=random_from_list,
+                    **format_kwargs
+                )
             )
         )

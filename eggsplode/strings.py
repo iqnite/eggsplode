@@ -4,6 +4,7 @@ Common strings used by modules.
 
 import os
 import json
+import random
 from dotenv import load_dotenv
 
 MAX_COMPONENTS = 40
@@ -39,11 +40,15 @@ def replace_emojis(text: str) -> str:
     return text
 
 
-def format_message(key: str, *format_args, **format_kwargs) -> str:
+def format_message(
+    key: str, *format_args, random_from_list: bool = False, **format_kwargs
+) -> str:
     message = MESSAGES[key]
     if isinstance(message, str):
         return replace_emojis(message.format(*format_args, **format_kwargs))
     if isinstance(message, list):
+        if random_from_list:
+            return replace_emojis(random.choice(message).format(*format_args, **format_kwargs))
         return replace_emojis("\n".join(message).format(*format_args, **format_kwargs))
     raise ValueError(f"Invalid message format for key: {key}")
 
