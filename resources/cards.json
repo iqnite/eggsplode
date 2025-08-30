@@ -24,7 +24,7 @@
     "skip": {
         "title": "Skip",
         "description": "End your turn without drawing.",
-        "emoji": "🏃‍➡️",
+        "emoji": "🏃‍♂️‍➡️",
         "usable": true
     },
     "shuffle": {
