@@ -123,9 +123,7 @@ class PlayView(discord.ui.View):
             await interaction.edit(view=TextView("not_your_turn"), delete_after=5)
             return
         if self.action_id != self.game.action_id:
-            await interaction.edit(
-                view=TextView(format_message("invalid_turn")), delete_after=10
-            )
+            await interaction.edit(view=TextView("invalid_turn"), delete_after=10)
             return
         self.game.action_id += 1
         self.action_id = self.game.action_id
