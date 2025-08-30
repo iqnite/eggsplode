@@ -50,9 +50,13 @@ class PlayView(discord.ui.View):
             return
         for card, count in user_cards.items():
             card_playable = (
-                self.playable
+                not self.game.paused
                 and CARDS[card].get("usable", False)
                 and (CARDS[card].get("combo", 0) == 0 or count > 1)
+                and (
+                    CARDS[card].get("now", False)
+                    or self.game.current_player_id == self.user_id
+                )
             )
             section = discord.ui.Section(
                 discord.ui.TextDisplay(
@@ -115,7 +119,7 @@ class PlayView(discord.ui.View):
         return button
 
     async def play_card(self, card: str, interaction: discord.Interaction):
-        if not self.playable:
+        if self.game.paused:
             await interaction.edit(view=TextView("not_your_turn"), delete_after=5)
             return
         if self.action_id != self.game.action_id:

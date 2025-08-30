@@ -121,7 +121,6 @@
         "usable": true,
         "now": true
     },
-
     "reverse": {
         "title": "Reverse",
         "description": "End your turn without drawing and reverse the order of play.",

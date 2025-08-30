@@ -23,9 +23,7 @@ async def show_next_cards(
     amount: int = 3,
 ):
     next_cards = "\n".join(
-        format_message(
-            "list_item_1", tooltip(card)
-        )
+        format_message("list_item_1", tooltip(card))
         for card in deck[-1 : -amount - 1 : -1]
     )
     await interaction.respond(
@@ -37,7 +35,7 @@ async def show_next_cards(
 
 
 async def alter_future_finish(game: "Game", _):
-    await game.send(view=TextView("altered_future", game.current_player_id))
+    await game.send(view=TextView("altered_future", game.action_player_id))
     await game.events.action_end()
 
 

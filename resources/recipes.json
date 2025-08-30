@@ -82,12 +82,13 @@
             "bury": 2,
             "self_attegg": 4,
             "share_future": 2,
+            "alter_future_now": 2,
             "super_skip": 1,
             "dig_deeper": 4
         }
     },
     "all_cards": {
-        "name": "(Almost) all cards",
+        "name": "All cards",
         "description": "The classic game + the Radioeggtive and Eggsperiment expansions",
         "emoji": "💯",
         "cards": {
@@ -129,8 +130,10 @@
             "bury": 2,
             "self_attegg": 4,
             "share_future": 2,
+            "alter_future_now": 2,
             "super_skip": 1,
-            "dig_deeper": 4
+            "dig_deeper": 4,
+            "swap_top_bottom": 4
         }
     },
     "mind_games": {
