@@ -257,7 +257,7 @@ class Game:
     async def action_check(self, interaction: discord.Interaction) -> bool:
         if not interaction.user:
             raise TypeError("interaction.user is None")
-        if interaction.user.id != self.current_player_id:
+        if interaction.user.id != self.action_player_id:
             await interaction.respond(
                 view=TextView("not_your_turn"), ephemeral=True, delete_after=5
             )
@@ -285,9 +285,13 @@ class Game:
         await self.events.turn_reset()
 
     async def play_callback(self, interaction: discord.Interaction, card: str):
+        if not interaction.user:
+            return
+        if CARDS[card].get("now"):
+            self.action_player_id = interaction.user.id
         if not await self.action_check(interaction):
             return
-        self.current_player_hand.remove(card)
+        self.action_player_hand.remove(card)
         await self.events.action_start()
         if CARDS[card].get("explicit", False):
             await self.play(interaction, card)
@@ -298,7 +302,7 @@ class Game:
                 message=format_message(
                     "play_card",
                     CARDS[card]["emoji"],
-                    self.current_player_id,
+                    self.action_player_id,
                     tooltip(card, emoji=False),
                 ),
             )
