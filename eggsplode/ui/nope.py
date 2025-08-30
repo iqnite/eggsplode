@@ -104,7 +104,7 @@ class NopeView(BaseView):
         if not interaction.user:
             await interaction.edit(view=self)
             return
-        if not self.noped and self.game.current_player_id == interaction.user.id:
+        if not self.noped and self.game.action_player_id == interaction.user.id:
             await interaction.respond(
                 view=TextView("no_self_nope"), ephemeral=True, delete_after=5
             )
@@ -145,7 +145,7 @@ class NopeView(BaseView):
             )
             return
         if self.target_player_id is None:
-            if self.game.current_player_id == interaction.user.id:
+            if self.game.action_player_id == interaction.user.id:
                 await interaction.respond(
                     view=TextView("no_self_ok"), ephemeral=True, delete_after=5
                 )

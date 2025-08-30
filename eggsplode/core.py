@@ -25,6 +25,7 @@ class Game:
         self.hands: dict[int, list[str]] = {}
         self.deck: list[str] = []
         self.current_player: int = 0
+        self._action_player_id: int | None = None
         self.action_id: int = 0
         self.remaining_turns: int = 0
         self.events = EventSet()
@@ -173,6 +174,22 @@ class Game:
         return self.hands[self.current_player_id]
 
     @property
+    def action_player_id(self) -> int:
+        return (
+            self.current_player_id
+            if self._action_player_id is None
+            else self._action_player_id
+        )
+
+    @action_player_id.setter
+    def action_player_id(self, value: int | None):
+        self._action_player_id = value
+
+    @property
+    def action_player_hand(self) -> list[str]:
+        return self.hands[self.action_player_id]
+
+    @property
     def next_player(self) -> int:
         return (
             0
@@ -200,6 +217,7 @@ class Game:
     async def next_turn(self):
         self.action_id += 1
         self.last_activity = datetime.now()
+        self.action_player_id = None
         if self.remaining_turns > 1:
             self.remaining_turns -= 1
             if self.remaining_turns == 1:
@@ -366,6 +384,7 @@ class Game:
         if not self.active:
             return
         self.reset_timer()
+        self.action_player_id = None
         self.action_id += 1
         self.paused = False
         await self.send(view=TurnView(self))
