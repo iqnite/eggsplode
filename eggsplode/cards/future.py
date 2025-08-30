@@ -52,33 +52,30 @@ class AlterFutureView(SelectionView):
         self.callback_action = callback_action
         self.selects: list[discord.ui.Select] = []
         self.add_item(self.confirm_button)
+        self.add_item(discord.ui.TextDisplay(format_message("next_cards")))
         self.create_selections()
 
     def create_selections(self):
-        card_options = [
-            discord.SelectOption(
-                value=f"{i}:{card}",
-                label=CARDS[card]["title"],
-                description=CARDS[card]["description"][:99],
-                emoji=replace_emojis(CARDS[card]["emoji"]),
-            )
-            for i, card in enumerate(
-                self.game.deck[-1 : -self.amount_of_cards - 1 : -1]
-            )
-        ]
         for select in self.selects:
             self.remove_item(select)
         self.selects = []
         for i in range(self.amount_of_cards):
+            card_options = [
+                discord.SelectOption(
+                    value=f"{j}:{card}",
+                    label=CARDS[card]["title"],
+                    description=CARDS[card]["description"][:99],
+                    emoji=replace_emojis(CARDS[card]["emoji"]),
+                    default=j == i,
+                )
+                for j, card in enumerate(
+                    self.game.deck[-1 : -self.amount_of_cards - 1 : -1]
+                )
+            ]
             select = discord.ui.Select(
-                placeholder=format_message(
-                    "alter_future_placeholder",
-                    i + 1,
-                    CARDS[self.game.deck[-i - 1]]["title"],
-                ),
+                options=card_options,
                 min_values=1,
                 max_values=1,
-                options=card_options,
             )
             select.callback = self.selection_callback
             self.selects.append(select)
