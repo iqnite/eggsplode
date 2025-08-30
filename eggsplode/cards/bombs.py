@@ -90,7 +90,7 @@ async def radioeggtive(
 async def radioeggtive_face_up(
     game: "Game", interaction: discord.Interaction, timed_out: bool | None = False
 ):
-    prev_player = game.action_player_id
+    prev_player = game.current_player_id
     game.remove_player(prev_player)
     game.remaining_turns = 0
     await game.send(view=TextView("radioeggtive_face_up", prev_player))
