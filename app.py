@@ -42,11 +42,11 @@ if log_path != "":
     sys.excepthook = handle_exception
 
 app = EggsplodeApp(
-    activity=discord.Activity(type=discord.ActivityType.watching, name="you")
+    activity=discord.Activity(type=discord.ActivityType.watching, name="you"),
+    logger=logger,
 )
 
 if __name__ == "__main__":
     if log_path != "":
-        logger.info("PROGRAM STARTED!")
-    print("PROGRAM STARTED!")
+        logger.info("Program started!")
     app.run(DISCORD_TOKEN)

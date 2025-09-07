@@ -17,9 +17,10 @@ if TYPE_CHECKING:
 
 
 class Game:
-    def __init__(self, app: "EggsplodeApp", config: dict):
+    def __init__(self, app: "EggsplodeApp", config: dict, game_id=0):
         self.app = app
         self.config = config
+        self.id = game_id
         self.recipe_cards: dict[str, int | dict] = {}
         self.players: list[int] = []
         self.hands: dict[int, list[str]] = {}
@@ -151,6 +152,7 @@ class Game:
         self.last_activity = datetime.now()
         self.inactivity_count = 0
         self.started = True
+        self.app.logger.info(f"Game {self.id} started with players: {self.players}")
         await self.send(view=TextView("game_started"), anchor=interaction)
         await self.events.turn_start()
         await self.action_timer()
@@ -373,6 +375,7 @@ class Game:
         self.pause()
         self.inactivity_count += 1
         if self.inactivity_count > 5:
+            self.app.logger.info(f"Game {self.id} ended due to inactivity.")
             await self.send(view=TextView("game_timeout"))
             await self.events.game_end()
             return
@@ -406,6 +409,7 @@ class Game:
         self.deck = []
         self.action_id = 0
         self.remaining_turns = 0
+        self.app.logger.info(f"Game {self.id} ended.")
 
     async def send(
         self,
