@@ -53,7 +53,13 @@ async def eggsplode(
     prev_player = game.current_player_id
     game.remove_player(prev_player)
     game.remaining_turns = 0
-    await game.send(view=TextView("eggsploded", prev_player))
+    await game.send(
+        view=TextView(
+            "eggsploded",
+            prev_player,
+            format_message("death_messages", random_from_list=True),
+        )
+    )
     if len(game.players) == 1:
         await game_over(game, interaction)
         return
@@ -93,7 +99,13 @@ async def radioeggtive_face_up(
     prev_player = game.current_player_id
     game.remove_player(prev_player)
     game.remaining_turns = 0
-    await game.send(view=TextView("radioeggtive_face_up", prev_player))
+    await game.send(
+        view=TextView(
+            "radioeggtive_face_up",
+            prev_player,
+            format_message("death_messages", random_from_list=True),
+        )
+    )
     if len(game.players) == 1:
         await game_over(game, interaction)
         return
@@ -117,6 +129,7 @@ async def eggsperiment_finish(game: "Game", _, target_player_id: int, pair=False
                 "eggsperiment_pair_eggsploded" if pair else "eggsperiment_eggsploded",
                 game.current_player_id,
                 target_player_id,
+                format_message("death_messages", random_from_list=True),
             ),
         )
         del game.players[game.players.index(target_player_id)]
