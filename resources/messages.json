@@ -132,7 +132,7 @@
     "list_games_title": "📋 **Games:**\n{}",
     "list_item_1": "- {}",
     "list_item_2": "- {} {}",
-    "maintenance": "⚠️ The bot is currently under maintenance. [More info](https://discord.gg/8dH5GvGjg4)",
+    "maintenance": "⚠️ The bot is currently under maintenance. For more info, check our [Discord server](https://discord.gg/8dH5GvGjg4).",
     "maintenance_mode_no_games_running": "✅ No games running.",
     "maintenance_mode_toggle": "🔧 Maintenance mode **{}**. {}",
     "message_edit_on_nope": "🛑 <@{}>: **Nope!**",
