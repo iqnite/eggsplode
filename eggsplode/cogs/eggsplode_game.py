@@ -131,7 +131,7 @@ class EggsplodeGame(commands.Cog):
         },
     )
     async def list_user_games(self, ctx: discord.ApplicationContext):
-        self.app.cleanup()
+        self.app.remove_inactive_games()
         if not ctx.interaction.user:
             return
         found_games = self.app.games_with_user(ctx.interaction.user.id)
