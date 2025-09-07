@@ -24,7 +24,7 @@
     "skip": {
         "title": "Skip",
         "description": "End your turn without drawing.",
-        "emoji": "🏃‍➡️",
+        "emoji": "🏃‍♂️‍➡️",
         "usable": true
     },
     "shuffle": {
@@ -115,12 +115,12 @@
         "usable": true
     },
     "alter_future_now": {
-        "title": "Alter the future",
-        "description": "Look at the next 3 cards on the deck and rearrange them how you want.",
+        "title": "Alter the future NOW⚡",
+        "description": "Look at the next 3 cards on the deck and rearrange them how you want. Can be played anytime.",
         "emoji": "🪄",
-        "usable": true
+        "usable": true,
+        "now": true
     },
-
     "reverse": {
         "title": "Reverse",
         "description": "End your turn without drawing and reverse the order of play.",

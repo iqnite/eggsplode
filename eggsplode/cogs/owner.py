@@ -49,7 +49,7 @@ class Owner(commands.Cog):
     )
     @commands.is_owner()
     async def maintenance(self, ctx: discord.ApplicationContext):
-        self.app.cleanup()
+        self.app.remove_inactive_games()
         self.app.admin_maintenance = not self.app.admin_maintenance
         await ctx.respond(
             format_message(

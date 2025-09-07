@@ -3,24 +3,27 @@ Contains the commands for the Eggsplode game.
 """
 
 from datetime import datetime
+import logging
 import discord
 from discord.ext import commands
 from eggsplode.core import Game
+from eggsplode.strings import GAME_TIMEOUT
 from eggsplode.ui import StartGameView
 from eggsplode.ui.base import TextView
 
 
 class EggsplodeApp(commands.Bot):
-    def __init__(self, **kwargs):
+    def __init__(self, logger: logging.Logger, **kwargs):
         super().__init__(**kwargs)
         self.admin_maintenance: bool = False
         self.games: dict[int, Game] = {}
+        self.logger = logger
         self.load_extension("eggsplode.cogs.eggsplode_game")
         self.load_extension("eggsplode.cogs.misc")
         self.load_extension("eggsplode.cogs.owner")
 
     async def on_ready(self):
-        print("APP READY!")
+        self.logger.info("App ready!")
 
     def games_with_user(self, user_id: int) -> list[int]:
         return [
@@ -30,12 +33,13 @@ class EggsplodeApp(commands.Bot):
             and game.active
         ]
 
-    def cleanup(self):
+    def remove_inactive_games(self):
         for game_id in list(self.games):
             if (
                 datetime.now() - self.games[game_id].last_activity
-            ).total_seconds() > 1800:
+            ).total_seconds() > GAME_TIMEOUT or not self.games[game_id].active:
                 del self.games[game_id]
+                self.logger.info(f"Cleaned up game {game_id}.")
 
     @property
     def game_count(self) -> int:
@@ -46,7 +50,7 @@ class EggsplodeApp(commands.Bot):
         return count
 
     async def create_game(self, interaction: discord.Interaction, config=None):
-        self.cleanup()
+        self.remove_inactive_games()
         if self.admin_maintenance:
             await interaction.respond(view=TextView("maintenance"), ephemeral=True)
             return
@@ -68,7 +72,9 @@ class EggsplodeApp(commands.Bot):
                 if config is None
                 else config
             ),
+            game_id=game_id,
         )
         game.anchor_interaction = interaction
+        self.logger.info(f"Game created: {game_id}")
         view = StartGameView(game)
         await interaction.respond(view=view)

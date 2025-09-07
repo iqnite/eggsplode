@@ -37,8 +37,8 @@ async def game_over(game: "Game", _):
 async def eggsplode(
     game: "Game", interaction: discord.Interaction, timed_out: bool = False
 ):
-    if "defuse" in game.hands[game.current_player_id]:
-        game.hands[game.current_player_id].remove("defuse")
+    if "defuse" in game.current_player_hand:
+        game.current_player_hand.remove("defuse")
         if timed_out:
             game.deck.insert(random.randint(0, len(game.deck)), "eggsplode")
             await game.send(view=TextView("defused", game.current_player_id))
@@ -102,13 +102,12 @@ async def radioeggtive_face_up(
 
 
 async def eggsperiment_finish(game: "Game", _, target_player_id: int, pair=False):
-    current_player_id = game.current_player_id
     if "defuse" in game.hands[target_player_id]:
         game.hands[target_player_id].remove("defuse")
         await game.send(
             view=TextView(
                 "eggsperiment_pair_defused" if pair else "eggsperiment_defused",
-                current_player_id,
+                game.current_player_id,
                 target_player_id,
             ),
         )
@@ -116,13 +115,13 @@ async def eggsperiment_finish(game: "Game", _, target_player_id: int, pair=False
         await game.send(
             view=TextView(
                 "eggsperiment_pair_eggsploded" if pair else "eggsperiment_eggsploded",
-                current_player_id,
+                game.current_player_id,
                 target_player_id,
             ),
         )
         del game.players[game.players.index(target_player_id)]
         del game.hands[target_player_id]
-        game.current_player = game.players.index(current_player_id)
+        game.current_player = game.players.index(game.current_player_id)
         if len(game.players) == 1:
             await game_over(game, _)
             return

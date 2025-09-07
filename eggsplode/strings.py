@@ -31,7 +31,8 @@ try:
 except FileNotFoundError:
     EMOJIS = {}
 
-TEST_GUILD_ID: int = CONFIG.get("test_guild_id", 0)
+TEST_GUILD_ID: int = int(CONFIG.get("test_guild_id", 0))
+GAME_TIMEOUT: int = int(CONFIG.get("game_timeout", 1800))
 
 
 def replace_emojis(text: str) -> str:

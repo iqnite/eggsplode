@@ -17,14 +17,16 @@ if TYPE_CHECKING:
 
 
 class Game:
-    def __init__(self, app: "EggsplodeApp", config: dict):
+    def __init__(self, app: "EggsplodeApp", config: dict, game_id=0):
         self.app = app
         self.config = config
+        self.id = game_id
         self.recipe_cards: dict[str, int | dict] = {}
         self.players: list[int] = []
         self.hands: dict[int, list[str]] = {}
         self.deck: list[str] = []
         self.current_player: int = 0
+        self._action_player_id: int | None = None
         self.action_id: int = 0
         self.remaining_turns: int = 0
         self.events = EventSet()
@@ -150,6 +152,7 @@ class Game:
         self.last_activity = datetime.now()
         self.inactivity_count = 0
         self.started = True
+        self.app.logger.info(f"Game {self.id} started with players: {self.players}")
         await self.send(view=TextView("game_started"), anchor=interaction)
         await self.events.turn_start()
         await self.action_timer()
@@ -171,6 +174,22 @@ class Game:
     @property
     def current_player_hand(self) -> list[str]:
         return self.hands[self.current_player_id]
+
+    @property
+    def action_player_id(self) -> int:
+        return (
+            self.current_player_id
+            if self._action_player_id is None
+            else self._action_player_id
+        )
+
+    @action_player_id.setter
+    def action_player_id(self, value: int | None):
+        self._action_player_id = value
+
+    @property
+    def action_player_hand(self) -> list[str]:
+        return self.hands[self.action_player_id]
 
     @property
     def next_player(self) -> int:
@@ -200,6 +219,7 @@ class Game:
     async def next_turn(self):
         self.action_id += 1
         self.last_activity = datetime.now()
+        self.action_player_id = None
         if self.remaining_turns > 1:
             self.remaining_turns -= 1
             if self.remaining_turns == 1:
@@ -239,7 +259,7 @@ class Game:
     async def action_check(self, interaction: discord.Interaction) -> bool:
         if not interaction.user:
             raise TypeError("interaction.user is None")
-        if interaction.user.id != self.current_player_id:
+        if interaction.user.id != self.action_player_id:
             await interaction.respond(
                 view=TextView("not_your_turn"), ephemeral=True, delete_after=5
             )
@@ -267,9 +287,13 @@ class Game:
         await self.events.turn_reset()
 
     async def play_callback(self, interaction: discord.Interaction, card: str):
+        if not interaction.user:
+            return
+        if CARDS[card].get("now"):
+            self.action_player_id = interaction.user.id
         if not await self.action_check(interaction):
             return
-        self.current_player_hand.remove(card)
+        self.action_player_hand.remove(card)
         await self.events.action_start()
         if CARDS[card].get("explicit", False):
             await self.play(interaction, card)
@@ -280,7 +304,7 @@ class Game:
                 message=format_message(
                     "play_card",
                     CARDS[card]["emoji"],
-                    self.current_player_id,
+                    self.action_player_id,
                     tooltip(card, emoji=False),
                 ),
             )
@@ -351,6 +375,7 @@ class Game:
         self.pause()
         self.inactivity_count += 1
         if self.inactivity_count > 5:
+            self.app.logger.info(f"Game {self.id} ended due to inactivity.")
             await self.send(view=TextView("game_timeout"))
             await self.events.game_end()
             return
@@ -366,6 +391,7 @@ class Game:
         if not self.active:
             return
         self.reset_timer()
+        self.action_player_id = None
         self.action_id += 1
         self.paused = False
         await self.send(view=TurnView(self))
@@ -383,6 +409,7 @@ class Game:
         self.deck = []
         self.action_id = 0
         self.remaining_turns = 0
+        self.app.logger.info(f"Game {self.id} ended.")
 
     async def send(
         self,
