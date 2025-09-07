@@ -35,6 +35,7 @@ class Misc(commands.Cog):
     async def info(self, ctx: discord.ApplicationContext):
         await ctx.defer(ephemeral=True)
         view = InfoView(self.app)
+        await view.create_container()
         await ctx.respond(view=view, ephemeral=True)
 
     @discord.message_command(

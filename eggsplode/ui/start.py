@@ -384,52 +384,6 @@ class InfoView(discord.ui.View):
         super().__init__(timeout=None)
         self.app = app
         self.container = discord.ui.Container()
-        self.container.add_section(
-            discord.ui.TextDisplay(
-                format_message("version_eggsplode", INFO["version"])
-            ),
-            discord.ui.TextDisplay(
-                format_message("version_pycord", discord.__version__)
-            ),
-            accessory=discord.ui.Button(
-                label="Change log",
-                url="https://github.com/iqnite/eggsplode/releases",
-                emoji="📜",
-            ),
-        )
-        self.container.add_separator()
-        self.container.add_text(
-            format_message("status_latency", self.app.latency * 1000)
-        )
-        uptime = get_uptime()
-        self.container.add_text(
-            format_message(
-                "status_uptime",
-                uptime.days,
-                uptime.seconds // 3600,
-                (uptime.seconds // 60) % 60,
-                uptime.seconds % 60,
-            )
-        )
-        self.container.add_text(
-            format_message("status_memory", psutil.virtual_memory().percent)
-        )
-        self.container.add_separator()
-        self.container.add_section(
-            discord.ui.TextDisplay(
-                format_message("status_server_installs", len(self.app.guilds))
-            ),
-            # discord.ui.TextDisplay(
-            #     format_message("status_user_installs", len(self.app.users))
-            # ),
-            accessory=discord.ui.Button(
-                label="Install",
-                url="https://discord.com/oauth2/authorize?client_id=1325443178622484590",
-                emoji="➕",
-            ),
-        )
-        if self.app.admin_maintenance:
-            self.container.add_text(format_message("maintenance"))
         self.add_item(self.container)
         self.add_item(
             discord.ui.Button(
@@ -470,6 +424,60 @@ class InfoView(discord.ui.View):
                 emoji="🎉",
             )
         )
+
+    async def create_container(self):
+        self.container.add_section(
+            discord.ui.TextDisplay(
+                format_message("version_eggsplode", INFO["version"])
+            ),
+            discord.ui.TextDisplay(
+                format_message("version_pycord", discord.__version__)
+            ),
+            accessory=discord.ui.Button(
+                label="Change log",
+                url="https://github.com/iqnite/eggsplode/releases",
+                emoji="📜",
+            ),
+        )
+        self.container.add_separator()
+        self.container.add_text(
+            format_message("status_latency", self.app.latency * 1000)
+        )
+        uptime = get_uptime()
+        self.container.add_text(
+            format_message(
+                "status_uptime",
+                uptime.days,
+                uptime.seconds // 3600,
+                (uptime.seconds // 60) % 60,
+                uptime.seconds % 60,
+            )
+        )
+        self.container.add_text(
+            format_message("status_memory", psutil.virtual_memory().percent)
+        )
+        self.container.add_separator()
+        application_info = await self.app.application_info()
+        self.container.add_section(
+            discord.ui.TextDisplay(
+                format_message(
+                    "status_server_installs", application_info.approximate_guild_count
+                )
+            ),
+            discord.ui.TextDisplay(
+                format_message(
+                    "status_user_installs",
+                    application_info.approximate_user_install_count,
+                )
+            ),
+            accessory=discord.ui.Button(
+                label="Install",
+                url="https://discord.com/oauth2/authorize?client_id=1325443178622484590",
+                emoji="➕",
+            ),
+        )
+        if self.app.admin_maintenance:
+            self.container.add_text(format_message("maintenance"))
 
 
 def get_uptime() -> datetime.timedelta:
