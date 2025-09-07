@@ -7,6 +7,7 @@ import logging
 import discord
 from discord.ext import commands
 from eggsplode.core import Game
+from eggsplode.strings import GAME_TIMEOUT
 from eggsplode.ui import StartGameView
 from eggsplode.ui.base import TextView
 
@@ -32,11 +33,11 @@ class EggsplodeApp(commands.Bot):
             and game.active
         ]
 
-    def cleanup(self):
+    def remove_inactive_games(self):
         for game_id in list(self.games):
             if (
                 datetime.now() - self.games[game_id].last_activity
-            ).total_seconds() > 1800 or not self.games[game_id].active:
+            ).total_seconds() > GAME_TIMEOUT or not self.games[game_id].active:
                 del self.games[game_id]
                 self.logger.info(f"Cleaned up game {game_id}.")
 
@@ -49,7 +50,7 @@ class EggsplodeApp(commands.Bot):
         return count
 
     async def create_game(self, interaction: discord.Interaction, config=None):
-        self.cleanup()
+        self.remove_inactive_games()
         if self.admin_maintenance:
             await interaction.respond(view=TextView("maintenance"), ephemeral=True)
             return
