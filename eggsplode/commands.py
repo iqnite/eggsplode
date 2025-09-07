@@ -36,7 +36,7 @@ class EggsplodeApp(commands.Bot):
         for game_id in list(self.games):
             if (
                 datetime.now() - self.games[game_id].last_activity
-            ).total_seconds() > 1800:
+            ).total_seconds() > 1800 or not self.games[game_id].active:
                 del self.games[game_id]
                 self.logger.info(f"Cleaned up game {game_id}.")
 
