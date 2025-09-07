@@ -196,7 +196,7 @@
     "swapped_top_bottom": "↕️ <@{}> swapped the top and bottom cards on the deck!",
     "targeted_attegg_prompt": "Choose a player to attack.",
     "terminal_response": "Running terminal command: `{}`",
-    "timeout": "*Time's up.*",
+    "timeout": "*🥱 This turn took too long.*",
     "timer": "-# Finishes <t:{}:R>",
     "tooltip": "[**{}**](https://github.com/iqnite/eggsplode/wiki/Cards \"{}\")",
     "turn_warning": "-# Cards remaining on the deck: {} | Eggsplode cards: {}",
