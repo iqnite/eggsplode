@@ -8,5 +8,6 @@
         "ms-python.python",
         "ms-python.vscode-pylance",
         "richie5um2.vscode-sort-json"
-    ]
+    ],
+    "unwantedRecommendations": ["ms-python.autopep8"]
 }
