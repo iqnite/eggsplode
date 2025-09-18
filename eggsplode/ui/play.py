@@ -75,11 +75,8 @@ class PlayView(discord.ui.View):
                 ),
             )
 
-            def make_callback(card_value):
-                return lambda interaction: self.play_card(card_value, interaction)
-
             assert isinstance(section.accessory, discord.ui.Button)
-            section.accessory.callback = make_callback(card)
+            section.accessory.callback = self.make_callback(card)
             self.card_selects.append(section)
 
         for item in self.children[1:]:
@@ -96,6 +93,12 @@ class PlayView(discord.ui.View):
                 self.forward_button = self.create_button(1)
             if self.page_count > 2 or self.page_number == 1:
                 self.back_button = self.create_button(-1)
+
+    def make_callback(self, card_value):
+        async def callback(interaction: discord.Interaction):
+            await self.play_card(card_value, interaction)
+
+        return callback
 
     def create_button(self, step: int) -> discord.ui.Button:
         to_page = self.page_number + step
