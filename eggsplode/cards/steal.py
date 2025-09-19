@@ -21,7 +21,8 @@ async def food_combo_finish(
     target_hand = game.hands[target_player_id]
     if not target_hand:
         await game.send(
-            view=TextView("no_cards_to_steal", game.current_player_id, target_player_id)
+            TextView("no_cards_to_steal", game.current_player_id, target_player_id),
+            interaction,
         )
         await game.events.action_end()
         return
@@ -29,7 +30,8 @@ async def food_combo_finish(
     game.hands[target_player_id].remove(stolen_card)
     game.current_player_hand.append(stolen_card)
     await game.send(
-        view=TextView("stolen_card_public", game.current_player_id, target_player_id)
+        TextView("stolen_card_public", game.current_player_id, target_player_id),
+        interaction,
     )
     try:
         await interaction.respond(
@@ -71,7 +73,7 @@ async def food_combo_begin(
             game, interaction, target_interaction, target_player_id
         ),
     )
-    await game.send(view=view)
+    await game.send(view, interaction)
 
 
 async def food_combo(game: "Game", interaction: discord.Interaction, card: str):

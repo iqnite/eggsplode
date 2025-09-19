@@ -35,7 +35,7 @@ class Game:
         self.started = False
         self.paused = False
         self.inactivity_count = 0
-        self.anchor_interaction: discord.Interaction | None = None
+        self.last_interaction: discord.Interaction | None = None
         self.play_actions: dict[
             str, Callable[[Game, discord.Interaction], Coroutine]
         ] = cards.PLAY_ACTIONS
@@ -153,7 +153,7 @@ class Game:
         self.inactivity_count = 0
         self.started = True
         self.app.logger.info(f"Game {self.id} started with players: {self.players}")
-        await self.send(view=TextView("game_started"), anchor=interaction)
+        await self.send(TextView("game_started"), interaction)
         await self.events.turn_start()
         await self.action_timer()
 
@@ -308,17 +308,17 @@ class Game:
                     tooltip(card, emoji=False),
                 ),
             )
-            await self.send(view=view)
+            await self.send(view, interaction)
 
     async def draw_from(
         self, interaction: discord.Interaction, index: int = -1, timed_out: bool = False
     ) -> tuple[str, bool]:
         turn_player: int = self.current_player_id
-        self.anchor_interaction = interaction
+        self.last_interaction = interaction
         card, hold = await self.draw(interaction, self.deck.pop(index), timed_out)
         if hold:
             await self.send(
-                view=TextView("user_drew_card", turn_player), anchor=interaction
+                view=TextView("user_drew_card", turn_player), interaction=interaction
             )
             if not timed_out:
                 await interaction.respond(
@@ -368,20 +368,20 @@ class Game:
             await asyncio.sleep(5)
 
     async def on_action_timeout(self):
-        if self.anchor_interaction is None:
-            raise TypeError("anchor_interaction is None")
+        if self.last_interaction is None:
+            raise TypeError("last_interaction is None")
         if not self.active:
             return
         self.pause()
         self.inactivity_count += 1
         if self.inactivity_count > 5:
             self.app.logger.info(f"Game {self.id} ended due to inactivity.")
-            await self.send(view=TextView("game_timeout"))
+            await self.send(TextView("game_timeout"), None)
             await self.events.game_end()
             return
         self.last_activity = datetime.now()
-        await self.send(view=TextView("timeout"))
-        await self.draw_from(self.anchor_interaction, timed_out=True)
+        await self.send(TextView("timeout"), None)
+        await self.draw_from(self.last_interaction, timed_out=True)
         await self.events.turn_end()
 
     def pause(self):
@@ -394,7 +394,7 @@ class Game:
         self.action_player_id = None
         self.action_id += 1
         self.paused = False
-        await self.send(view=TurnView(self))
+        await self.send(TurnView(self), None)
 
     def reset_timer(self):
         self.last_activity = datetime.now()
@@ -413,25 +413,17 @@ class Game:
 
     async def send(
         self,
-        message: str | None = None,
-        view: discord.ui.View | None = None,
-        anchor: discord.Interaction | None = None,
+        view: discord.ui.View,
+        interaction: discord.Interaction | None,
     ):
-        use_view = view
-        if message is not None:
-            if use_view is None:
-                use_view = discord.ui.View()
-            use_view.add_item(discord.ui.TextDisplay(message))
-        if use_view is None:
-            raise ValueError("Either message or view must be provided")
-        if anchor is not None:
-            self.anchor_interaction = anchor
-        if self.anchor_interaction is None:
-            raise ValueError("anchor_interaction is None")
+        if interaction is not None:
+            self.last_interaction = interaction
+        if self.last_interaction is None:
+            raise ValueError("last_interaction is None")
         try:
-            await self.anchor_interaction.response.send_message(view=use_view)
+            await self.last_interaction.response.send_message(view=view)
         except discord.errors.InteractionResponded:
-            await self.anchor_interaction.followup.send(view=use_view)
+            await self.last_interaction.followup.send(view=view)
 
     @property
     def turn_prompt(self) -> str:
