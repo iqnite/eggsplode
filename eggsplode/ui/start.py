@@ -106,6 +106,7 @@ class StartGameView(discord.ui.View):
             accessory=self.advanced_settings_button,
         )
         self.add_item(self.settings_container)
+        self.add_item(discord.ui.TextDisplay(format_message("hang_warning")))
 
     async def on_timeout(self):
         await self.game.events.game_end()
