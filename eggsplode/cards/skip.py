@@ -77,7 +77,7 @@ class DigDeeperView(SelectionView):
 
     async def finish(self, interaction: discord.Interaction | None = None):
         if not interaction:
-            interaction = self.game.anchor_interaction
+            interaction = self.game.last_interaction
             if not interaction:
                 raise ValueError("No anchor interaction set for the game.")
         _, hold = await self.game.draw_from(interaction)
@@ -103,5 +103,5 @@ async def dig_deeper(game: "Game", interaction: discord.Interaction):
         game.current_player_hand.append("dig_deeper")
         await game.events.action_end()
         return
-    game.anchor_interaction = interaction
+    game.last_interaction = interaction
     await interaction.respond(view=DigDeeperView(game), ephemeral=True)

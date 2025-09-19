@@ -11,9 +11,9 @@ if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-async def shuffle(game: "Game", _):
+async def shuffle(game: "Game", interaction: discord.Interaction):
     game.shuffle_deck()
-    await game.send(view=TextView("shuffled", game.current_player_id))
+    await game.send(TextView("shuffled", game.current_player_id), interaction)
     await game.events.action_end()
 
 
@@ -26,7 +26,7 @@ async def swap_top_bottom(game: "Game", interaction: discord.Interaction):
         await game.events.action_end()
         return
     game.deck[-1], game.deck[0] = game.deck[0], game.deck[-1]
-    await game.send(view=TextView("swapped_top_bottom", game.current_player_id))
+    await game.send(TextView("swapped_top_bottom", game.current_player_id), interaction)
     await game.events.action_end()
 
 

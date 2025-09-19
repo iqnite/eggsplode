@@ -33,7 +33,7 @@ class TurnView(BaseView):
     async def interaction_check(self, interaction: discord.Interaction):
         if not await super().interaction_check(interaction):
             return False
-        self.game.anchor_interaction = interaction
+        self.game.last_interaction = interaction
         self.game.inactivity_count = 0
         return True
 

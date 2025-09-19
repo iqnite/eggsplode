@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 async def see_future(game: "Game", interaction: discord.Interaction):
-    await game.send(view=TextView("predicted", game.current_player_id))
+    await game.send(TextView("predicted", game.current_player_id), interaction)
     await show_next_cards(interaction, game.deck)
     await game.events.action_end()
 
@@ -34,8 +34,8 @@ async def show_next_cards(
     )
 
 
-async def alter_future_finish(game: "Game", _):
-    await game.send(view=TextView("altered_future", game.action_player_id))
+async def alter_future_finish(game: "Game", interaction: discord.Interaction | None):
+    await game.send(TextView("altered_future", game.action_player_id), interaction)
     await game.events.action_end()
 
 
@@ -135,11 +135,12 @@ class ShareFutureView(discord.ui.View):
 
 async def share_future_finish(game: "Game"):
     await game.send(
-        view=ShareFutureView(
+        ShareFutureView(
             game.deck.copy(),
             game.current_player_id,
             game.next_player_id,
-        )
+        ),
+        None,
     )
     await game.events.action_end()
 
