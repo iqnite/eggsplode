@@ -79,7 +79,7 @@ class DigDeeperView(SelectionView):
         if not interaction:
             interaction = self.game.last_interaction
             if not interaction:
-                raise ValueError("No anchor interaction set for the game.")
+                raise ValueError("No last interaction set for the game.")
         _, hold = await self.game.draw_from(interaction)
         self.stop()
         if hold:
