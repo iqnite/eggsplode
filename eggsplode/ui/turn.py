@@ -41,8 +41,3 @@ class TurnView(BaseView):
         self.stop()
         self.game.events.turn_end -= self.deactivate
         self.game.events.game_end -= self.deactivate
-        # self.disable_all_items()
-        # for item in (self.draw_button, self.play_button, self.warnings):
-        #     self.remove_item(item)
-        # if self.game.anchor_interaction:
-        #     await self.game.anchor_interaction.edit_original_response(view=self)
