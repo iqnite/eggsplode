@@ -50,6 +50,7 @@
     "game_timeout": "**🚫 This game has been inactive for too long, so it has been terminated. You can start a new game with </start:1325457141628141661>.**",
     "hand_list": "- **{} {}** ({}x): {}",
     "hand_title": "# Your cards\n{}",
+    "hang_warning": "⚠️ **There have been reports of the *Play* and *Draw* buttons not responding in some cases.** If that happens to you, sending </play:1378720596153860260> or </draw:1378720596153860259> should solve the issue. I'm sorry for the inconvenience and working on a fix!",
     "help_info": "Use the </help:1328036788643823696> command to get help with the game!",
     "help0": [
         "# How to start a game",
