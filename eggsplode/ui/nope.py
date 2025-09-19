@@ -170,6 +170,7 @@ class NopeView(BaseView):
 
     async def finish_confirmation(self, interaction: discord.Interaction):
         self.game.anchor_interaction = interaction
+        self.game.followup_count = 0  # Reset counter for new interaction
         self.disabled = True
         self.stop()
         self.disable_all_items()

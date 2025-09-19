@@ -104,4 +104,5 @@ async def dig_deeper(game: "Game", interaction: discord.Interaction):
         await game.events.action_end()
         return
     game.anchor_interaction = interaction
+    game.followup_count = 0  # Reset counter for new interaction
     await interaction.respond(view=DigDeeperView(game), ephemeral=True)

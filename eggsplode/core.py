@@ -36,6 +36,7 @@ class Game:
         self.paused = False
         self.inactivity_count = 0
         self.anchor_interaction: discord.Interaction | None = None
+        self.followup_count: int = 0
         self.play_actions: dict[
             str, Callable[[Game, discord.Interaction], Coroutine]
         ] = cards.PLAY_ACTIONS
@@ -409,6 +410,7 @@ class Game:
         self.deck = []
         self.action_id = 0
         self.remaining_turns = 0
+        self.followup_count = 0
         self.app.logger.info(f"Game {self.id} ended.")
 
     async def send(
@@ -426,12 +428,27 @@ class Game:
             raise ValueError("Either message or view must be provided")
         if anchor is not None:
             self.anchor_interaction = anchor
+            self.followup_count = 0  # Reset counter for new interaction
         if self.anchor_interaction is None:
             raise ValueError("anchor_interaction is None")
+
+        # Discord allows max 15 follow-up messages per interaction
+        # Use 10 as a safe limit to avoid hitting the exact limit
+        max_followups = 10
         try:
             await self.anchor_interaction.response.send_message(view=use_view)
         except discord.errors.InteractionResponded:
-            await self.anchor_interaction.followup.send(view=use_view)
+            if self.followup_count >= max_followups:
+                # If we've hit the follow-up limit, send a new message to the channel
+                # This won't be linked to the interaction but will keep the game flowing
+                if self.anchor_interaction.channel:
+                    await self.anchor_interaction.channel.send(view=use_view)
+                else:
+                    # Fallback: try the follow-up anyway and let Discord handle the error
+                    await self.anchor_interaction.followup.send(view=use_view)
+            else:
+                await self.anchor_interaction.followup.send(view=use_view)
+                self.followup_count += 1
 
     @property
     def turn_prompt(self) -> str:

@@ -118,6 +118,7 @@ class EggsplodeGame(commands.Cog):
                 )
                 return
             game.anchor_interaction = ctx.interaction
+            game.followup_count = 0  # Reset counter for new interaction
             await game.play_callback(ctx.interaction, card)
         else:
             await game.show_hand(ctx.interaction)

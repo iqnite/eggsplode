@@ -34,6 +34,7 @@ class TurnView(BaseView):
         if not await super().interaction_check(interaction):
             return False
         self.game.anchor_interaction = interaction
+        self.game.followup_count = 0  # Reset counter for new interaction
         self.game.inactivity_count = 0
         return True
 
