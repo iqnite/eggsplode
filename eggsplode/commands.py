@@ -51,6 +51,14 @@ class EggsplodeApp(commands.Bot):
 
     async def create_game(self, interaction: discord.Interaction, config=None):
         self.remove_inactive_games()
+        if interaction.guild_id is None:
+            await interaction.respond(view=TextView("dm_not_supported"), ephemeral=True)
+            return
+        if not interaction.is_guild_authorised():
+            await interaction.respond(
+                view=TextView("guild_not_authorised"), ephemeral=True
+            )
+            return
         if self.admin_maintenance:
             await interaction.respond(view=TextView("maintenance"), ephemeral=True)
             return
