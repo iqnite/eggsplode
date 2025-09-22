@@ -432,6 +432,7 @@ class Game:
             await self.anchor_interaction.response.send_message(view=use_view)
         except discord.errors.InteractionResponded:
             await self.anchor_interaction.followup.send(view=use_view)
+        self.app.logger.debug(f"Sent message in game {self.id}: {use_view.copy_text()}")
 
     @property
     def turn_prompt(self) -> str:
