@@ -327,13 +327,6 @@ class HelpView(discord.ui.View):
         )
         self.add_item(self.cards_help_button)
 
-    # async def section_callback(self, interaction: discord.Interaction):
-    #     assert isinstance(self.section_select.values[0], str)
-    #     self.help_text.content = format_message(
-    #         f"help{int(self.section_select.values[0])}"
-    #     )
-    #     await interaction.edit(view=self)
-
 
 class LeaveGameView(discord.ui.View):
     def __init__(self, parent_view: StartGameView, user_id: int):
