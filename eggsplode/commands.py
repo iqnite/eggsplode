@@ -32,21 +32,18 @@ class EggsplodeApp(commands.Bot):
     async def ready(self):
         self.logger.info("App ready.")
 
-    async def handle_error(self, event_method: str, *args, **kwargs) -> None:
+    async def handle_error(self, event_method: str, *_, **__) -> None:
         self.logger.exception(f"in {event_method}", exc_info=True)
 
     async def handle_view_error(
-        self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction
+        self, error: Exception, item: discord.ui.Item, _
     ) -> None:
         self.logger.exception(
             f"in view {item.view} item {item}: {error}", exc_info=error
         )
 
     async def handle_modal_error(
-        self,
-        error: Exception,
-        modal: discord.ui.Modal,
-        interaction: discord.Interaction,
+        self, error: Exception, modal: discord.ui.Modal, _
     ) -> None:
         self.logger.exception(f"in modal {modal}: {error}", exc_info=error)
 
