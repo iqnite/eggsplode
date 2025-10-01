@@ -15,12 +15,6 @@ if not DISCORD_TOKEN:
     raise TypeError("DISCORD_TOKEN must be set in .env file.")
 
 logger = logging.getLogger("discord")
-
-
-def handle_exception(exc_type, value, traceback):
-    logger.exception("Uncaught exception", exc_info=(exc_type, value, traceback))
-
-
 log_path = CONFIG.get("log_path", "")
 if log_path != "":
     handler = RotatingFileHandler(
@@ -38,8 +32,6 @@ if log_path != "":
     logger.setLevel(
         getattr(logging, CONFIG.get("log_level", "INFO").upper(), logging.INFO)
     )
-
-    sys.excepthook = handle_exception
 
 app = EggsplodeApp(
     activity=discord.Activity(type=discord.ActivityType.watching, name="you"),

@@ -21,9 +21,41 @@ class EggsplodeApp(commands.Bot):
         self.load_extension("eggsplode.cogs.eggsplode_game")
         self.load_extension("eggsplode.cogs.misc")
         self.load_extension("eggsplode.cogs.owner")
+        self.add_listener(self.ready, "on_ready")
+        self.add_listener(self.handle_error, "on_error")
+        self.add_listener(self.handle_view_error, "on_view_error")
+        self.add_listener(self.handle_modal_error, "on_modal_error")
+        self.add_listener(
+            self.handle_application_command_error, "on_application_command_error"
+        )
 
-    async def on_ready(self):
+    async def ready(self):
         self.logger.info("App ready!")
+
+    async def handle_error(self, event_method: str, *args, **kwargs) -> None:
+        self.logger.exception(f"in {event_method}", exc_info=True)
+
+    async def handle_view_error(
+        self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction
+    ) -> None:
+        self.logger.exception(
+            f"in view {item.view} item {item}: {error}", exc_info=error
+        )
+
+    async def handle_modal_error(
+        self,
+        error: Exception,
+        modal: discord.ui.Modal,
+        interaction: discord.Interaction,
+    ) -> None:
+        self.logger.exception(f"in modal {modal}: {error}", exc_info=error)
+
+    async def handle_application_command_error(
+        self, context: discord.ApplicationContext, exception: discord.DiscordException
+    ) -> None:
+        self.logger.exception(
+            f"in command {context.command}: {exception}", exc_info=exception
+        )
 
     def games_with_user(self, user_id: int) -> list[int]:
         return [
