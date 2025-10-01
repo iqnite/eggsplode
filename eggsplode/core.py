@@ -445,6 +445,9 @@ class Game:
     def __bool__(self) -> bool:
         return self.active
 
+    def __repr__(self) -> str:
+        return f"<Game id={self.id} active={self.active}>"
+
 
 class Event:
     def __init__(self):
