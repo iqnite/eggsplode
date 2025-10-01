@@ -39,5 +39,5 @@ app = EggsplodeApp(
 
 if __name__ == "__main__":
     if log_path != "":
-        logger.info(f"Program version {INFO['version']} started.")
+        logger.info("Program version %s started.", INFO["version"])
     app.run(DISCORD_TOKEN)
