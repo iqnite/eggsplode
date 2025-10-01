@@ -31,6 +31,7 @@
         "*Well, that was unexpected.*",
         "*Maybe they'll take revenge in the next round.*"
     ],
+    "defer": "-# Thinking...",
     "defused": "## 🔧 <@{}> drew an Eggsplode card! Luckily, they had a Defuse and put it back into the deck!",
     "dig_deeper_prompt": "Draw the next card instead?",
     "dm_not_supported": "❌ Right now, games cannot be started in DMs. Please [add Eggsplode to a server](https://discord.com/oauth2/authorize?client_id=1325443178622484590).",

@@ -27,8 +27,7 @@ async def card_autocomplete(ctx: discord.AutocompleteContext) -> list[str]:
 
 
 async def invisible_defer(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=True)
-    await interaction.respond("...", delete_after=0)
+    await interaction.respond(view=TextView("defer"), ephemeral=True, delete_after=0)
 
 
 class EggsplodeGame(commands.Cog):
@@ -85,10 +84,10 @@ class EggsplodeGame(commands.Cog):
         },
     )
     async def draw_card(self, ctx: discord.ApplicationContext):
+        await invisible_defer(ctx.interaction)
         game = await self.get_game(ctx.interaction)
         if game is None:
             return
-        await invisible_defer(ctx.interaction)
         await game.draw_callback(ctx.interaction)
 
     @discord.slash_command(
@@ -107,12 +106,12 @@ class EggsplodeGame(commands.Cog):
         autocomplete=discord.utils.basic_autocomplete(card_autocomplete),
     )
     async def play_card(self, ctx: discord.ApplicationContext, card: str | None = None):
+        await invisible_defer(ctx.interaction)
         if not ctx.interaction.user:
             raise ValueError("interaction.user is None")
         game = await self.get_game(ctx.interaction)
         if game is None:
             return
-        await invisible_defer(ctx.interaction)
         if card:
             try:
                 card = get_card_by_title(card.split(" (")[0], match_case=False)
