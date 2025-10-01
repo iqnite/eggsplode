@@ -26,6 +26,11 @@ async def card_autocomplete(ctx: discord.AutocompleteContext) -> list[str]:
     return [CARDS[card]["title"] + f" ({count}x)" for card, count in hand.items()]
 
 
+async def invisible_defer(interaction: discord.Interaction):
+    await interaction.response.defer(ephemeral=True)
+    await interaction.respond("...", delete_after=0)
+
+
 class EggsplodeGame(commands.Cog):
     def __init__(self, app: EggsplodeApp):
         self.app = app
@@ -83,6 +88,7 @@ class EggsplodeGame(commands.Cog):
         game = await self.get_game(ctx.interaction)
         if game is None:
             return
+        await invisible_defer(ctx.interaction)
         await game.draw_callback(ctx.interaction)
 
     @discord.slash_command(
@@ -106,6 +112,7 @@ class EggsplodeGame(commands.Cog):
         game = await self.get_game(ctx.interaction)
         if game is None:
             return
+        await invisible_defer(ctx.interaction)
         if card:
             try:
                 card = get_card_by_title(card.split(" (")[0], match_case=False)
