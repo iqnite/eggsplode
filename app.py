@@ -8,7 +8,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 import discord
 from eggsplode.commands import EggsplodeApp
-from eggsplode.strings import DISCORD_TOKEN, CONFIG
+from eggsplode.strings import DISCORD_TOKEN, CONFIG, INFO
 
 if not DISCORD_TOKEN:
     raise TypeError("DISCORD_TOKEN must be set in .env file.")
@@ -39,5 +39,5 @@ app = EggsplodeApp(
 
 if __name__ == "__main__":
     if log_path != "":
-        logger.info("Program started.")
+        logger.info(f"Program version {INFO['version']} started.")
     app.run(DISCORD_TOKEN)
