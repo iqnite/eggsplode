@@ -25,7 +25,7 @@ class Owner(commands.Cog):
             await asyncio.sleep(10)
         if not self.app.admin_maintenance:
             return
-        print("RESTARTING VIA ADMIN COMMAND")
+        self.app.logger.info("Restarting via slash command.")
         await asyncio.create_subprocess_shell(CONFIG.get("restart_command", ""))
 
     @discord.slash_command(

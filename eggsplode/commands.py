@@ -30,7 +30,7 @@ class EggsplodeApp(commands.Bot):
         )
 
     async def ready(self):
-        self.logger.info("App ready!")
+        self.logger.info("App ready.")
 
     async def handle_error(self, event_method: str, *args, **kwargs) -> None:
         self.logger.exception(f"in {event_method}", exc_info=True)

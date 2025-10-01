@@ -40,5 +40,5 @@ app = EggsplodeApp(
 
 if __name__ == "__main__":
     if log_path != "":
-        logger.info("Program started!")
+        logger.info("Program started.")
     app.run(DISCORD_TOKEN)
