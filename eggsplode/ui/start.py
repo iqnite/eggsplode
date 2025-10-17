@@ -200,6 +200,8 @@ class EditRecipeModal(discord.ui.Modal):
         if self.parent_message is None:
             raise TypeError("StartGameView message ID is None")
         self.game = parent_view.game
+        self.recipe_help = discord.ui.TextDisplay(format_message("recipe_help"))
+        self.add_item(self.recipe_help)
         self.recipe_input = discord.ui.InputText(
             label="Recipe JSON",
             style=discord.InputTextStyle.long,

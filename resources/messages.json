@@ -185,6 +185,7 @@
     "radioeggtive_face_up": "## 💥 <@{}> drew the Radioeggtive card face up and eggsploded!\n{}",
     "recipe": "### Recipes",
     "recipe_description": "Recipes allow you to customize the cards used in the game. [Learn how to make recipes](https://iqnite.github.io/eggsplode/recipemaker/)",
+    "recipe_help": "Feeling lost? Check out the [recipe guide](https://github.com/iqnite/eggsplode/wiki/Recipes) and the [card list](https://github.com/iqnite/eggsplode/wiki/Cards) to get started!",
     "recipe_json_error": "❌ **An error occurred while loading the recipe:**\n{}\nPlease check the syntax and try again.\n```{}```",
     "recipe_json_placeholder": "{\n    \"cards\": {\n        \"card_id\": amount,\n        \"another_card_id\": amount\n    }\n}",
     "recipe_update_success": "✅ Recipe updated successfully",
