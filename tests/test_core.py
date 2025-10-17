@@ -162,7 +162,6 @@ class TestRecipeLoading(unittest.TestCase):
             r'"amount": True',
             r'"hand_out": True',
             r'"expand_beyond": True',
-            r'"expand_beyond": 0',
             r'"auto_amount": True',
         ]
         dummy_recipes = [

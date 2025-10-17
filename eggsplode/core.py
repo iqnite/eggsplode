@@ -139,13 +139,7 @@ class Game:
                 self.deck.append(card)
 
     def card_multiplier(self, multiply_beyond: int | None) -> int:
-        if multiply_beyond == 0:
-            raise ValueError("`multiply_beyond` cannot be 0")
-        return (
-            (1 + len(self.players) // multiply_beyond)
-            if multiply_beyond is not None
-            else 1
-        )
+        return (1 + len(self.players) // multiply_beyond) if multiply_beyond else 1
 
     async def start(self, interaction: discord.Interaction):
         self.setup()
