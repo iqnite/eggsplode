@@ -4,7 +4,7 @@ Contains effects for cards that view or alter the next cards.
 
 from typing import TYPE_CHECKING, Callable, Coroutine
 import discord
-from eggsplode.strings import CARDS, format_message, replace_emojis, tooltip
+from eggsplode.strings import available_cards, format_message, replace_emojis, tooltip
 from eggsplode.ui import SelectionView, TextView
 
 if TYPE_CHECKING:
@@ -63,9 +63,9 @@ class AlterFutureView(SelectionView):
             card_options = [
                 discord.SelectOption(
                     value=f"{j}:{card}",
-                    label=CARDS[card]["title"],
-                    description=CARDS[card]["description"][:99],
-                    emoji=replace_emojis(CARDS[card]["emoji"]),
+                    label=available_cards[card]["title"],
+                    description=available_cards[card]["description"][:99],
+                    emoji=replace_emojis(available_cards[card]["emoji"]),
                     default=j == i,
                 )
                 for j, card in enumerate(

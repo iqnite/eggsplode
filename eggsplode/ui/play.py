@@ -4,7 +4,7 @@ Contains the PlayView class, which is used to display the play interface for a g
 
 from typing import TYPE_CHECKING
 import discord
-from eggsplode.strings import CARDS, MAX_COMPONENTS, format_message
+from eggsplode.strings import available_cards, MAX_COMPONENTS, format_message
 from eggsplode.ui.base import TextView
 
 if TYPE_CHECKING:
@@ -51,10 +51,10 @@ class PlayView(discord.ui.View):
         for card, count in user_cards.items():
             card_playable = (
                 not self.game.paused
-                and CARDS[card].get("usable", False)
-                and (CARDS[card].get("combo", 0) == 0 or count > 1)
+                and available_cards[card].get("usable", False)
+                and (available_cards[card].get("combo", 0) == 0 or count > 1)
                 and (
-                    CARDS[card].get("now", False)
+                    available_cards[card].get("now", False)
                     or self.game.current_player_id == self.user_id
                 )
             )
@@ -62,15 +62,15 @@ class PlayView(discord.ui.View):
                 discord.ui.TextDisplay(
                     format_message(
                         "play_section",
-                        CARDS[card]["emoji"],
-                        CARDS[card]["title"],
-                        CARDS[card]["description"],
+                        available_cards[card]["emoji"],
+                        available_cards[card]["title"],
+                        available_cards[card]["description"],
                     )
                 ),
                 accessory=discord.ui.Button(
                     label=("Play " if card_playable else "") + f"({count}x)",
                     style=discord.ButtonStyle.secondary,
-                    emoji=CARDS[card]["emoji"],
+                    emoji=available_cards[card]["emoji"],
                     disabled=not card_playable,
                 ),
             )

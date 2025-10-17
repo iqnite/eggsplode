@@ -10,7 +10,7 @@ from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 from eggsplode import cards
 from eggsplode.ui import NopeView, PlayView, TurnView, TextView
-from eggsplode.strings import CARDS, format_message, tooltip
+from eggsplode.strings import available_cards, format_message, tooltip
 
 if TYPE_CHECKING:
     from eggsplode.commands import EggsplodeApp
@@ -66,7 +66,7 @@ class Game:
         hand_out_pool = []
 
         for card, info in self.recipe_cards.items():
-            if card not in CARDS:
+            if card not in available_cards:
                 raise ValueError(f"Card `{card}` does not exist")
             if isinstance(info, int):
                 cards_to_add = [card] * info * self.card_multiplier(5)
@@ -227,9 +227,12 @@ class Game:
         result = {}
         for card in player_cards:
             if usable_only:
-                if not CARDS[card].get("usable", False):
+                if not available_cards[card].get("usable", False):
                     continue
-                if CARDS[card].get("combo", 0) > 0 and player_cards.count(card) < 2:
+                if (
+                    available_cards[card].get("combo", 0) > 0
+                    and player_cards.count(card) < 2
+                ):
                     continue
             if card in result:
                 continue
@@ -283,13 +286,13 @@ class Game:
     async def play_callback(self, interaction: discord.Interaction, card: str):
         if not interaction.user:
             return
-        if CARDS[card].get("now"):
+        if available_cards[card].get("now"):
             self.action_player_id = interaction.user.id
         if not await self.action_check(interaction):
             return
         self.action_player_hand.remove(card)
         await self.events.action_start()
-        if CARDS[card].get("explicit", False):
+        if available_cards[card].get("explicit", False):
             await self.play(interaction, card)
         else:
             view = NopeView(
@@ -297,7 +300,7 @@ class Game:
                 ok_callback_action=lambda _: self.play(interaction, card),
                 message=format_message(
                     "play_card",
-                    CARDS[card]["emoji"],
+                    available_cards[card]["emoji"],
                     self.action_player_id,
                     tooltip(card, emoji=False),
                 ),

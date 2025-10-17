@@ -8,18 +8,18 @@ import logging
 from logging.handlers import RotatingFileHandler
 import discord
 from eggsplode.commands import EggsplodeApp
-from eggsplode.strings import DISCORD_TOKEN, CONFIG, INFO
+from eggsplode.strings import discord_token, app_config, app_info
 
-if not DISCORD_TOKEN:
+if not discord_token:
     raise TypeError("DISCORD_TOKEN must be set in .env file.")
 
 logger = logging.getLogger("discord")
-log_path = CONFIG.get("log_path", "")
+log_path = app_config.get("log_path", "")
 if log_path != "":
     handler = RotatingFileHandler(
         log_path,
-        maxBytes=int(CONFIG.get("log_bytes", 5242880)),  # Default 5 MB
-        backupCount=int(CONFIG.get("log_backups", 9)),  # Default 9 backups
+        maxBytes=int(app_config.get("log_bytes", 5242880)),  # Default 5 MB
+        backupCount=int(app_config.get("log_backups", 9)),  # Default 9 backups
         encoding="utf-8",
     )
     formatter = logging.Formatter(
@@ -29,7 +29,7 @@ if log_path != "":
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(
-        getattr(logging, CONFIG.get("log_level", "INFO").upper(), logging.INFO)
+        getattr(logging, app_config.get("log_level", "INFO").upper(), logging.INFO)
     )
 
 app = EggsplodeApp(
@@ -39,5 +39,5 @@ app = EggsplodeApp(
 
 if __name__ == "__main__":
     if log_path != "":
-        logger.info("Program version %s started.", INFO["version"])
-    app.run(DISCORD_TOKEN)
+        logger.info("Program version %s started.", app_info["version"])
+    app.run(discord_token)

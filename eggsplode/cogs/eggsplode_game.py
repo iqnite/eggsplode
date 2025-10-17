@@ -6,7 +6,7 @@ import discord
 from discord.ext import commands
 from eggsplode.commands import EggsplodeApp
 from eggsplode.core import Game
-from eggsplode.strings import CARDS, get_card_by_title, format_message
+from eggsplode.strings import available_cards, get_card_by_title, format_message
 from eggsplode.ui.base import TextView
 from eggsplode.ui.start import EndGameView
 
@@ -23,7 +23,9 @@ async def card_autocomplete(ctx: discord.AutocompleteContext) -> list[str]:
     if not game.hands or user.id not in game.hands:
         return []
     hand = game.group_hand(user.id, usable_only=True)
-    return [CARDS[card]["title"] + f" ({count}x)" for card, count in hand.items()]
+    return [
+        available_cards[card]["title"] + f" ({count}x)" for card, count in hand.items()
+    ]
 
 
 async def invisible_defer(interaction: discord.Interaction):

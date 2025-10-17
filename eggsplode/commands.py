@@ -7,7 +7,7 @@ import logging
 import discord
 from discord.ext import commands
 from eggsplode.core import Game
-from eggsplode.strings import GAME_TIMEOUT
+from eggsplode.strings import game_timeout
 from eggsplode.ui import StartGameView
 from eggsplode.ui.base import TextView
 
@@ -66,7 +66,7 @@ class EggsplodeApp(commands.Bot):
         for game_id in list(self.games):
             if (
                 datetime.now() - self.games[game_id].last_activity
-            ).total_seconds() > GAME_TIMEOUT or not self.games[game_id].active:
+            ).total_seconds() > game_timeout or not self.games[game_id].active:
                 del self.games[game_id]
                 self.logger.info(f"Cleaned up game {game_id}.")
 
