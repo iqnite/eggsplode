@@ -33,25 +33,25 @@ class EggsplodeApp(commands.Bot):
         self.logger.info("App ready.")
 
     async def handle_error(self, event_method: str, *_, **__) -> None:
-        self.logger.exception(f"in {event_method}", exc_info=True)
+        self.logger.exception("in %s", event_method, exc_info=True)
 
     async def handle_view_error(
         self, error: Exception, item: discord.ui.Item, _
     ) -> None:
         self.logger.exception(
-            f"in view {item.view} item {item}: {error}", exc_info=error
+            "in view %s item %s: %s", item.view, item, error, exc_info=error
         )
 
     async def handle_modal_error(
         self, error: Exception, modal: discord.ui.Modal, _
     ) -> None:
-        self.logger.exception(f"in modal {modal}: {error}", exc_info=error)
+        self.logger.exception("in modal %s: %s", modal, error, exc_info=error)
 
     async def handle_application_command_error(
         self, context: discord.ApplicationContext, exception: discord.DiscordException
     ) -> None:
         self.logger.exception(
-            f"in command {context.command}: {exception}", exc_info=exception
+            "in command %s: %s", context.command, exception, exc_info=exception
         )
 
     def games_with_user(self, user_id: int) -> list[int]:
@@ -67,8 +67,11 @@ class EggsplodeApp(commands.Bot):
             if (
                 datetime.now() - self.games[game_id].last_activity
             ).total_seconds() > game_timeout or not self.games[game_id].active:
+                if self.games[game_id].active:
+                    self.logger.warning("Game %s: Cleaned up while active.", game_id)
+                else:
+                    self.logger.info("Game %s: Cleaned up.", game_id)
                 del self.games[game_id]
-                self.logger.info(f"Cleaned up game {game_id}.")
 
     @property
     def game_count(self) -> int:
@@ -112,6 +115,6 @@ class EggsplodeApp(commands.Bot):
             game_id=game_id,
         )
         game.anchor_interaction = interaction
-        self.logger.info(f"Game created: {game_id}")
+        self.logger.info("Game %s: Created.", game_id)
         view = StartGameView(game)
         await interaction.respond(view=view)
