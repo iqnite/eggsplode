@@ -1,9 +1,10 @@
 {
     "test_guild_id": "",
-    "log_path": "logs/eggsplode.log",
-    "log_bytes": 5242880,
     "log_backups": 9,
+    "log_bytes": 5242880,
     "log_level": "INFO",
+    "log_path": "logs/eggsplode.log",
     "restart_command": "",
+    "custom_status": "/start",
     "update_command": "git fetch && git pull && pip install --upgrade -r requirements.txt && echo 'Done!'"
 }

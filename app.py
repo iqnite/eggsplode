@@ -32,8 +32,11 @@ if log_path != "":
         getattr(logging, app_config.get("log_level", "INFO").upper(), logging.INFO)
     )
 
+status_activity = discord.CustomActivity(
+    name=app_config.get("custom_status", "/start"),
+)
 app = EggsplodeApp(
-    activity=discord.Activity(type=discord.ActivityType.watching, name="you"),
+    activity=status_activity,
     logger=logger,
 )
 
