@@ -427,7 +427,7 @@ class Game:
         except discord.errors.InteractionResponded:
             await self.last_interaction.followup.send(view=view)
         self.app.logger.debug(
-            "Game %s: Sent message: %s", self.id, use_view.copy_text()
+            "Game %s: Sent message: %s", self.id, view.copy_text()
         )
 
     @property

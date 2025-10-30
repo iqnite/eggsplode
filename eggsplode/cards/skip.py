@@ -11,8 +11,10 @@ if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-async def skip(game: "Game", _):
-    await game.send(view=TextView("skipped", game.current_player_id))
+async def skip(game: "Game", interaction: discord.Interaction):
+    await game.send(
+        view=TextView("skipped", game.current_player_id), interaction=interaction
+    )
     await game.events.turn_end()
 
 
@@ -22,26 +24,30 @@ async def draw_from_bottom(game: "Game", interaction: discord.Interaction):
         await game.events.turn_end()
 
 
-async def reverse(game: "Game", _):
+async def reverse(game: "Game", interaction: discord.Interaction):
     game.reverse()
-    await game.send(view=TextView("reversed", game.current_player_id))
+    await game.send(
+        view=TextView("reversed", game.current_player_id), interaction=interaction
+    )
     await game.events.turn_end()
 
 
-async def super_skip(game: "Game", _):
+async def super_skip(game: "Game", interaction: discord.Interaction):
     game.remaining_turns = 0
-    await skip(game, _)
+    await skip(game, interaction)
 
 
-async def bury_finish(game: "Game"):
-    await game.send(view=TextView("buried", game.current_player_id))
+async def bury_finish(game: "Game", interaction: discord.Interaction):
+    await game.send(
+        view=TextView("buried", game.current_player_id), interaction=interaction
+    )
     await game.events.turn_end()
 
 
 async def bury(game: "Game", interaction: discord.Interaction):
     view = DefuseView(
         game,
-        lambda: bury_finish(game),
+        lambda: bury_finish(game, interaction),
         card=game.deck.pop(),
     )
     await interaction.respond(view=view, ephemeral=True)
@@ -89,7 +95,10 @@ class DigDeeperView(SelectionView):
         self.stop()
         self.disable_all_items()
         await interaction.edit(view=self)
-        await self.game.send(view=TextView("dug_deeper", self.game.current_player_id))
+        await self.game.send(
+            view=TextView("dug_deeper", self.game.current_player_id),
+            interaction=interaction,
+        )
         _, hold = await self.game.draw_from(interaction, index=-2)
         if hold:
             await self.game.events.turn_end()
