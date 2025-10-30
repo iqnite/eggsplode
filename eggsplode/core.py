@@ -10,7 +10,7 @@ from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 from eggsplode import cards
 from eggsplode.ui import NopeView, PlayView, TurnView, TextView
-from eggsplode.strings import CARDS, format_message, tooltip
+from eggsplode.strings import available_cards, format_message, tooltip
 
 if TYPE_CHECKING:
     from eggsplode.commands import EggsplodeApp
@@ -66,7 +66,7 @@ class Game:
         hand_out_pool = []
 
         for card, info in self.recipe_cards.items():
-            if card not in CARDS:
+            if card not in available_cards:
                 raise ValueError(f"Card `{card}` does not exist")
             if isinstance(info, int):
                 cards_to_add = [card] * info * self.card_multiplier(5)
@@ -139,20 +139,19 @@ class Game:
                 self.deck.append(card)
 
     def card_multiplier(self, multiply_beyond: int | None) -> int:
-        if multiply_beyond == 0:
-            raise ValueError("`multiply_beyond` cannot be 0")
-        return (
-            (1 + len(self.players) // multiply_beyond)
-            if multiply_beyond is not None
-            else 1
-        )
+        return (1 + len(self.players) // multiply_beyond) if multiply_beyond else 1
 
     async def start(self, interaction: discord.Interaction):
         self.setup()
         self.last_activity = datetime.now()
         self.inactivity_count = 0
         self.started = True
-        self.app.logger.info(f"Game {self.id} started with players: {self.players}")
+        self.app.logger.info(
+            "Game %s: Started.\nPlayers: %s\nRecipe: %s",
+            self.id,
+            self.players,
+            self.config["recipe"],
+        )
         await self.send(TextView("game_started"), interaction)
         await self.events.turn_start()
         await self.action_timer()
@@ -233,9 +232,12 @@ class Game:
         result = {}
         for card in player_cards:
             if usable_only:
-                if not CARDS[card].get("usable", False):
+                if not available_cards[card].get("usable", False):
                     continue
-                if CARDS[card].get("combo", 0) > 0 and player_cards.count(card) < 2:
+                if (
+                    available_cards[card].get("combo", 0) > 0
+                    and player_cards.count(card) < 2
+                ):
                     continue
             if card in result:
                 continue
@@ -289,13 +291,13 @@ class Game:
     async def play_callback(self, interaction: discord.Interaction, card: str):
         if not interaction.user:
             return
-        if CARDS[card].get("now"):
+        if available_cards[card].get("now"):
             self.action_player_id = interaction.user.id
         if not await self.action_check(interaction):
             return
         self.action_player_hand.remove(card)
         await self.events.action_start()
-        if CARDS[card].get("explicit", False):
+        if available_cards[card].get("explicit", False):
             await self.play(interaction, card)
         else:
             view = NopeView(
@@ -303,7 +305,7 @@ class Game:
                 ok_callback_action=lambda _: self.play(interaction, card),
                 message=format_message(
                     "play_card",
-                    CARDS[card]["emoji"],
+                    available_cards[card]["emoji"],
                     self.action_player_id,
                     tooltip(card, emoji=False),
                 ),
@@ -375,7 +377,7 @@ class Game:
         self.pause()
         self.inactivity_count += 1
         if self.inactivity_count > 5:
-            self.app.logger.info(f"Game {self.id} ended due to inactivity.")
+            self.app.logger.info("Game %s: Ending due to inactivity.", self.id)
             await self.send(TextView("game_timeout"), None)
             await self.events.game_end()
             return
@@ -409,7 +411,7 @@ class Game:
         self.deck = []
         self.action_id = 0
         self.remaining_turns = 0
-        self.app.logger.info(f"Game {self.id} ended.")
+        self.app.logger.info("Game %s: Ended.", self.id)
 
     async def send(
         self,
@@ -424,6 +426,9 @@ class Game:
             await self.last_interaction.response.send_message(view=view)
         except discord.errors.InteractionResponded:
             await self.last_interaction.followup.send(view=view)
+        self.app.logger.debug(
+            "Game %s: Sent message: %s", self.id, use_view.copy_text()
+        )
 
     @property
     def turn_prompt(self) -> str:
@@ -435,6 +440,9 @@ class Game:
 
     def __bool__(self) -> bool:
         return self.active
+
+    def __repr__(self) -> str:
+        return f"<Game id={self.id} active={self.active}>"
 
 
 class Event:

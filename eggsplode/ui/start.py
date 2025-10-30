@@ -8,7 +8,13 @@ import time
 from typing import TYPE_CHECKING
 import psutil
 import discord
-from eggsplode.strings import MESSAGES, RECIPES, INFO, format_message, replace_emojis
+from eggsplode.strings import (
+    app_messages,
+    default_recipes,
+    app_info,
+    format_message,
+    replace_emojis,
+)
 from eggsplode.ui.base import TextView
 
 if TYPE_CHECKING:
@@ -44,7 +50,7 @@ class StartGameView(discord.ui.View):
         self.game = game
         self.game.events.game_end += self.terminate_view
         self.game.config["recipe_id"] = "classic"
-        self.game.config["recipe"] = RECIPES["classic"]
+        self.game.config["recipe"] = default_recipes["classic"]
 
         self.header = discord.ui.Section()
         self.title = discord.ui.TextDisplay(format_message("start"))
@@ -174,14 +180,14 @@ class StartGameView(discord.ui.View):
                 emoji=replace_emojis(recipe["emoji"]),
                 default=id == self.game.config["recipe_id"],
             )
-            for id, recipe in RECIPES.items()
+            for id, recipe in default_recipes.items()
         ]
 
     async def recipe_callback(self, interaction: discord.Interaction):
         await interaction.edit(view=self)
         if await check_permissions(self.game, interaction):
             recipe_id = self.game.config["recipe_id"] = self.recipe_select.values[0]
-            self.game.config["recipe"] = RECIPES[recipe_id]
+            self.game.config["recipe"] = default_recipes[recipe_id]
         self.recipe_select.options = self.recipe_options
         await interaction.edit(view=self)
 
@@ -200,11 +206,13 @@ class EditRecipeModal(discord.ui.Modal):
         if self.parent_message is None:
             raise TypeError("StartGameView message ID is None")
         self.game = parent_view.game
+        self.recipe_help = discord.ui.TextDisplay(format_message("recipe_help"))
+        self.add_item(self.recipe_help)
         self.recipe_input = discord.ui.InputText(
             label="Recipe JSON",
             style=discord.InputTextStyle.long,
             value=json.dumps(self.game.config["recipe"], indent=2),
-            placeholder=MESSAGES["recipe_json_placeholder"],
+            placeholder=app_messages["recipe_json_placeholder"],
             required=True,
             min_length=2,
             max_length=4000,
@@ -421,7 +429,7 @@ class InfoView(discord.ui.View):
     async def create_container(self):
         self.container.add_section(
             discord.ui.TextDisplay(
-                format_message("version_eggsplode", INFO["version"])
+                format_message("version_eggsplode", app_info["version"])
             ),
             discord.ui.TextDisplay(
                 format_message("version_pycord", discord.__version__)

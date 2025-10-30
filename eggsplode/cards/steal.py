@@ -5,7 +5,7 @@ Contains effects for cards that steal from other players.
 import random
 from typing import TYPE_CHECKING
 import discord
-from eggsplode.strings import CARDS, format_message, replace_emojis, tooltip
+from eggsplode.strings import available_cards, format_message, replace_emojis, tooltip
 from eggsplode.ui import ChoosePlayerView, NopeView, TextView
 
 if TYPE_CHECKING:
@@ -64,7 +64,7 @@ async def food_combo_begin(
         game,
         message=format_message(
             "before_steal",
-            replace_emojis(CARDS[food_card]["emoji"]),
+            replace_emojis(available_cards[food_card]["emoji"]),
             game.current_player_id,
             target_player_id,
         ),

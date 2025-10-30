@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import MagicMock
 from eggsplode import cards
 from eggsplode.core import Game
-from eggsplode.strings import CARDS, RECIPES
+from eggsplode.strings import available_cards, default_recipes
 from eggsplode.ui.start import COVERED_RECIPE_EXCEPTIONS
 
 
@@ -44,7 +44,7 @@ class TestGameSetup(unittest.TestCase):
 
     def test_classic(self):
         self.players = ["forb", "dorb", "sorb", "gorb"]
-        self.recipe = RECIPES["classic"]
+        self.recipe = default_recipes["classic"]
         self.game.config["deck_size"] = 1000
         expected_cards = {
             "skip": 4,
@@ -69,7 +69,7 @@ class TestGameSetup(unittest.TestCase):
 
     def test_trim_classic(self):
         self.players = ["forb", "dorb", "sorb"]
-        self.recipe = RECIPES["classic"]
+        self.recipe = default_recipes["classic"]
         self.game.config["deck_size"] = 10
         self.game.setup()
         self.assert_deck_count_equal("eggsplode", 2)
@@ -77,7 +77,7 @@ class TestGameSetup(unittest.TestCase):
 
     def test_expand(self):
         self.players = ["forb", "dorb", "sorb", "iorb", "gorb", "morb"]
-        self.recipe = RECIPES["classic"]
+        self.recipe = default_recipes["classic"]
         self.game.setup()
         for hand in self.game.hands.values():
             self.assertEqual(hand.count("defuse"), 1)
@@ -86,21 +86,21 @@ class TestGameSetup(unittest.TestCase):
 
     def test_expand_radioeggtive(self):
         self.players = ["forb", "dorb", "sorb", "iorb", "gorb", "morb"]
-        self.recipe = RECIPES["classic_radioeggtive"]
+        self.recipe = default_recipes["classic_radioeggtive"]
         self.game.setup()
         self.assert_deck_count_equal("radioeggtive", 1)
         self.assert_deck_count_equal("eggsplode", 4)
 
     def test_expand_eggsperiment(self):
         self.players = ["forb", "dorb", "sorb", "iorb", "gorb", "morb"]
-        self.recipe = RECIPES["classic_eggsperiment"]
+        self.recipe = default_recipes["classic_eggsperiment"]
         self.game.setup()
         self.assert_deck_count_equal("eggsperiment", 2)
         self.assert_deck_count_equal("eggsplode", 5)
 
     def test_trim_eggsperiment(self):
         self.players = ["forb", "dorb", "sorb", "iorb", "gorb"]
-        self.recipe = RECIPES["classic_eggsperiment"]
+        self.recipe = default_recipes["classic_eggsperiment"]
         self.game.config["deck_size"] = 5
         for _ in range(5):
             self.game.setup()
@@ -123,7 +123,7 @@ class TestGameSetup(unittest.TestCase):
 
     def test_all_recipes(self):
         self.players = ["forb", "dorb", "sorb"]
-        for recipe_name, recipe in RECIPES.items():
+        for recipe_name, recipe in default_recipes.items():
             with self.subTest(recipe=recipe_name):
                 self.recipe = recipe
                 self.game.setup()
@@ -134,7 +134,7 @@ class TestGameSetup(unittest.TestCase):
                         | cards.DRAW_ACTIONS
                         | {"defuse": ..., "nope": ...},
                     )
-                    self.assertIn(card, CARDS)
+                    self.assertIn(card, available_cards)
 
 
 class TestRecipeLoading(unittest.TestCase):
@@ -162,7 +162,6 @@ class TestRecipeLoading(unittest.TestCase):
             r'"amount": True',
             r'"hand_out": True',
             r'"expand_beyond": True',
-            r'"expand_beyond": 0',
             r'"auto_amount": True',
         ]
         dummy_recipes = [

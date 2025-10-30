@@ -7,7 +7,7 @@ import logging
 import discord
 from discord.ext import commands
 from eggsplode.core import Game
-from eggsplode.strings import GAME_TIMEOUT
+from eggsplode.strings import game_timeout
 from eggsplode.ui import StartGameView
 from eggsplode.ui.base import TextView
 
@@ -21,9 +21,38 @@ class EggsplodeApp(commands.Bot):
         self.load_extension("eggsplode.cogs.eggsplode_game")
         self.load_extension("eggsplode.cogs.misc")
         self.load_extension("eggsplode.cogs.owner")
+        self.add_listener(self.ready, "on_ready")
+        self.add_listener(self.handle_error, "on_error")
+        self.add_listener(self.handle_view_error, "on_view_error")
+        self.add_listener(self.handle_modal_error, "on_modal_error")
+        self.add_listener(
+            self.handle_application_command_error, "on_application_command_error"
+        )
 
-    async def on_ready(self):
-        self.logger.info("App ready!")
+    async def ready(self):
+        self.logger.info("App ready.")
+
+    async def handle_error(self, event_method: str, *_, **__) -> None:
+        self.logger.exception("in %s", event_method, exc_info=True)
+
+    async def handle_view_error(
+        self, error: Exception, item: discord.ui.Item, _
+    ) -> None:
+        self.logger.exception(
+            "in view %s item %s: %s", item.view, item, error, exc_info=error
+        )
+
+    async def handle_modal_error(
+        self, error: Exception, modal: discord.ui.Modal, _
+    ) -> None:
+        self.logger.exception("in modal %s: %s", modal, error, exc_info=error)
+
+    async def handle_application_command_error(
+        self, context: discord.ApplicationContext, exception: discord.DiscordException
+    ) -> None:
+        self.logger.exception(
+            "in command %s: %s", context.command, exception, exc_info=exception
+        )
 
     def games_with_user(self, user_id: int) -> list[int]:
         return [
@@ -37,9 +66,12 @@ class EggsplodeApp(commands.Bot):
         for game_id in list(self.games):
             if (
                 datetime.now() - self.games[game_id].last_activity
-            ).total_seconds() > GAME_TIMEOUT or not self.games[game_id].active:
+            ).total_seconds() > game_timeout or not self.games[game_id].active:
+                if self.games[game_id].active:
+                    self.logger.warning("Game %s: Cleaned up while active.", game_id)
+                else:
+                    self.logger.info("Game %s: Cleaned up.", game_id)
                 del self.games[game_id]
-                self.logger.info(f"Cleaned up game {game_id}.")
 
     @property
     def game_count(self) -> int:
@@ -51,6 +83,14 @@ class EggsplodeApp(commands.Bot):
 
     async def create_game(self, interaction: discord.Interaction, config=None):
         self.remove_inactive_games()
+        if interaction.guild_id is None:
+            await interaction.respond(view=TextView("dm_not_supported"), ephemeral=True)
+            return
+        if not interaction.is_guild_authorised():
+            await interaction.respond(
+                view=TextView("guild_not_authorised"), ephemeral=True
+            )
+            return
         if self.admin_maintenance:
             await interaction.respond(view=TextView("maintenance"), ephemeral=True)
             return
@@ -75,6 +115,6 @@ class EggsplodeApp(commands.Bot):
             game_id=game_id,
         )
         game.last_interaction = interaction
-        self.logger.info(f"Game created: {game_id}")
+        self.logger.info("Game %s: Created.", game_id)
         view = StartGameView(game)
         await interaction.respond(view=view)

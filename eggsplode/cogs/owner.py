@@ -6,7 +6,7 @@ import asyncio
 import discord
 from discord.ext import commands
 from eggsplode.commands import EggsplodeApp
-from eggsplode.strings import format_message, TEST_GUILD_ID, CONFIG
+from eggsplode.strings import format_message, test_guild_id, app_config
 
 
 class Owner(commands.Cog):
@@ -16,7 +16,7 @@ class Owner(commands.Cog):
     @discord.slash_command(
         name="restart",
         description="Restart the bot.",
-        guild_ids=[TEST_GUILD_ID],
+        guild_ids=[test_guild_id],
     )
     @commands.is_owner()
     async def restart(self, ctx: discord.ApplicationContext):
@@ -25,17 +25,17 @@ class Owner(commands.Cog):
             await asyncio.sleep(10)
         if not self.app.admin_maintenance:
             return
-        print("RESTARTING VIA ADMIN COMMAND")
-        await asyncio.create_subprocess_shell(CONFIG.get("restart_command", ""))
+        self.app.logger.info("Restarting via slash command.")
+        await asyncio.create_subprocess_shell(app_config.get("restart_command", ""))
 
     @discord.slash_command(
         name="update",
         description="Download the latest version, install dependencies, and restart the bot.",
-        guild_ids=[TEST_GUILD_ID],
+        guild_ids=[test_guild_id],
     )
     @commands.is_owner()
     async def update(self, ctx: discord.ApplicationContext):
-        update_command = CONFIG.get("update_command", "")
+        update_command = app_config.get("update_command", "")
         if not update_command:
             await ctx.respond("Update command is not configured.", ephemeral=True)
             return
@@ -45,7 +45,7 @@ class Owner(commands.Cog):
     @discord.slash_command(
         name="maintenance",
         description="Enable maintenance mode on the bot.",
-        guild_ids=[TEST_GUILD_ID],
+        guild_ids=[test_guild_id],
     )
     @commands.is_owner()
     async def maintenance(self, ctx: discord.ApplicationContext):
@@ -67,7 +67,7 @@ class Owner(commands.Cog):
     @discord.slash_command(
         name="execute",
         description="Run a command on the bot.",
-        guild_ids=[TEST_GUILD_ID],
+        guild_ids=[test_guild_id],
     )
     @discord.option(
         name="command",
@@ -99,12 +99,33 @@ class Owner(commands.Cog):
             )
 
     @discord.slash_command(
-        name="all_games",
-        description="List all games.",
-        guild_ids=[TEST_GUILD_ID],
+        name="get_file",
+        description="Get a file from the bot.",
+        guild_ids=[test_guild_id],
+    )
+    @discord.option(
+        name="file_path",
+        description="The path to the file to get.",
+        input_type=str,
+        required=True,
     )
     @commands.is_owner()
-    async def list_games(self, ctx):
+    async def get_file(self, ctx: discord.ApplicationContext, file_path: str):
+        await ctx.response.defer(ephemeral=True)
+        try:
+            with open(file_path, "rb") as f:
+                await ctx.respond(file=discord.File(fp=f))
+        except (FileNotFoundError, OSError, discord.HTTPException):
+            await ctx.respond(format_message("file_send_error"), ephemeral=True)
+
+
+    @discord.slash_command(
+        name="all_games",
+        description="List all games.",
+        guild_ids=[test_guild_id],
+    )
+    @commands.is_owner()
+    async def list_games(self, ctx: discord.ApplicationContext):
         await ctx.respond(
             format_message(
                 "list_games_title",
@@ -127,7 +148,7 @@ class Owner(commands.Cog):
     @discord.slash_command(
         name="set_status",
         description="Set the bot's status.",
-        guild_ids=[TEST_GUILD_ID],
+        guild_ids=[test_guild_id],
     )
     @discord.option(
         name="status",

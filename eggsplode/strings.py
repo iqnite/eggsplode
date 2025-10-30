@@ -10,33 +10,33 @@ from dotenv import load_dotenv
 MAX_COMPONENTS = 40
 
 load_dotenv()
-DISCORD_TOKEN: str = os.getenv("DISCORD_TOKEN", "")
+discord_token: str = os.getenv("DISCORD_TOKEN", "")
 
 with open("resources/info.json", encoding="utf-8") as f:
-    INFO: dict = json.load(f)
+    app_info: dict = json.load(f)
 try:
     with open("resources/config.json", encoding="utf-8") as f:
-        CONFIG: dict = json.load(f)
+        app_config: dict = json.load(f)
 except FileNotFoundError:
-    CONFIG = {}
+    app_config = {}
 with open("resources/messages.json", encoding="utf-8") as f:
-    MESSAGES: dict = json.load(f)
+    app_messages: dict = json.load(f)
 with open("resources/cards.json", encoding="utf-8") as f:
-    CARDS: dict = json.load(f)
+    available_cards: dict = json.load(f)
 with open("resources/recipes.json", encoding="utf-8") as f:
-    RECIPES: dict = json.load(f)
+    default_recipes: dict = json.load(f)
 try:
     with open("resources/emojis.json", encoding="utf-8") as f:
-        EMOJIS: dict = json.load(f)
+        app_emojis: dict = json.load(f)
 except FileNotFoundError:
-    EMOJIS = {}
+    app_emojis = {}
 
-TEST_GUILD_ID: int = int(CONFIG.get("test_guild_id", 0))
-GAME_TIMEOUT: int = int(CONFIG.get("game_timeout", 1800))
+test_guild_id: int = int(app_config.get("test_guild_id", 0))
+game_timeout: int = int(app_config.get("game_timeout", 1800))
 
 
 def replace_emojis(text: str) -> str:
-    for name, emoji in EMOJIS.items():
+    for name, emoji in app_emojis.items():
         text = text.replace(name, emoji)
     return text
 
@@ -44,29 +44,33 @@ def replace_emojis(text: str) -> str:
 def format_message(
     key: str, *format_args, random_from_list: bool = False, **format_kwargs
 ) -> str:
-    message = MESSAGES[key]
+    message = app_messages[key]
     if isinstance(message, str):
         return replace_emojis(message.format(*format_args, **format_kwargs))
     if isinstance(message, list):
         if random_from_list:
-            return replace_emojis(random.choice(message).format(*format_args, **format_kwargs))
+            return replace_emojis(
+                random.choice(message).format(*format_args, **format_kwargs)
+            )
         return replace_emojis("\n".join(message).format(*format_args, **format_kwargs))
     raise ValueError(f"Invalid message format for key: {key}")
 
 
 def get_card_by_title(title: str, match_case: bool = False) -> str:
     match_func = str if match_case else str.lower
-    for card, data in CARDS.items():
+    for card, data in available_cards.items():
         if match_func(data["title"]) == match_func(title):
             return card
     raise ValueError(f"Card with title '{title}' not found.")
 
 
 def tooltip(card: str, emoji=True) -> str:
-    if card not in CARDS:
+    if card not in available_cards:
         raise ValueError(f"Card '{card}' not found in CARDS.")
     return (
-        replace_emojis(CARDS[card]["emoji"]) + " "
-        if emoji and "emoji" in CARDS[card]
+        replace_emojis(available_cards[card]["emoji"]) + " "
+        if emoji and "emoji" in available_cards[card]
         else ""
-    ) + format_message("tooltip", CARDS[card]["title"], CARDS[card]["description"])
+    ) + format_message(
+        "tooltip", available_cards[card]["title"], available_cards[card]["description"]
+    )

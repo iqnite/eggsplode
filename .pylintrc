@@ -15,6 +15,5 @@ disable=
 generated-members=
     discord.*,
 
-ignore=
-    *.pyc,
-    .venv*/,
+ignore-paths=
+    ^.venv/.*$,
