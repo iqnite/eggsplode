@@ -118,7 +118,6 @@ class Owner(commands.Cog):
         except (FileNotFoundError, OSError, discord.HTTPException):
             await ctx.respond(format_message("file_send_error"), ephemeral=True)
 
-
     @discord.slash_command(
         name="all_games",
         description="List all games.",
@@ -158,35 +157,21 @@ class Owner(commands.Cog):
         choices=list(discord.Status.__members__.keys()),
     )
     @discord.option(
-        name="activity",
-        description="The activity to set the bot to.",
+        name="status_message",
+        description="The status message to show.",
         input_type=str,
         required=False,
-    )
-    @discord.option(
-        name="activity_type",
-        description="The type of activity to set the bot to.",
-        input_type=str,
-        required=False,
-        choices=list(discord.ActivityType.__members__.keys()),
     )
     @commands.is_owner()
     async def set_status(
         self,
         ctx: discord.ApplicationContext,
         status: str,
-        activity: str | None = None,
-        activity_type: str | None = None,
+        status_message: str | None = None,
     ):
         await ctx.response.defer(ephemeral=True)
         await self.app.change_presence(
-            activity=(
-                discord.Activity(
-                    type=discord.ActivityType[activity_type], name=activity or ""
-                )
-                if activity_type
-                else discord.CustomActivity(name=activity or "")
-            ),
+            activity=(discord.CustomActivity(name=status_message or "")),
             status=discord.Status[status or "online"],
         )
         await ctx.respond(format_message("set_status_success"), ephemeral=True)
