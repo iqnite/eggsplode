@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-async def attegg(game: "Game", _):
+async def attegg(game: "Game", interaction: discord.Interaction):
     view = NopeView(
         game=game,
         message=format_message(
@@ -23,7 +23,7 @@ async def attegg(game: "Game", _):
         target_player_id=game.next_player_id,
         ok_callback_action=lambda _: attegg_finish(game),
     )
-    await game.send(view=view)
+    await game.send(view, interaction)
 
 
 async def attegg_finish(game: "Game", target_player_id=None, turns: int = 3):
@@ -35,7 +35,9 @@ async def attegg_finish(game: "Game", target_player_id=None, turns: int = 3):
     await game.events.turn_end()
 
 
-async def targeted_attegg_begin(game: "Game", _, target_player_id: int):
+async def targeted_attegg_begin(
+    game: "Game", interaction: discord.Interaction, target_player_id: int
+):
     view = NopeView(
         game,
         message=format_message(
@@ -47,7 +49,7 @@ async def targeted_attegg_begin(game: "Game", _, target_player_id: int):
         target_player_id=target_player_id,
         ok_callback_action=lambda _: attegg_finish(game, target_player_id),
     )
-    await game.send(view=view)
+    await game.send(view, interaction)
 
 
 async def targeted_attegg(game: "Game", interaction: discord.Interaction):

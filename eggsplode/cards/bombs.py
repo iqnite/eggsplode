@@ -29,8 +29,8 @@ class GameOverView(discord.ui.View):
         )
 
 
-async def game_over(game: "Game", _):
-    await game.send(view=GameOverView(game.players[0]))
+async def game_over(game: "Game", interaction: discord.Interaction | None):
+    await game.send(GameOverView(game.players[0]), interaction)
     await game.events.game_end()
 
 
@@ -41,7 +41,7 @@ async def eggsplode(
         game.current_player_hand.remove("defuse")
         if timed_out:
             game.deck.insert(random.randint(0, len(game.deck)), "eggsplode")
-            await game.send(view=TextView("defused", game.current_player_id))
+            await game.send(TextView("defused", game.current_player_id), interaction)
             return
         view = DefuseView(
             game,
@@ -54,11 +54,12 @@ async def eggsplode(
     game.remove_player(prev_player)
     game.remaining_turns = 0
     await game.send(
-        view=TextView(
+        TextView(
             "eggsploded",
             prev_player,
             format_message("death_messages", random_from_list=True),
-        )
+        ),
+        interaction,
     )
     if len(game.players) == 1:
         await game_over(game, interaction)
@@ -68,12 +69,12 @@ async def eggsplode(
 
 
 async def defuse_finish(game: "Game"):
-    await game.send(view=TextView("defused", game.current_player_id))
+    await game.send(TextView("defused", game.current_player_id), None)
     await game.events.turn_end()
 
 
 async def radioeggtive_finish(game: "Game"):
-    await game.send(view=TextView("radioeggtive", game.current_player_id))
+    await game.send(TextView("radioeggtive", game.current_player_id), None)
     await game.events.turn_end()
 
 
@@ -82,7 +83,7 @@ async def radioeggtive(
 ):
     if timed_out:
         game.deck.insert(random.randint(0, len(game.deck)), "radioeggtive_face_up")
-        await game.send(view=TextView("radioeggtive", game.current_player_id))
+        await game.send(TextView("radioeggtive", game.current_player_id), interaction)
     else:
         view = DefuseView(
             game,
@@ -100,11 +101,12 @@ async def radioeggtive_face_up(
     game.remove_player(prev_player)
     game.remaining_turns = 0
     await game.send(
-        view=TextView(
+        TextView(
             "radioeggtive_face_up",
             prev_player,
             format_message("death_messages", random_from_list=True),
-        )
+        ),
+        interaction,
     )
     if len(game.players) == 1:
         await game_over(game, interaction)
@@ -113,30 +115,37 @@ async def radioeggtive_face_up(
         await game.events.turn_end()
 
 
-async def eggsperiment_finish(game: "Game", _, target_player_id: int, pair=False):
+async def eggsperiment_finish(
+    game: "Game",
+    interaction: discord.Interaction | None,
+    target_player_id: int,
+    pair=False,
+):
     if "defuse" in game.hands[target_player_id]:
         game.hands[target_player_id].remove("defuse")
         await game.send(
-            view=TextView(
+            TextView(
                 "eggsperiment_pair_defused" if pair else "eggsperiment_defused",
                 game.current_player_id,
                 target_player_id,
             ),
+            interaction,
         )
     else:
         await game.send(
-            view=TextView(
+            TextView(
                 "eggsperiment_pair_eggsploded" if pair else "eggsperiment_eggsploded",
                 game.current_player_id,
                 target_player_id,
                 format_message("death_messages", random_from_list=True),
             ),
+            interaction,
         )
         del game.players[game.players.index(target_player_id)]
         del game.hands[target_player_id]
         game.current_player = game.players.index(game.current_player_id)
         if len(game.players) == 1:
-            await game_over(game, _)
+            await game_over(game, interaction)
             return
     await game.events.action_end()
 
@@ -160,5 +169,5 @@ async def eggsperiment(game: "Game", interaction: discord.Interaction):
         await eggsperiment_finish(game, interaction, players_with_eggsperiment[0])
         return
     game.current_player_hand.append("eggsperiment")
-    await game.send(view=TextView("eggsperiment_exposed", game.current_player_id))
+    await game.send(TextView("eggsperiment_exposed", game.current_player_id), interaction)
     await game.events.action_end()

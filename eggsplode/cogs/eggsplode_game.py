@@ -125,7 +125,7 @@ class EggsplodeGame(commands.Cog):
                     ephemeral=True,
                 )
                 return
-            game.anchor_interaction = ctx.interaction
+            game.last_interaction = ctx.interaction
             await game.play_callback(ctx.interaction, card)
         else:
             await game.show_hand(ctx.interaction)

@@ -114,7 +114,7 @@ class EggsplodeApp(commands.Bot):
             ),
             game_id=game_id,
         )
-        game.anchor_interaction = interaction
+        game.last_interaction = interaction
         self.logger.info("Game %s: Created.", game_id)
         view = StartGameView(game)
         await interaction.respond(view=view)
