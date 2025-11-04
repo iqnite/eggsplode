@@ -46,7 +46,7 @@
     "game_already_exists": "❌ This channel already has a game running!",
     "game_cancelled": "**🚫 Everyone left, so the game has been cancelled. You can start a new game with </start:1325457141628141661>.**",
     "game_ended": "🚫 The current game has been ended manually by an administrator.",
-    "game_not_found": "❌ No game found in this channel! Start a new game with </start:1325457141628141661>!",
+    "game_not_found": "❌ No game found in this channel! Type **/start** to start a new game!\n*Eggsplode must be installed on a server to play. [Add it to a server](https://discord.com/oauth2/authorize?client_id=1325443178622484590) or [join a server that already has it](https://discord.gg/UGm36FkGDF).*",
     "game_not_started": "❌ The game has not started yet!",
     "game_over": "# 🎉 <@{}> wins!",
     "game_started": "## 🚀 Game Started!",

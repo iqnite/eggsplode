@@ -71,7 +71,6 @@ class EggsplodeGame(commands.Cog):
         description="Start a new Eggsplode game!",
         integration_types={
             discord.IntegrationType.guild_install,
-            discord.IntegrationType.user_install,
         },
     )
     async def start_game(self, ctx: discord.ApplicationContext):
