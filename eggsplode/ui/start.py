@@ -332,7 +332,7 @@ class HelpView(discord.ui.DesignerView):
         self.add_item(self.help_text).add_item(self.button_row)
 
 
-class LeaveGameView(discord.ui.View):
+class LeaveGameView(discord.ui.DesignerView):
     def __init__(self, parent_view: StartGameView, user_id: int):
         super().__init__(timeout=30, disable_on_timeout=True)
         self.parent_view = parent_view
@@ -340,11 +340,12 @@ class LeaveGameView(discord.ui.View):
         self.user_id = user_id
         self.warning = discord.ui.TextDisplay(format_message("leave_game_warning"))
         self.add_item(self.warning)
-        self.button = discord.ui.Button(
+        self.confirm_button = discord.ui.Button(
             label=format_message("leave_game_button"), style=discord.ButtonStyle.danger
         )
-        self.button.callback = self.leave_game_callback
-        self.add_item(self.button)
+        self.confirm_button.callback = self.leave_game_callback
+        self.action_row = discord.ui.ActionRow(self.confirm_button)
+        self.add_item(self.action_row)
 
     async def leave_game_callback(self, interaction: discord.Interaction):
         if not self.game or self.game.started:
@@ -353,7 +354,7 @@ class LeaveGameView(discord.ui.View):
         await self.parent_view.remove_player(self.user_id, interaction)
 
 
-class EndGameView(discord.ui.View):
+class EndGameView(discord.ui.DesignerView):
     def __init__(self, game: "Game"):
         super().__init__(timeout=30, disable_on_timeout=True)
         self.game = game
@@ -363,7 +364,8 @@ class EndGameView(discord.ui.View):
             label=format_message("end_game_button"), style=discord.ButtonStyle.danger
         )
         self.button.callback = self.end_game_callback
-        self.add_item(self.button)
+        self.action_row = discord.ui.ActionRow(self.button)
+        self.add_item(self.action_row)
 
     async def end_game_callback(self, interaction: discord.Interaction):
         if not self.game:
