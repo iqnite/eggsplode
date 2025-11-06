@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-class BaseView(discord.ui.View):
+class BaseView(discord.ui.DesignerView):
     def __init__(self, game: "Game", timeout=None):
         super().__init__(timeout=timeout, disable_on_timeout=True)
         self.game = game
@@ -21,7 +21,7 @@ class BaseView(discord.ui.View):
         if not await super().interaction_check(interaction):
             return False
         if interaction.user is None or interaction.user.id not in self.game.players:
-            await interaction.response.send_message(
+            await interaction.respond(
                 format_message("user_not_in_game"), ephemeral=True
             )
             return False
@@ -29,7 +29,7 @@ class BaseView(discord.ui.View):
         return True
 
 
-class TextView(discord.ui.View):
+class TextView(discord.ui.DesignerView):
     def __init__(
         self,
         key_or_text,
