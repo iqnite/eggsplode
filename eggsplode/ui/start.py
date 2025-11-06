@@ -323,17 +323,18 @@ class SettingsModal(discord.ui.Modal):
         return True, ""
 
 
-class HelpView(discord.ui.View):
+class HelpView(discord.ui.DesignerView):
     def __init__(self):
         super().__init__(timeout=None)
         self.help_text = discord.ui.TextDisplay(format_message("help0"))
-        self.add_item(self.help_text)
-        self.cards_help_button = discord.ui.Button(
-            label="Cards",
-            url="https://github.com/iqnite/eggsplode/wiki/Cards",
-            emoji="🎴",
+        self.button_row = discord.ui.ActionRow(
+            discord.ui.Button(
+                label="Cards",
+                url="https://github.com/iqnite/eggsplode/wiki/Cards",
+                emoji="🎴",
+            )
         )
-        self.add_item(self.cards_help_button)
+        self.add_item(self.help_text).add_item(self.button_row)
 
 
 class LeaveGameView(discord.ui.View):
