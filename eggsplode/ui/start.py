@@ -327,13 +327,7 @@ class HelpView(discord.ui.DesignerView):
     def __init__(self):
         super().__init__(timeout=None)
         self.help_text = discord.ui.TextDisplay(format_message("help0"))
-        self.button_row = discord.ui.ActionRow(
-            discord.ui.Button(
-                label="Cards",
-                url="https://github.com/iqnite/eggsplode/wiki/Cards",
-                emoji="🎴",
-            )
-        )
+        self.button_row = InfoLinkRow()
         self.add_item(self.help_text).add_item(self.button_row)
 
 
@@ -381,51 +375,50 @@ class EndGameView(discord.ui.View):
         await interaction.respond(view=TextView("game_ended"))
 
 
-class InfoView(discord.ui.View):
+class InfoLinkRow(discord.ui.ActionRow):
+    def __init__(self):
+        super().__init__()
+        self.add_item(
+            discord.ui.Button(
+                label="Online Help",
+                url="https://github.com/iqnite/eggsplode/wiki",
+                emoji="❓",
+            )
+        ).add_item(
+            discord.ui.Button(
+                label="Website",
+                url="https://iqnite.github.io/",
+                emoji=replace_emojis("🌐"),
+            )
+        ).add_item(
+            discord.ui.Button(
+                label="Official Server",
+                url="https://discord.gg/UGm36FkGDF",
+                emoji=replace_emojis("💬"),
+            )
+        ).add_item(
+            discord.ui.Button(
+                label="Vote on top.gg",
+                url="https://top.gg/bot/1325443178622484590/vote",
+                emoji="🎉",
+            )
+        ).add_item(
+            discord.ui.Button(
+                label="Support the development",
+                url="https://buymeacoffee.com/phorb",
+                emoji="♥️",
+            )
+        )
+
+
+class InfoView(discord.ui.DesignerView):
     def __init__(self, app: "EggsplodeApp"):
         super().__init__(timeout=None)
         self.app = app
         self.container = discord.ui.Container()
         self.add_item(self.container)
-        self.add_item(
-            discord.ui.Button(
-                label="Help",
-                url="https://github.com/iqnite/eggsplode/wiki",
-                emoji="❓",
-            )
-        )
-        self.add_item(
-            discord.ui.Button(
-                label="Website",
-                url="https://iqnite.github.io/",
-                style=discord.ButtonStyle.link,
-                emoji=replace_emojis("🌐"),
-            )
-        )
-        self.add_item(
-            discord.ui.Button(
-                label="Official Server",
-                url="https://discord.gg/UGm36FkGDF",
-                style=discord.ButtonStyle.link,
-                emoji=replace_emojis("💬"),
-            )
-        )
-        self.add_item(
-            discord.ui.Button(
-                label="GitHub",
-                url="https://github.com/iqnite/eggsplode",
-                style=discord.ButtonStyle.link,
-                emoji=replace_emojis("🐙"),
-            )
-        )
-        self.add_item(
-            discord.ui.Button(
-                label="Vote on top.gg",
-                url="https://top.gg/bot/1325443178622484590/vote",
-                style=discord.ButtonStyle.link,
-                emoji="🎉",
-            )
-        )
+        self.action_row = InfoLinkRow()
+        self.add_item(self.action_row)
 
     async def create_container(self):
         self.container.add_section(
