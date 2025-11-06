@@ -44,7 +44,7 @@ async def check_permissions(game: "Game", interaction: discord.Interaction):
     return True
 
 
-class StartGameView(discord.ui.View):
+class StartGameView(discord.ui.DesignerView):
     def __init__(self, game: "Game"):
         super().__init__(timeout=600, disable_on_timeout=True)
         self.game = game
@@ -100,7 +100,8 @@ class StartGameView(discord.ui.View):
             discord.ui.TextDisplay(format_message("recipe_description")),
             accessory=self.edit_recipe_button,
         )
-        self.settings_container.add_item(self.recipe_select)
+        self.recipe_action_row = discord.ui.ActionRow(self.recipe_select)
+        self.settings_container.add_item(self.recipe_action_row)
         self.settings_container.add_separator()
         self.advanced_settings_button = discord.ui.Button(
             label="View", style=discord.ButtonStyle.secondary, emoji="⚙️"
