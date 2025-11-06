@@ -415,7 +415,7 @@ class Game:
 
     async def send(
         self,
-        view: discord.ui.View,
+        view: discord.ui.View | discord.ui.DesignerView,
         interaction: discord.Interaction | None,
     ):
         if interaction is not None:
@@ -426,9 +426,7 @@ class Game:
             await self.last_interaction.response.send_message(view=view)
         except discord.errors.InteractionResponded:
             await self.last_interaction.followup.send(view=view)
-        self.app.logger.debug(
-            "Game %s: Sent message: %s", self.id, view.copy_text()
-        )
+        self.app.logger.debug("Game %s: Sent message: %s", self.id, view.copy_text())
 
     @property
     def turn_prompt(self) -> str:
