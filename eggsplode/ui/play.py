@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-class PlayView(discord.ui.View):
+class PlayView(discord.ui.DesignerView):
     MAX_SECTIONS = (MAX_COMPONENTS - 3) // 3
 
     def __init__(self, game: "Game", user_id: int):
@@ -29,6 +29,8 @@ class PlayView(discord.ui.View):
                 )
             )
             self.add_item(self.play_prompt)
+        self.card_container = discord.ui.Container()
+        self.back_forward_row = discord.ui.ActionRow()
         self.back_button: discord.ui.Button | None = None
         self.forward_button: discord.ui.Button | None = None
         self.page_number = 0
@@ -79,20 +81,29 @@ class PlayView(discord.ui.View):
             section.accessory.callback = self.make_callback(card)
             self.card_selects.append(section)
 
-        for item in self.children[1:]:
-            self.remove_item(item)
+        if self.card_container in self.children:
+            self.remove_item(self.card_container)
+        self.card_container = discord.ui.Container()
         for item in self.card_selects[
             self.page_number
             * self.MAX_SECTIONS : (self.page_number + 1)
             * self.MAX_SECTIONS
         ]:
-            self.add_item(item)
+            self.card_container.add_item(item)
 
+        if len(self.card_selects) > 0:
+            self.add_item(self.card_container)
+
+        if self.back_forward_row in self.children:
+            self.remove_item(self.back_forward_row)
+        self.back_forward_row = discord.ui.ActionRow()
         if self.page_count > 1:
             if self.page_count > 2 or self.page_number == 0:
                 self.forward_button = self.create_button(1)
             if self.page_count > 2 or self.page_number == 1:
                 self.back_button = self.create_button(-1)
+            if self.back_forward_row not in self.children:
+                self.add_item(self.back_forward_row)
 
     def make_callback(self, card_value):
         async def callback(interaction: discord.Interaction):
@@ -118,7 +129,7 @@ class PlayView(discord.ui.View):
             emoji="◀️" if step < 0 else "▶️",
         )
         button.callback = button_callback
-        self.add_item(button)
+        self.back_forward_row.add_item(button)
         return button
 
     async def play_card(self, card: str, interaction: discord.Interaction):
