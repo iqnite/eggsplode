@@ -245,6 +245,8 @@ class EditRecipeModal(discord.ui.DesignerModal):
             self.parent_message.id, view=self.parent_view
         )
 
+    def clear_items(self) -> None: ...
+
 
 class SettingsModal(discord.ui.DesignerModal):
     def __init__(self, game: "Game", *args, **kwargs):
@@ -324,6 +326,8 @@ class SettingsModal(discord.ui.DesignerModal):
             return False, f"Must be at most {max_value}."
         return True, ""
 
+    def clear_items(self) -> None: ...
+
 
 class HelpView(discord.ui.DesignerView):
     def __init__(self):
@@ -381,7 +385,7 @@ class EndGameView(discord.ui.DesignerView):
 
 class InfoLinkRow(discord.ui.ActionRow):
     def __init__(self):
-        super().__init__()
+        super().__init__()  # pylint: disable=no-value-for-parameter
         self.add_item(
             discord.ui.Button(
                 label="Online Help",
