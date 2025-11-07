@@ -160,6 +160,8 @@ async def eggsperiment(game: "Game", interaction: discord.Interaction):
             ),
             condition=lambda user_id: user_id != game.current_player_id,
         )
+        if await view.skip_if_single_option():
+            return
         await view.create_user_selection()
         await interaction.respond(view=view, ephemeral=True)
         return

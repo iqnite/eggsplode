@@ -58,6 +58,12 @@ class ChoosePlayerView(discord.ui.DesignerView):
         finally:
             await self.callback_action(self.eligible_players[0])
 
+    async def skip_if_single_option(self) -> bool:
+        if len(self.eligible_players) == 1:
+            await self.callback_action(self.eligible_players[0])
+            return True
+        return False
+
     async def create_user_selection(self):
         options = [
             discord.SelectOption(
