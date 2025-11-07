@@ -114,7 +114,7 @@ async def alter_future(game: "Game", interaction: discord.Interaction):
     await interaction.respond(view=view, ephemeral=True)
 
 
-class ShareFutureView(discord.ui.View):
+class ShareFutureView(discord.ui.DesignerView):
     def __init__(self, deck: list[str], *player_ids: int):
         super().__init__(timeout=None)
         self.player_ids = player_ids
@@ -126,7 +126,7 @@ class ShareFutureView(discord.ui.View):
             label="View next cards", style=discord.ButtonStyle.primary, emoji="👀"
         )
         self.view_button.callback = self.view_cards
-        self.add_item(self.view_button)
+        self.add_item(discord.ui.ActionRow(self.view_button))
 
     async def view_cards(self, interaction: discord.Interaction):
         if not interaction.user:
