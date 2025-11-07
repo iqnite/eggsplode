@@ -136,6 +136,12 @@ class DefuseView(SelectionView):
         self.add_item(self.move_action_row)
         self.game.events.game_end += self.stop
 
+    async def skip_if_deck_empty(self) -> bool:
+        if len(self.game.deck) == 0:
+            await self.finish()
+            return True
+        return False
+
     async def finish(self, interaction=None):
         self.game.deck.insert(self.card_position, self.card)
         await self.callback_action()
