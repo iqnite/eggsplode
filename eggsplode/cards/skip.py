@@ -61,7 +61,7 @@ class DigDeeperView(SelectionView):
         self.keep_section = discord.ui.Section(
             discord.ui.TextDisplay(
                 format_message(
-                    "next_card",
+                    "about_to_draw",
                     tooltip(self.next_card),
                 )
             ),

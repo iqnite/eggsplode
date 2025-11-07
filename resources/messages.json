@@ -1,4 +1,5 @@
 {
+    "about_to_draw": "You're about to draw: {}",
     "action_noped": "🛑 This action has been noped!",
     "advanced_settings": "### Balancing settings",
     "advanced_settings_description": "Customize the amount of cards in the deck and turn timers.",
