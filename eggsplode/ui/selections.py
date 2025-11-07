@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-class SelectionView(discord.ui.View):
+class SelectionView(discord.ui.DesignerView):
     def __init__(self, timeout: int = 20):
         super().__init__(timeout=timeout, disable_on_timeout=True)
         self.confirm_button = discord.ui.Button(
@@ -25,8 +25,7 @@ class SelectionView(discord.ui.View):
         finally:
             await self.finish()
 
-    async def finish(self, interaction: discord.Interaction | None = None):
-        pass
+    async def finish(self, interaction: discord.Interaction | None = None): ...
 
     async def confirm(self, interaction: discord.Interaction):
         self.disable_all_items()
@@ -64,7 +63,7 @@ class ChoosePlayerView(discord.ui.DesignerView):
                 label=f"{user.display_name} ({len(self.game.hands[user_id])} cards)",
             )
             for user_id in self.eligible_players
-            if (user := await self.game.app.get_or_fetch_user(user_id))  # type: ignore
+            if (user := await self.game.app.get_or_fetch(discord.User, user_id))
         ]
         self.user_select = discord.ui.Select(
             placeholder="Select a player",
@@ -107,23 +106,26 @@ class DefuseView(SelectionView):
             label="Top", style=discord.ButtonStyle.blurple, emoji="⏫"
         )
         self.top_button.callback = self.top
-        self.add_item(self.top_button)
         self.move_up_button = discord.ui.Button(
             label="Move up", style=discord.ButtonStyle.blurple, emoji="⬆️"
         )
         self.move_up_button.callback = self.move_up
-        self.add_item(self.move_up_button)
         self.move_down_button = discord.ui.Button(
             label="Move down", style=discord.ButtonStyle.blurple, emoji="⬇️"
         )
         self.move_down_button.callback = self.move_down
-        self.add_item(self.move_down_button)
         self.bottom_button = discord.ui.Button(
             label="Bottom", style=discord.ButtonStyle.blurple, emoji="⏬"
         )
         self.bottom_button.callback = self.bottom
-        self.add_item(self.bottom_button)
-        self.add_item(self.confirm_button)
+        self.move_action_row = discord.ui.ActionRow(
+            self.top_button,
+            self.move_up_button,
+            self.move_down_button,
+            self.bottom_button,
+            self.confirm_button,
+        )
+        self.add_item(self.move_action_row)
         self.game.events.game_end += self.stop
 
     async def finish(self, interaction=None):
