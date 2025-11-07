@@ -25,7 +25,8 @@ class SelectionView(discord.ui.DesignerView):
         finally:
             await self.finish()
 
-    async def finish(self, interaction: discord.Interaction | None = None): ...
+    async def finish(self, interaction: discord.Interaction | None = None):
+        pass
 
     async def confirm(self, interaction: discord.Interaction):
         self.disable_all_items()
@@ -48,6 +49,7 @@ class ChoosePlayerView(discord.ui.DesignerView):
         ]
         self.callback_action = callback_action
         self.user_select = None
+        self.action_row = None
         self.game.events.game_end += self.stop
 
     async def on_timeout(self):
