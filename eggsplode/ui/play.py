@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class PlayView(discord.ui.DesignerView):
-    MAX_SECTIONS = (MAX_COMPONENTS - 3) // 3
+    MAX_SECTIONS = (MAX_COMPONENTS - 5) // 3
 
     def __init__(self, game: "Game", user_id: int):
         super().__init__(timeout=60)
