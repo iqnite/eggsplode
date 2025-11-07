@@ -48,6 +48,8 @@ async def eggsplode(
             lambda: defuse_finish(game),
             card="eggsplode",
         )
+        if await view.skip_if_deck_empty():
+            return
         await interaction.respond(view=view, ephemeral=True)
         return
     prev_player = game.current_player_id
@@ -91,6 +93,8 @@ async def radioeggtive(
             card="radioeggtive_face_up",
             prev_card="radioeggtive",
         )
+        if await view.skip_if_deck_empty():
+            return
         await interaction.respond(view=view, ephemeral=True)
 
 
@@ -160,6 +164,8 @@ async def eggsperiment(game: "Game", interaction: discord.Interaction):
             ),
             condition=lambda user_id: user_id != game.current_player_id,
         )
+        if await view.skip_if_single_option():
+            return
         await view.create_user_selection()
         await interaction.respond(view=view, ephemeral=True)
         return

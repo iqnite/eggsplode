@@ -58,6 +58,12 @@ class ChoosePlayerView(discord.ui.DesignerView):
         finally:
             await self.callback_action(self.eligible_players[0])
 
+    async def skip_if_single_option(self) -> bool:
+        if len(self.eligible_players) == 1:
+            await self.callback_action(self.eligible_players[0])
+            return True
+        return False
+
     async def create_user_selection(self):
         options = [
             discord.SelectOption(
@@ -129,6 +135,12 @@ class DefuseView(SelectionView):
         )
         self.add_item(self.move_action_row)
         self.game.events.game_end += self.stop
+
+    async def skip_if_deck_empty(self) -> bool:
+        if len(self.game.deck) == 0:
+            await self.finish()
+            return True
+        return False
 
     async def finish(self, interaction=None):
         self.game.deck.insert(self.card_position, self.card)
