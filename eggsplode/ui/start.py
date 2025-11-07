@@ -44,7 +44,7 @@ async def check_permissions(game: "Game", interaction: discord.Interaction):
     return True
 
 
-class StartGameView(discord.ui.View):
+class StartGameView(discord.ui.DesignerView):
     def __init__(self, game: "Game"):
         super().__init__(timeout=600, disable_on_timeout=True)
         self.game = game
@@ -100,7 +100,8 @@ class StartGameView(discord.ui.View):
             discord.ui.TextDisplay(format_message("recipe_description")),
             accessory=self.edit_recipe_button,
         )
-        self.settings_container.add_item(self.recipe_select)
+        self.recipe_action_row = discord.ui.ActionRow(self.recipe_select)
+        self.settings_container.add_item(self.recipe_action_row)
         self.settings_container.add_separator()
         self.advanced_settings_button = discord.ui.Button(
             label="View", style=discord.ButtonStyle.secondary, emoji="⚙️"
@@ -192,13 +193,13 @@ class StartGameView(discord.ui.View):
         await interaction.edit(view=self)
 
     async def advanced_settings(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(SettingsModal(self.game))
+        await interaction.response.send_modal(SettingsModal(self.game))  # type: ignore
 
     async def edit_recipe(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(EditRecipeModal(self))
+        await interaction.response.send_modal(EditRecipeModal(self))  # type: ignore
 
 
-class EditRecipeModal(discord.ui.Modal):
+class EditRecipeModal(discord.ui.DesignerModal):
     def __init__(self, parent_view: StartGameView, *args, **kwargs):
         super().__init__(*args, **kwargs, title="Edit Recipe")
         self.parent_view = parent_view
@@ -209,7 +210,6 @@ class EditRecipeModal(discord.ui.Modal):
         self.recipe_help = discord.ui.TextDisplay(format_message("recipe_help"))
         self.add_item(self.recipe_help)
         self.recipe_input = discord.ui.InputText(
-            label="Recipe JSON",
             style=discord.InputTextStyle.long,
             value=json.dumps(self.game.config["recipe"], indent=2),
             placeholder=app_messages["recipe_json_placeholder"],
@@ -217,7 +217,8 @@ class EditRecipeModal(discord.ui.Modal):
             min_length=2,
             max_length=4000,
         )
-        self.add_item(self.recipe_input)
+        self.recipe_input_label = discord.ui.Label("Recipe JSON", self.recipe_input)
+        self.add_item(self.recipe_input_label)
 
     async def callback(self, interaction: discord.Interaction):
         recipe_json = self.recipe_input.value
@@ -244,23 +245,25 @@ class EditRecipeModal(discord.ui.Modal):
             self.parent_message.id, view=self.parent_view
         )
 
+    def clear_items(self) -> None: ...
 
-class SettingsModal(discord.ui.Modal):
+
+class SettingsModal(discord.ui.DesignerModal):
     def __init__(self, game: "Game", *args, **kwargs):
         super().__init__(*args, **kwargs, title="Balancing Settings")
         self.game = game
         self.inputs = {
             "deck_size": {
+                "label": "Maximum cards on deck",
                 "input": discord.ui.InputText(
-                    label="Maximum cards on deck",
                     placeholder="",
                     value=self.game.config.get("deck_size", None),
                     required=False,
                 ),
             },
             "turn_timeout": {
+                "label": "[Beta] Turn timeout (seconds)",
                 "input": discord.ui.InputText(
-                    label="[Beta] Turn timeout (seconds)",
                     placeholder="40",
                     value=self.game.config.get("turn_timeout", None),
                     required=False,
@@ -270,7 +273,7 @@ class SettingsModal(discord.ui.Modal):
             },
         }
         for i in self.inputs.values():
-            self.add_item(i["input"])
+            self.add_item(discord.ui.Label(i["label"], i["input"]))
 
     async def callback(self, interaction: discord.Interaction):
         if not self.game:
@@ -280,10 +283,11 @@ class SettingsModal(discord.ui.Modal):
         response = format_message("settings_updated")
         for input_name, item in self.inputs.items():
             item_input = item["input"]
+            item_label = item["label"]
             if item_input.value == "":
                 self.game.config.pop(input_name, None)
                 response += "\n" + format_message(
-                    "settings_updated_success", item_input.label, item_input.placeholder
+                    "settings_updated_success", item_label, item_input.placeholder
                 )
                 continue
             if not (
@@ -296,14 +300,14 @@ class SettingsModal(discord.ui.Modal):
             )[0]:
                 response += "\n" + format_message(
                     "settings_updated_error",
-                    item_input.label,
+                    item_label,
                     item_input.value,
                     validation[1],
                 )
                 continue
             self.game.config[input_name] = item_input.value
             response += "\n" + format_message(
-                "settings_updated_success", item_input.label, item_input.value
+                "settings_updated_success", item_label, item_input.value
             )
         await interaction.respond(
             view=TextView(response, verbatim=True), ephemeral=True, delete_after=5
@@ -322,21 +326,18 @@ class SettingsModal(discord.ui.Modal):
             return False, f"Must be at most {max_value}."
         return True, ""
 
+    def clear_items(self) -> None: ...
 
-class HelpView(discord.ui.View):
+
+class HelpView(discord.ui.DesignerView):
     def __init__(self):
         super().__init__(timeout=None)
         self.help_text = discord.ui.TextDisplay(format_message("help0"))
-        self.add_item(self.help_text)
-        self.cards_help_button = discord.ui.Button(
-            label="Cards",
-            url="https://github.com/iqnite/eggsplode/wiki/Cards",
-            emoji="🎴",
-        )
-        self.add_item(self.cards_help_button)
+        self.button_row = InfoLinkRow()
+        self.add_item(self.help_text).add_item(self.button_row)
 
 
-class LeaveGameView(discord.ui.View):
+class LeaveGameView(discord.ui.DesignerView):
     def __init__(self, parent_view: StartGameView, user_id: int):
         super().__init__(timeout=30, disable_on_timeout=True)
         self.parent_view = parent_view
@@ -344,11 +345,12 @@ class LeaveGameView(discord.ui.View):
         self.user_id = user_id
         self.warning = discord.ui.TextDisplay(format_message("leave_game_warning"))
         self.add_item(self.warning)
-        self.button = discord.ui.Button(
+        self.confirm_button = discord.ui.Button(
             label=format_message("leave_game_button"), style=discord.ButtonStyle.danger
         )
-        self.button.callback = self.leave_game_callback
-        self.add_item(self.button)
+        self.confirm_button.callback = self.leave_game_callback
+        self.action_row = discord.ui.ActionRow(self.confirm_button)
+        self.add_item(self.action_row)
 
     async def leave_game_callback(self, interaction: discord.Interaction):
         if not self.game or self.game.started:
@@ -357,7 +359,7 @@ class LeaveGameView(discord.ui.View):
         await self.parent_view.remove_player(self.user_id, interaction)
 
 
-class EndGameView(discord.ui.View):
+class EndGameView(discord.ui.DesignerView):
     def __init__(self, game: "Game"):
         super().__init__(timeout=30, disable_on_timeout=True)
         self.game = game
@@ -367,7 +369,8 @@ class EndGameView(discord.ui.View):
             label=format_message("end_game_button"), style=discord.ButtonStyle.danger
         )
         self.button.callback = self.end_game_callback
-        self.add_item(self.button)
+        self.action_row = discord.ui.ActionRow(self.button)
+        self.add_item(self.action_row)
 
     async def end_game_callback(self, interaction: discord.Interaction):
         if not self.game:
@@ -380,51 +383,50 @@ class EndGameView(discord.ui.View):
         await interaction.respond(view=TextView("game_ended"))
 
 
-class InfoView(discord.ui.View):
+class InfoLinkRow(discord.ui.ActionRow):
+    def __init__(self):
+        super().__init__()  # pylint: disable=no-value-for-parameter
+        self.add_item(
+            discord.ui.Button(
+                label="Online Help",
+                url="https://github.com/iqnite/eggsplode/wiki",
+                emoji="❓",
+            )
+        ).add_item(
+            discord.ui.Button(
+                label="Website",
+                url="https://iqnite.github.io/",
+                emoji=replace_emojis("🌐"),
+            )
+        ).add_item(
+            discord.ui.Button(
+                label="Official Server",
+                url="https://discord.gg/UGm36FkGDF",
+                emoji=replace_emojis("💬"),
+            )
+        ).add_item(
+            discord.ui.Button(
+                label="Vote on top.gg",
+                url="https://top.gg/bot/1325443178622484590/vote",
+                emoji="🎉",
+            )
+        ).add_item(
+            discord.ui.Button(
+                label="Support the development",
+                url="https://buymeacoffee.com/phorb",
+                emoji="♥️",
+            )
+        )
+
+
+class InfoView(discord.ui.DesignerView):
     def __init__(self, app: "EggsplodeApp"):
         super().__init__(timeout=None)
         self.app = app
         self.container = discord.ui.Container()
         self.add_item(self.container)
-        self.add_item(
-            discord.ui.Button(
-                label="Help",
-                url="https://github.com/iqnite/eggsplode/wiki",
-                emoji="❓",
-            )
-        )
-        self.add_item(
-            discord.ui.Button(
-                label="Website",
-                url="https://iqnite.github.io/",
-                style=discord.ButtonStyle.link,
-                emoji=replace_emojis("🌐"),
-            )
-        )
-        self.add_item(
-            discord.ui.Button(
-                label="Official Server",
-                url="https://discord.gg/UGm36FkGDF",
-                style=discord.ButtonStyle.link,
-                emoji=replace_emojis("💬"),
-            )
-        )
-        self.add_item(
-            discord.ui.Button(
-                label="GitHub",
-                url="https://github.com/iqnite/eggsplode",
-                style=discord.ButtonStyle.link,
-                emoji=replace_emojis("🐙"),
-            )
-        )
-        self.add_item(
-            discord.ui.Button(
-                label="Vote on top.gg",
-                url="https://top.gg/bot/1325443178622484590/vote",
-                style=discord.ButtonStyle.link,
-                emoji="🎉",
-            )
-        )
+        self.action_row = InfoLinkRow()
+        self.add_item(self.action_row)
 
     async def create_container(self):
         self.container.add_section(

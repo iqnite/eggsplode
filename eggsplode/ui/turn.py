@@ -19,16 +19,16 @@ class TurnView(BaseView):
             label="Play a card", style=discord.ButtonStyle.primary, emoji="🎴"
         )
         self.play_button.callback = self.game.show_hand
-        self.add_item(self.play_button)
         self.draw_button = discord.ui.Button(
             label="Draw", style=discord.ButtonStyle.secondary, emoji="🤚"
         )
         self.draw_button.callback = self.game.draw_callback
-        self.add_item(self.draw_button)
+        self.action_row = discord.ui.ActionRow(self.play_button, self.draw_button)
+        self.add_item(self.action_row)
         self.warnings = discord.ui.TextDisplay(self.game.warnings)
         self.add_item(self.warnings)
-        self.game.events.turn_end.subscribe(self.deactivate, 0)
-        self.game.events.game_end.subscribe(self.deactivate, 0)
+        self.game.events.turn_end.subscribe(self.deactivate, index=0)
+        self.game.events.game_end.subscribe(self.deactivate, index=0)
 
     async def interaction_check(self, interaction: discord.Interaction):
         if not await super().interaction_check(interaction):

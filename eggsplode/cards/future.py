@@ -50,14 +50,18 @@ class AlterFutureView(SelectionView):
         self.game = game
         self.amount_of_cards = min(amount_of_cards, len(self.game.deck))
         self.callback_action = callback_action
+        self.select_container = None
         self.selects: list[discord.ui.Select] = []
-        self.add_item(self.confirm_button)
         self.add_item(discord.ui.TextDisplay(format_message("next_cards")))
+        self.confirm_row = discord.ui.ActionRow(self.confirm_button)
         self.create_selections()
 
     def create_selections(self):
-        for select in self.selects:
-            self.remove_item(select)
+        if self.select_container in self.children:
+            self.remove_item(self.select_container)
+        if self.confirm_row in self.children:
+            self.remove_item(self.confirm_row)
+        self.select_container = discord.ui.Container()
         self.selects = []
         for i in range(self.amount_of_cards):
             card_options = [
@@ -79,7 +83,9 @@ class AlterFutureView(SelectionView):
             )
             select.callback = self.selection_callback
             self.selects.append(select)
-            self.add_item(select)
+            self.select_container.add_item(discord.ui.ActionRow(select))
+        self.add_item(self.select_container)
+        self.add_item(self.confirm_row)
 
     async def finish(self, interaction=None):
         await self.callback_action()
@@ -88,7 +94,7 @@ class AlterFutureView(SelectionView):
         if not interaction:
             return
         for i, select in enumerate(self.selects):
-            if select.values is None:
+            if not select.values:
                 continue
             if not isinstance(select.values[0], str):
                 raise TypeError("select.values[0] is not a str")
@@ -108,7 +114,7 @@ async def alter_future(game: "Game", interaction: discord.Interaction):
     await interaction.respond(view=view, ephemeral=True)
 
 
-class ShareFutureView(discord.ui.View):
+class ShareFutureView(discord.ui.DesignerView):
     def __init__(self, deck: list[str], *player_ids: int):
         super().__init__(timeout=None)
         self.player_ids = player_ids
@@ -120,7 +126,7 @@ class ShareFutureView(discord.ui.View):
             label="View next cards", style=discord.ButtonStyle.primary, emoji="👀"
         )
         self.view_button.callback = self.view_cards
-        self.add_item(self.view_button)
+        self.add_item(discord.ui.ActionRow(self.view_button))
 
     async def view_cards(self, interaction: discord.Interaction):
         if not interaction.user:

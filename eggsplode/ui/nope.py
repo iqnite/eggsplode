@@ -27,6 +27,7 @@ class NopeView(BaseView):
         super().__init__(game, timeout=timeout)
         self.game = game
         self.action_messages = [message]
+        self.target_player_id = target_player_id
         self.ok_callback_action = ok_callback_action
         self.nope_callback_action = nope_callback_action
         self.nope_count = 0
@@ -40,15 +41,14 @@ class NopeView(BaseView):
             label="Nope!", style=discord.ButtonStyle.red, emoji="🛑"
         )
         self.nope_button.callback = self.nope_callback
-        self.add_item(self.nope_button)
-        self.target_player_id = target_player_id
         self.ok_button = discord.ui.Button(
             label=self.ok_label,
             style=discord.ButtonStyle.green,
             emoji="✅",
         )
         self.ok_button.callback = self.ok_callback
-        self.add_item(self.ok_button)
+        self.action_row = discord.ui.ActionRow(self.nope_button, self.ok_button)
+        self.add_item(self.action_row)
 
     @property
     def ok_label(self) -> str:
@@ -128,9 +128,9 @@ class NopeView(BaseView):
             )
             self.action_text_display.content = "\n".join(self.action_messages)
             if self.noped:
-                self.remove_item(self.ok_button)
+                self.action_row.remove_item(self.ok_button)
             else:
-                self.add_item(self.ok_button)
+                self.action_row.add_item(self.ok_button)
         await interaction.edit(view=self)
 
     async def ok_callback(self, interaction: discord.Interaction):
@@ -173,8 +173,7 @@ class NopeView(BaseView):
         self.disabled = True
         self.stop()
         self.disable_all_items()
-        self.remove_item(self.nope_button)
-        self.remove_item(self.ok_button)
+        self.remove_item(self.action_row)
         self.remove_item(self.timer_display)
         await interaction.edit(view=self)
         if self.ok_callback_action:

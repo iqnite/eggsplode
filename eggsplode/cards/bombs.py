@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-class GameOverView(discord.ui.View):
+class GameOverView(discord.ui.DesignerView):
     def __init__(self, winner):
         super().__init__(timeout=None)
         self.add_item(discord.ui.TextDisplay(format_message("game_over", winner)))
@@ -22,9 +22,9 @@ class GameOverView(discord.ui.View):
         self.funding_container.add_section(
             discord.ui.TextDisplay(format_message("funding_title")),
             accessory=discord.ui.Button(
-                label="Buy me a coffee",
-                emoji="☕",
+                label="Support the development",
                 url="https://buymeacoffee.com/phorb",
+                emoji="♥️",
             ),
         )
 
@@ -169,5 +169,7 @@ async def eggsperiment(game: "Game", interaction: discord.Interaction):
         await eggsperiment_finish(game, interaction, players_with_eggsperiment[0])
         return
     game.current_player_hand.append("eggsperiment")
-    await game.send(TextView("eggsperiment_exposed", game.current_player_id), interaction)
+    await game.send(
+        TextView("eggsperiment_exposed", game.current_player_id), interaction
+    )
     await game.events.action_end()
