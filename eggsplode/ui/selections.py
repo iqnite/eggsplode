@@ -35,7 +35,7 @@ class SelectionView(discord.ui.View):
         await self.finish(interaction)
 
 
-class ChoosePlayerView(discord.ui.View):
+class ChoosePlayerView(discord.ui.DesignerView):
     def __init__(
         self,
         game: "Game",
@@ -64,7 +64,7 @@ class ChoosePlayerView(discord.ui.View):
                 label=f"{user.display_name} ({len(self.game.hands[user_id])} cards)",
             )
             for user_id in self.eligible_players
-            if (user := await self.game.app.get_or_fetch_user(user_id))
+            if (user := await self.game.app.get_or_fetch_user(user_id))  # type: ignore
         ]
         self.user_select = discord.ui.Select(
             placeholder="Select a player",
@@ -73,7 +73,8 @@ class ChoosePlayerView(discord.ui.View):
             options=options,
         )
         self.user_select.callback = self.selection_callback
-        self.add_item(self.user_select)
+        self.action_row = discord.ui.ActionRow(self.user_select)
+        self.add_item(self.action_row)
 
     async def selection_callback(self, interaction: discord.Interaction):
         if not (interaction and self.user_select):
