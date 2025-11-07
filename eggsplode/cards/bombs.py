@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-class GameOverView(discord.ui.View):
+class GameOverView(discord.ui.DesignerView):
     def __init__(self, winner):
         super().__init__(timeout=None)
         self.add_item(discord.ui.TextDisplay(format_message("game_over", winner)))
