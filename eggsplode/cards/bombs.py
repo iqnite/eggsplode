@@ -4,6 +4,7 @@ Also contains defuse-like actions.
 """
 
 import random
+import functools
 from typing import TYPE_CHECKING
 import discord
 from eggsplode.strings import format_message
@@ -151,15 +152,19 @@ async def eggsperiment_finish(
 
 
 async def eggsperiment(game: "Game", interaction: discord.Interaction):
+    eggsperiment_finish_callback = functools.partial(
+        eggsperiment_finish, game, interaction, pair=True
+    )
     if game.current_player_hand.count("eggsperiment") == 1:
         game.current_player_hand.remove("eggsperiment")
         view = ChoosePlayerView(
             game,
-            lambda target_player_id: eggsperiment_finish(
-                game, interaction, target_player_id, pair=True
-            ),
+            eggsperiment_finish_callback,
             condition=lambda user_id: user_id != game.current_player_id,
         )
+        if len(view.eligible_players) == 1:
+            await eggsperiment_finish_callback(view.eligible_players[0])
+            return
         await view.create_user_selection()
         await interaction.respond(view=view, ephemeral=True)
         return
