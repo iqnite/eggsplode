@@ -339,7 +339,7 @@ class HelpView(discord.ui.DesignerView):
 
 class LeaveGameView(discord.ui.DesignerView):
     def __init__(self, parent_view: StartGameView, user_id: int):
-        super().__init__(timeout=30, disable_on_timeout=True)
+        super().__init__(timeout=None)
         self.parent_view = parent_view
         self.game = parent_view.game
         self.user_id = user_id
@@ -353,10 +353,17 @@ class LeaveGameView(discord.ui.DesignerView):
         self.add_item(self.action_row)
 
     async def leave_game_callback(self, interaction: discord.Interaction):
-        if not self.game or self.game.started:
+        if (
+            not self.game
+            or self.game.started
+            or not interaction.user
+            or interaction.user.id not in self.game.config["players"]
+        ):
             return
         await interaction.edit(delete_after=0, view=self)
         await self.parent_view.remove_player(self.user_id, interaction)
+        self.disable_all_items()
+        self.stop()
 
 
 class EndGameView(discord.ui.DesignerView):
