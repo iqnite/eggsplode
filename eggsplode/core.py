@@ -4,6 +4,7 @@ Contains the game logic for the Eggsplode game.
 
 import asyncio
 import json
+import logging
 import random
 from datetime import datetime, timedelta
 from typing import Callable, Coroutine, TYPE_CHECKING
@@ -14,6 +15,8 @@ from eggsplode.strings import available_cards, format_message, tooltip
 
 if TYPE_CHECKING:
     from eggsplode.commands import EggsplodeApp
+
+logger = logging.getLogger(__name__)
 
 
 class Game:
@@ -146,7 +149,7 @@ class Game:
         self.last_activity = datetime.now()
         self.inactivity_count = 0
         self.started = True
-        self.app.logger.info(
+        logger.info(
             "Game %s: Started.\nPlayers: %s\nRecipe: %s",
             self.id,
             self.players,
@@ -377,7 +380,7 @@ class Game:
         self.pause()
         self.inactivity_count += 1
         if self.inactivity_count > 5:
-            self.app.logger.info("Game %s: Ending due to inactivity.", self.id)
+            logger.info("Game %s: Ending due to inactivity.", self.id)
             await self.send(TextView("game_timeout"), None)
             await self.events.game_end()
             return
@@ -411,7 +414,7 @@ class Game:
         self.deck = []
         self.action_id = 0
         self.remaining_turns = 0
-        self.app.logger.info("Game %s: Ended.", self.id)
+        logger.info("Game %s: Ended.", self.id)
 
     async def send(
         self,
@@ -426,7 +429,7 @@ class Game:
             await self.last_interaction.response.send_message(view=view)
         except discord.errors.InteractionResponded:
             await self.last_interaction.followup.send(view=view)
-        self.app.logger.debug("Game %s: Sent message: %s", self.id, view.copy_text())
+        logger.debug("Game %s: Sent message: %s", self.id, view.copy_text())
 
     @property
     def turn_prompt(self) -> str:

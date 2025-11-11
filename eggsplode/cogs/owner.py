@@ -3,10 +3,14 @@ Contains owner only commands.
 """
 
 import asyncio
+import logging
 import discord
 from discord.ext import commands
 from eggsplode.commands import EggsplodeApp
 from eggsplode.strings import format_message, test_guild_id, app_config
+
+
+logger = logging.getLogger(__name__)
 
 
 class Owner(commands.Cog):
@@ -25,7 +29,7 @@ class Owner(commands.Cog):
             await asyncio.sleep(10)
         if not self.app.admin_maintenance:
             return
-        self.app.logger.info("Restarting via slash command.")
+        logger.info("Restarting via slash command.")
         await asyncio.create_subprocess_shell(app_config.get("restart_command", ""))
 
     @discord.slash_command(

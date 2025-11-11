@@ -47,7 +47,7 @@ if log_path != "":
 status_activity = discord.CustomActivity(
     name=app_config.get("custom_status", "/start"),
 )
-app = EggsplodeApp(activity=status_activity, logger=app_logger)
+app = EggsplodeApp(activity=status_activity)
 
 if __name__ == "__main__":
     if log_path != "":
