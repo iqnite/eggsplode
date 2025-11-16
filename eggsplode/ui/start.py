@@ -471,13 +471,7 @@ class InfoView(discord.ui.DesignerView):
         self.container.add_section(
             discord.ui.TextDisplay(
                 format_message(
-                    "status_server_installs", application_info.approximate_guild_count
-                )
-            ),
-            discord.ui.TextDisplay(
-                format_message(
-                    "status_user_installs",
-                    application_info.approximate_user_install_count,
+                    "status_installs", application_info.approximate_guild_count
                 )
             ),
             accessory=discord.ui.Button(

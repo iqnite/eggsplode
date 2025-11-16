@@ -203,6 +203,7 @@
     "start": "# New game",
     "start_game_tip": "Start a new game with </start:1325457141628141661>!",
     "started": "Game started!",
+    "status_installs": "Bringing fun to over **{}** servers!",
     "status_latency": "Ping: {:.0f}ms",
     "status_cpu": "CPU Usage: {:.0f}%",
     "status_memory": "Memory Usage: {:.0f}%",
