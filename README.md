@@ -1,5 +1,7 @@
 # Eggsplode
 
+With support from [Hack Club](https://hackclub.com/).
+
 Play items, betray your friends, and be the last one to survive in this action-packed Discord game! Inspired by the card game Exploding Kittens, Eggsplode mixes explosions and... eggs.
 
 ![Banner](https://iqnite.github.io/images/eggsplode_banner.png)
