@@ -147,6 +147,7 @@ class Game:
     async def start(self, interaction: discord.Interaction):
         self.setup()
         self.last_activity = datetime.now()
+        self.last_interaction = interaction
         self.inactivity_count = 0
         self.started = True
         logger.info(
@@ -414,6 +415,7 @@ class Game:
         self.deck = []
         self.action_id = 0
         self.remaining_turns = 0
+        self.last_interaction = None
         logger.info("Game %s: Ended.", self.id)
 
     async def send(
