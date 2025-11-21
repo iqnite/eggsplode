@@ -232,5 +232,6 @@
     "eggsperiment_exposed": "## 🧪 <@{}> tried to use an Eggsperiment. Unfortunately, nobody else had one, so they took it back into their hand!",
     "eggsperiment_pair_defused": "## 🔧 <@{}> used 2 Eggsperiment cards in pair and forced <@{}> to defuse!",
     "eggsperiment_pair_eggsploded": "## 💥 <@{}> used 2 Eggsperiment cards in pair and made <@{}> eggsplode!\n{}",
-    "you_drew_card": "You drew: {}!"
+    "you_drew_card": "You drew: {}!",
+    "your_cards": "**It's not your turn!** Here are your cards:"
 }

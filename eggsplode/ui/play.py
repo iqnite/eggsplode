@@ -20,15 +20,14 @@ class PlayView(discord.ui.DesignerView):
         self.user_id = user_id
         self.action_id = game.action_id
         self.card_selects = []
-        if self.playable:
-            self.play_prompt = discord.ui.TextDisplay(
-                format_message(
-                    "play_prompt"
-                    if self.game.hands[self.user_id]
-                    else "user_has_no_cards"
-                )
+        self.play_prompt = discord.ui.TextDisplay(
+            format_message(
+                "user_has_no_cards"
+                if not self.game.hands[self.user_id]
+                else "your_cards" if not self.playable else "play_prompt"
             )
-            self.add_item(self.play_prompt)
+        )
+        self.add_item(self.play_prompt)
         self.card_container = discord.ui.Container()
         self.back_forward_row = discord.ui.ActionRow()
         self.back_button: discord.ui.Button | None = None
