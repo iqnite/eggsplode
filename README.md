@@ -2,33 +2,35 @@
 
 With support from [Hack Club](https://hackclub.com/).
 
-Play items, betray your friends, and be the last one to survive in this action-packed Discord game! Inspired by the card game Exploding Kittens, Eggsplode mixes explosions and... eggs.
+The Discord adaptation of the Exploding Kittens card game! During your turn, you draw a card. If it's an Eggsplode card, you lose! Use all the other cards to attack, steal, defuse, survive, and win!
+
+[🤖 **Install**](https://iqnite.github.io/eggsplode/install.html) | [🗨️ **Support and community server**](https://iqnite.github.io/eggsplode/discord.html) | [🌐 **Website**](https://iqnite.github.io/eggsplode/)
 
 ![Banner](https://iqnite.github.io/images/eggsplode_banner.png)
 
-## Features
+Eggsplode is the Discord adaptation of the **Exploding Kittens** card game, a highly strategic version of Uno and Russian Roulette. It has most of the original game's features, including...
 
-- **Start** games with one command, join with one click!
-- **Fast-paced** turn-based system!
-- Play as many cards as you want, then draw - if you draw an **Eggsplode** card, you're out!
-- Attack, steal, predict, bluff, and cheat to be the last one standing and **win**!
-- Use **combos** to counter attacks!
-- Lots of **secrets**, easter eggs, and egg puns
+- 25+ unique cards, each with their own mechanics and new ones added regularly!
+  - Defuse, Radioeggtive, Eggsperiment, Attegg, Alter the Future, ...
+- Endless playstyles and strategies!
+  - Chill out and watch the others kill each other? Or jump right into the mix and set everything on fire?
+- Fine-tune your games with recipes and expansions!
+  - Danger Mode? Eggzilla? Eye for an Eye? Or maybe just a classic round...
+- Entirely on Discord, with no player limits!
+  - Suddenly your 500 server members want to play? We got it, buddy.
+- **Lots of easter eggs, surprises, secrets, and bad jokes...**
+  - Listen, I can't spoil everything, just go play by yourself!
 
-_No eggs were injured while making this game._
+**Eggsplode is completely free and open-source.**
 
-## Quicklinks
-
-- [Install](https://iqnite.github.io/eggsplode/install.html)
-- [Support and community server](https://iqnite.github.io/eggsplode/discord.html)
-- [Website](https://iqnite.github.io/eggsplode/)
+*No eggs were injured while making this game.*
 
 ## Credits
 
-- This project is created and maintained by [Phorb](https://iqnite.github.io/).
-- Huge thanks to Psilo for making the card icons!
-- The project is based on the [Pycord](https://pycord.dev/) library.
-- The game concept is based on the card game [Exploding Kittens](https://explodingkittens.com/).
+- This project is created and maintained by [**Phorb**](https://iqnite.github.io/).
+- Huge thanks to **Psilo** for making the card icons!
+- The project is based on the [**Pycord**](https://pycord.dev/) library.
+- The game concept is based on the card game [**Exploding Kittens**](https://explodingkittens.com/).
 - Thanks to all the early testers for their feedback and patience!
 - And of course, thank you for playing!
 
@@ -40,16 +42,16 @@ Parts of the code review and debugging process were assisted by GitHub Copilot.
 
 First, we need to create a Bot on Discord's side.
 
-1. On the [Discord Dev Portal](https://discord.com/developers/applications), click on _New Application_. Customize the title, icon, description, etc.
-2. In the _Installation_ page, select `application.commands` in both _User Install_ and _Guild Install_. Also select `bot` in _Guild Install_. Under _Permissions_, select the following:
+1. On the [Discord Dev Portal](https://discord.com/developers/applications), click on *New Application*. Customize the title, icon, description, etc.
+2. In the *Installation* page, select `application.commands` in both *User Install* and *Guild Install*. Also select `bot` in *Guild Install*. Under *Permissions*, select the following:
     - Send Messages
     - Send Messages in Threads
     - Attach Files
     - Embed Links
-3. Under _Install Link_, make sure _Discord Provided Link_ is selected. Copy the install link and open it to install your bot. For now, you should only install it to a test server.
-4. In the _Bot_ page, click on _Reset Token_. Copy the new token to a safe place (we'll need it later).
-5. In Discord, enable _Developer Mode_ under _User Settings_ > _Advanced_.
-6. Right-click on your test server and select _Copy Server ID_.
+3. Under *Install Link*, make sure *Discord Provided Link* is selected. Copy the install link and open it to install your bot. For now, you should only install it to a test server.
+4. In the *Bot* page, click on *Reset Token*. Copy the new token to a safe place (we'll need it later).
+5. In Discord, enable *Developer Mode* under *User Settings* > *Advanced*.
+6. Right-click on your test server and select *Copy Server ID*.
 
 ### 2. Project Setup
 
