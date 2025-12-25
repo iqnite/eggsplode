@@ -89,7 +89,7 @@
     },
     "all_cards": {
         "name": "All cards",
-        "description": "The classic game + the Radioeggtive and Eggsperiment expansions",
+        "description": "Uses all available cards",
         "emoji": "💯",
         "cards": {
             "defuse": {
