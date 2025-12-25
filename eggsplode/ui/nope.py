@@ -6,13 +6,13 @@ from datetime import datetime, timedelta
 from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 from eggsplode.strings import format_message
-from eggsplode.ui.base import BaseView, TextView
+from eggsplode.ui.base import BaseGameView, TextView
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-class NopeView(BaseView):
+class NopeView(BaseGameView):
     def __init__(
         self,
         game: "Game",

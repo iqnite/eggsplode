@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-class BaseView(discord.ui.DesignerView):
+class BaseGameView(discord.ui.DesignerView):
     def __init__(self, game: "Game", timeout=None):
         super().__init__(timeout=timeout, disable_on_timeout=True)
         self.game = game
