@@ -87,12 +87,12 @@ class DigDeeperView(SelectionView):
             if not interaction:
                 raise ValueError("No last interaction set for the game.")
         _, hold = await self.game.draw_from(interaction)
-        self.stop()
+        self.ignore_interactions()
         if hold:
             await self.game.events.turn_end()
 
     async def dig_deeper(self, interaction: discord.Interaction):
-        self.stop()
+        self.ignore_interactions()
         self.disable_all_items()
         await interaction.edit(view=self)
         await self.game.send(

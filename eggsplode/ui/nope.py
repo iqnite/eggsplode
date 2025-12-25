@@ -79,7 +79,7 @@ class NopeView(BaseGameView):
         finally:
             if not self.disabled:
                 self.disabled = True
-                self.stop()
+                self.ignore_interactions()
                 if not self.noped and self.ok_callback_action:
                     await self.ok_callback_action(None)
                 else:
@@ -171,7 +171,7 @@ class NopeView(BaseGameView):
     async def finish_confirmation(self, interaction: discord.Interaction):
         self.game.last_interaction = interaction
         self.disabled = True
-        self.stop()
+        self.ignore_interactions()
         self.disable_all_items()
         self.remove_item(self.action_row)
         self.remove_item(self.timer_display)

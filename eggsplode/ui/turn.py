@@ -38,6 +38,6 @@ class TurnView(BaseGameView):
         return True
 
     async def deactivate(self):
-        self.stop()
+        self.ignore_interactions()
         self.game.events.turn_end -= self.deactivate
         self.game.events.game_end -= self.deactivate

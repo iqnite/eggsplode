@@ -5,13 +5,13 @@ Contains the PlayView class, which is used to display the play interface for a g
 from typing import TYPE_CHECKING
 import discord
 from eggsplode.strings import available_cards, MAX_COMPONENTS, format_message
-from eggsplode.ui.base import TextView
+from eggsplode.ui.base import BaseView, TextView
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-class PlayView(discord.ui.DesignerView):
+class PlayView(BaseView):
     MAX_SECTIONS = (MAX_COMPONENTS - 5) // 3
 
     def __init__(self, game: "Game", user_id: int):
@@ -34,7 +34,7 @@ class PlayView(discord.ui.DesignerView):
         self.forward_button: discord.ui.Button | None = None
         self.page_number = 0
         self.update_sections()
-        self.game.events.game_end += self.stop
+        self.game.events.game_end += self.ignore_interactions
 
     @property
     def playable(self) -> bool:
@@ -140,6 +140,6 @@ class PlayView(discord.ui.DesignerView):
             return
         self.game.action_id += 1
         self.action_id = self.game.action_id
-        self.stop()
+        self.ignore_interactions()
         await interaction.edit(view=self, delete_after=0)
         await self.game.play_callback(interaction, card)

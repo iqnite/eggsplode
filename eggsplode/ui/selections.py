@@ -6,12 +6,13 @@ from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 
 from eggsplode.strings import format_message, tooltip
+from eggsplode.ui.base import BaseView
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-class SelectionView(discord.ui.DesignerView):
+class SelectionView(BaseView):
     def __init__(self, timeout: int = 20):
         super().__init__(timeout=timeout, disable_on_timeout=True)
         self.confirm_button = discord.ui.Button(
@@ -31,11 +32,11 @@ class SelectionView(discord.ui.DesignerView):
     async def confirm(self, interaction: discord.Interaction):
         self.disable_all_items()
         await interaction.edit(view=self)
-        self.stop()
+        self.ignore_interactions()
         await self.finish(interaction)
 
 
-class ChoosePlayerView(discord.ui.DesignerView):
+class ChoosePlayerView(BaseView):
     def __init__(
         self,
         game: "Game",
@@ -50,7 +51,7 @@ class ChoosePlayerView(discord.ui.DesignerView):
         self.callback_action = callback_action
         self.user_select = None
         self.action_row = None
-        self.game.events.game_end += self.stop
+        self.game.events.game_end += self.ignore_interactions
 
     async def on_timeout(self):
         try:
@@ -86,7 +87,7 @@ class ChoosePlayerView(discord.ui.DesignerView):
     async def selection_callback(self, interaction: discord.Interaction):
         if not (interaction and self.user_select):
             return
-        self.stop()
+        self.ignore_interactions()
         self.disable_all_items()
         await interaction.edit(view=self, delete_after=0)
         if not isinstance(self.user_select.values[0], str):
@@ -134,7 +135,7 @@ class DefuseView(SelectionView):
             self.confirm_button,
         )
         self.add_item(self.move_action_row)
-        self.game.events.game_end += self.stop
+        self.game.events.game_end += self.ignore_interactions
 
     async def skip_if_deck_empty(self) -> bool:
         if len(self.game.deck) == 0:

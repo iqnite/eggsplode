@@ -15,7 +15,7 @@ from eggsplode.strings import (
     format_message,
     replace_emojis,
 )
-from eggsplode.ui.base import TextView
+from eggsplode.ui.base import BaseView, TextView
 
 if TYPE_CHECKING:
     from eggsplode.commands import EggsplodeApp
@@ -44,7 +44,7 @@ async def check_permissions(game: "Game", interaction: discord.Interaction):
     return True
 
 
-class StartGameView(discord.ui.DesignerView):
+class StartGameView(BaseView):
     def __init__(self, game: "Game"):
         super().__init__(timeout=600, disable_on_timeout=True)
         self.game = game
@@ -139,13 +139,12 @@ class StartGameView(discord.ui.DesignerView):
         self.game.config["players"].remove(user_id)
         self.players_display.content = self.game.player_list
         if not self.game.config["players"]:
-            await self.game.events.game_end()
-            self.terminate_view()
             self.title.content = format_message("game_cancelled")
-        await interaction.followup.edit_message(self.message.id, view=self)
+            await self.game.events.game_end()
+        await self.message.edit(view=self)
 
     def terminate_view(self):
-        self.stop()
+        self.ignore_interactions()
         self.remove_item(self.players_container)
         self.remove_item(self.settings_container)
         self.remove_item(self.join_game_button)
@@ -162,7 +161,7 @@ class StartGameView(discord.ui.DesignerView):
             )
             return
         await interaction.response.defer()
-        self.stop()
+        self.ignore_interactions()
         self.disable_all_items()
         self.start_game_button.label = format_message("started")
         await interaction.edit(view=self)
@@ -337,7 +336,7 @@ class HelpView(discord.ui.DesignerView):
         self.add_item(self.help_text).add_item(self.button_row)
 
 
-class LeaveGameView(discord.ui.DesignerView):
+class LeaveGameView(BaseView):
     def __init__(self, parent_view: StartGameView, user_id: int):
         super().__init__(timeout=None)
         self.parent_view = parent_view
@@ -360,13 +359,13 @@ class LeaveGameView(discord.ui.DesignerView):
             or interaction.user.id not in self.game.config["players"]
         ):
             return
-        await interaction.edit(delete_after=0, view=self)
         await self.parent_view.remove_player(self.user_id, interaction)
         self.disable_all_items()
-        self.stop()
+        self.ignore_interactions()
+        await interaction.edit(delete_after=0, view=self)
 
 
-class EndGameView(discord.ui.DesignerView):
+class EndGameView(BaseView):
     def __init__(self, game: "Game"):
         super().__init__(timeout=30, disable_on_timeout=True)
         self.game = game
@@ -386,7 +385,7 @@ class EndGameView(discord.ui.DesignerView):
         await interaction.edit(view=self)
         if self.game:
             await self.game.events.game_end()
-        self.stop()
+        self.ignore_interactions()
         await interaction.respond(view=TextView("game_ended"))
 
 
