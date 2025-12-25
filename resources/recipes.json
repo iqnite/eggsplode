@@ -1,7 +1,7 @@
 {
     "classic": {
         "name": "Classic",
-        "description": "The classic Eggsplode game",
+        "description": "Equivalent to the original Exploding Kittens game",
         "emoji": "💥",
         "cards": {
             "defuse": {
@@ -21,7 +21,7 @@
     },
     "classic_radioeggtive": {
         "name": "Radioeggtive Expansion",
-        "description": "The Radioeggtive expansion + the classic game",
+        "description": "Equivalent to the Imploding Kittens expansion",
         "emoji": "☢️",
         "cards": {
             "defuse": {
@@ -57,7 +57,7 @@
     },
     "classic_eggsperiment": {
         "name": "Eggsperiment Expansion",
-        "description": "The Eggsperiment expansion + the classic game",
+        "description": "Equivalent to the Barking Kittens expansion",
         "emoji": "🧪",
         "cards": {
             "defuse": {
