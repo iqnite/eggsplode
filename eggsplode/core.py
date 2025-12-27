@@ -331,6 +331,7 @@ class Game:
                     view=TextView(
                         "you_drew_card",
                         tooltip(card),
+                        self.hands[turn_player].count(card),
                     ),
                     ephemeral=True,
                 )

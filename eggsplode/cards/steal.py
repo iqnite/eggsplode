@@ -38,6 +38,7 @@ async def food_combo_finish(
             view=TextView(
                 "stolen_card_you",
                 tooltip(stolen_card),
+                game.current_player_hand.count(stolen_card),
             ),
             ephemeral=True,
         )
@@ -47,6 +48,7 @@ async def food_combo_finish(
                     "stolen_card_them",
                     game.current_player_id,
                     tooltip(stolen_card),
+                    target_hand.count(stolen_card),
                 ),
                 ephemeral=True,
             )
