@@ -4,7 +4,7 @@ Contains the PlayView class, which is used to display the play interface for a g
 
 from typing import TYPE_CHECKING
 import discord
-from eggsplode.strings import available_cards, MAX_COMPONENTS, format_message
+from eggsplode.strings import available_cards, MAX_COMPONENTS, format_message, replace_emojis
 from eggsplode.ui.base import TextView
 
 if TYPE_CHECKING:
@@ -71,7 +71,7 @@ class PlayView(discord.ui.DesignerView):
                 accessory=discord.ui.Button(
                     label=("Play " if card_playable else "") + f"({count}x)",
                     style=discord.ButtonStyle.secondary,
-                    emoji=available_cards[card]["emoji"],
+                    emoji=replace_emojis(available_cards[card]["emoji"]),
                     disabled=not card_playable,
                 ),
             )
