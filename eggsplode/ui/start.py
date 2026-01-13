@@ -361,9 +361,9 @@ class LeaveGameView(BaseView):
             or interaction.user.id not in self.game.config["players"]
         ):
             return
+        self.ignore_interactions()
         await self.parent_view.remove_player(self.user_id)
         self.disable_all_items()
-        self.ignore_interactions()
         await interaction.edit(delete_after=0, view=self)
 
 

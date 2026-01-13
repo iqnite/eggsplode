@@ -30,9 +30,13 @@ class SelectionView(BaseView):
         pass
 
     async def confirm(self, interaction: discord.Interaction):
-        self.disable_all_items()
-        await interaction.edit(view=self)
         self.ignore_interactions()
+        try:
+            self.disable_all_items()
+            await interaction.edit(view=self)
+        except discord.NotFound | discord.HTTPException:
+            self.allow_interactions()
+            return
         await self.finish(interaction)
 
 
