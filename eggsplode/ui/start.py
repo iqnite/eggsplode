@@ -133,7 +133,7 @@ class StartGameView(BaseView):
         self.players_display.content = self.game.player_list
         await interaction.edit(view=self)
 
-    async def remove_player(self, user_id: int, interaction: discord.Interaction):
+    async def remove_player(self, user_id: int):
         if not self.message:
             return
         self.game.config["players"].remove(user_id)
@@ -359,7 +359,7 @@ class LeaveGameView(BaseView):
             or interaction.user.id not in self.game.config["players"]
         ):
             return
-        await self.parent_view.remove_player(self.user_id, interaction)
+        await self.parent_view.remove_player(self.user_id)
         self.disable_all_items()
         self.ignore_interactions()
         await interaction.edit(delete_after=0, view=self)
