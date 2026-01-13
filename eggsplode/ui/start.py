@@ -116,7 +116,6 @@ class StartGameView(BaseView):
 
     async def on_timeout(self):
         await self.game.events.game_end()
-        self.terminate_view()
         self.title.content = format_message("game_timeout")
         await super().on_timeout()
 
