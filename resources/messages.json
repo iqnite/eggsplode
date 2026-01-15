@@ -212,8 +212,8 @@
     "status_user_installs": "User Installs: {}",
     "steal_prompt": "Choose a player to steal a card from.",
     "stolen_card_public": "🎭 <@{}> stole a card from <@{}>!",
-    "stolen_card_them": "<@{}> stole 1 {} from you!",
-    "stolen_card_you": "You stole: {}",
+    "stolen_card_them": "<@{}> stole 1 of your {} cards (you have {} left)",
+    "stolen_card_you": "You stole: {} (you have {} now)",
     "swapped_top_bottom": "↕️ <@{}> swapped the top and bottom cards on the deck!",
     "targeted_attegg_prompt": "Choose a player to attack.",
     "terminal_response": "Running terminal command: `{}`",
@@ -232,6 +232,6 @@
     "eggsperiment_exposed": "## 🧪 <@{}> tried to use an Eggsperiment. Unfortunately, nobody else had one, so they took it back into their hand!",
     "eggsperiment_pair_defused": "## 🔧 <@{}> used 2 Eggsperiment cards in pair and forced <@{}> to defuse!",
     "eggsperiment_pair_eggsploded": "## 💥 <@{}> used 2 Eggsperiment cards in pair and made <@{}> eggsplode!\n{}",
-    "you_drew_card": "You drew: {}!",
+    "you_drew_card": "You drew: {} (you have {} now)",
     "your_cards": "**It's not your turn!** Here are your cards:"
 }
