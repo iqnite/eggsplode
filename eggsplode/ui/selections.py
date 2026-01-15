@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 class SelectionView(BaseView):
     def __init__(self, timeout: int = 20):
         super().__init__(timeout=timeout, disable_on_timeout=True)
+        self.is_disabled = False
         self.confirm_button = discord.ui.Button(
             label="Confirm", style=discord.ButtonStyle.green, emoji="✅"
         )
@@ -24,10 +25,12 @@ class SelectionView(BaseView):
         try:
             await super().on_timeout()
         finally:
-            await self.finish()
+            if not self.is_disabled:
+                self.is_disabled = True
+                await self.finish()
 
     async def finish(self, interaction: discord.Interaction | None = None):
-        pass
+        self.is_disabled = True
 
     async def confirm(self, interaction: discord.Interaction):
         self.ignore_interactions()
@@ -37,7 +40,8 @@ class SelectionView(BaseView):
         except (discord.NotFound, discord.HTTPException):
             self.allow_interactions()
             return
-        await self.finish(interaction)
+        if not self.is_disabled:
+            await self.finish(interaction)
 
 
 class ChoosePlayerView(BaseView):
@@ -55,13 +59,16 @@ class ChoosePlayerView(BaseView):
         self.callback_action = callback_action
         self.user_select = None
         self.action_row = None
+        self.is_disabled = False
         self.game.events.game_end += self.ignore_interactions
 
     async def on_timeout(self):
         try:
             await super().on_timeout()
         finally:
-            await self.callback_action(self.eligible_players[0])
+            if not self.is_disabled:
+                self.is_disabled = True
+                await self.callback_action(self.eligible_players[0])
 
     async def skip_if_single_option(self) -> bool:
         if len(self.eligible_players) == 1:
@@ -91,6 +98,7 @@ class ChoosePlayerView(BaseView):
     async def selection_callback(self, interaction: discord.Interaction):
         if not (interaction and self.user_select):
             return
+        self.is_disabled = True
         self.ignore_interactions()
         self.disable_all_items()
         await interaction.edit(view=self, delete_after=0)
@@ -148,6 +156,7 @@ class DefuseView(SelectionView):
         return False
 
     async def finish(self, interaction=None):
+        await super().finish()
         self.game.deck.insert(self.card_position, self.card)
         await self.callback_action()
 

@@ -82,6 +82,7 @@ class DigDeeperView(SelectionView):
         self.add_item(self.dig_deeper_section)
 
     async def finish(self, interaction: discord.Interaction | None = None):
+        await super().finish()
         if not interaction:
             interaction = self.game.last_interaction
             if not interaction:
