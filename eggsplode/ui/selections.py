@@ -29,7 +29,7 @@ class SelectionView(BaseView):
                 self.is_disabled = True
                 await self.finish()
 
-    async def finish(self, interaction: discord.Interaction | None = None):
+    async def finish(self):
         self.is_disabled = True
 
     async def confirm(self, interaction: discord.Interaction):
@@ -41,7 +41,7 @@ class SelectionView(BaseView):
             self.allow_interactions()
             return
         if not self.is_disabled:
-            await self.finish(interaction)
+            await self.finish()
 
 
 class ChoosePlayerView(BaseView):
@@ -155,7 +155,7 @@ class DefuseView(SelectionView):
             return True
         return False
 
-    async def finish(self, interaction=None):
+    async def finish(self):
         await super().finish()
         self.game.deck.insert(self.card_position, self.card)
         await self.callback_action()
