@@ -88,7 +88,6 @@ class DigDeeperView(SelectionView):
             if not interaction:
                 raise ValueError("No last interaction set for the game.")
         _, hold = await self.game.draw_from(interaction)
-        self.ignore_interactions()
         if hold:
             await self.game.events.turn_end()
 
