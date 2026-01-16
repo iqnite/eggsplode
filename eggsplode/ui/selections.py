@@ -123,21 +123,13 @@ class DefuseView(SelectionView):
         self.card_position = 0
         self.move_prompt_display = discord.ui.TextDisplay(self.move_prompt)
         self.add_item(self.move_prompt_display)
-        self.top_button = discord.ui.Button(
-            label="Top", style=discord.ButtonStyle.blurple, emoji="⏫"
-        )
+        self.top_button = discord.ui.Button(label="Top", emoji="⏫")
         self.top_button.callback = self.top
-        self.move_up_button = discord.ui.Button(
-            label="Move up", style=discord.ButtonStyle.blurple, emoji="⬆️"
-        )
+        self.move_up_button = discord.ui.Button(label="Move up", emoji="🔼")
         self.move_up_button.callback = self.move_up
-        self.move_down_button = discord.ui.Button(
-            label="Move down", style=discord.ButtonStyle.blurple, emoji="⬇️"
-        )
+        self.move_down_button = discord.ui.Button(label="Move down", emoji="🔽")
         self.move_down_button.callback = self.move_down
-        self.bottom_button = discord.ui.Button(
-            label="Bottom", style=discord.ButtonStyle.blurple, emoji="⏬"
-        )
+        self.bottom_button = discord.ui.Button(label="Bottom", emoji="⏬")
         self.bottom_button.callback = self.bottom
         self.move_action_row = discord.ui.ActionRow(
             self.top_button,
