@@ -15,32 +15,22 @@ if TYPE_CHECKING:
 class SelectionView(BaseView):
     def __init__(self, timeout: int = 20):
         super().__init__(timeout=timeout, disable_on_timeout=True)
-        self.is_disabled = False
         self.confirm_button = discord.ui.Button(
             label="Confirm", style=discord.ButtonStyle.green, emoji="✅"
         )
         self.confirm_button.callback = self.confirm
 
     async def on_timeout(self):
-        try:
-            await super().on_timeout()
-        finally:
-            if not self.is_disabled:
-                self.is_disabled = True
-                await self.finish()
+        if not self.is_ignoring_interactions:
+            await self.finish()
 
     async def finish(self):
-        self.is_disabled = True
+        self.ignore_interactions()
 
     async def confirm(self, interaction: discord.Interaction):
-        self.ignore_interactions()
-        try:
-            self.disable_all_items()
-            await interaction.edit(view=self)
-        except (discord.NotFound, discord.HTTPException):
-            self.allow_interactions()
-            return
-        if not self.is_disabled:
+        self.disable_all_items()
+        await interaction.edit(view=self)
+        if not self.is_ignoring_interactions:
             await self.finish()
 
 
@@ -59,16 +49,12 @@ class ChoosePlayerView(BaseView):
         self.callback_action = callback_action
         self.user_select = None
         self.action_row = None
-        self.is_disabled = False
         self.game.events.game_end += self.ignore_interactions
 
     async def on_timeout(self):
-        try:
-            await super().on_timeout()
-        finally:
-            if not self.is_disabled:
-                self.is_disabled = True
-                await self.callback_action(self.eligible_players[0])
+        if not self.is_ignoring_interactions:
+            self.ignore_interactions()
+            await self.callback_action(self.eligible_players[0])
 
     async def skip_if_single_option(self) -> bool:
         if len(self.eligible_players) == 1:
@@ -98,7 +84,6 @@ class ChoosePlayerView(BaseView):
     async def selection_callback(self, interaction: discord.Interaction):
         if not (interaction and self.user_select):
             return
-        self.is_disabled = True
         self.ignore_interactions()
         self.disable_all_items()
         await interaction.edit(view=self, delete_after=0)

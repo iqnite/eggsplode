@@ -115,9 +115,11 @@ class StartGameView(BaseView):
         self.add_item(self.settings_container)
 
     async def on_timeout(self):
-        await self.game.events.game_end()
-        self.title.content = format_message("game_timeout")
-        await super().on_timeout()
+        if not self.is_ignoring_interactions:
+            self.ignore_interactions()
+            await self.game.events.game_end()
+            self.title.content = format_message("game_timeout")
+            await super().on_timeout()
 
     async def join_game(self, interaction: discord.Interaction):
         if not interaction.user:
