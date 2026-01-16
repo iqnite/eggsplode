@@ -6,13 +6,13 @@ from datetime import datetime, timedelta
 from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 from eggsplode.strings import format_message
-from eggsplode.ui.base import BaseView, TextView
+from eggsplode.ui.base import BaseGameView, TextView
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-class NopeView(BaseView):
+class NopeView(BaseGameView):
     def __init__(
         self,
         game: "Game",
@@ -32,7 +32,6 @@ class NopeView(BaseView):
         self.nope_callback_action = nope_callback_action
         self.nope_count = 0
         self.players_confirmed = set()
-        self.disabled = False
         self.action_text_display = discord.ui.TextDisplay(message)
         self.add_item(self.action_text_display)
         self.timer_display = discord.ui.TextDisplay(self.timer_text)
@@ -74,23 +73,19 @@ class NopeView(BaseView):
         return self.nope_count % 2 == 1
 
     async def on_timeout(self):
-        try:
-            await super().on_timeout()
-        finally:
-            if not self.disabled:
-                self.disabled = True
-                self.stop()
-                if not self.noped and self.ok_callback_action:
-                    await self.ok_callback_action(None)
-                else:
-                    await self.game.events.action_end()
+        if not self.is_ignoring_interactions:
+            self.ignore_interactions()
+            if not self.noped and self.ok_callback_action:
+                await self.ok_callback_action(None)
+            else:
+                await self.game.events.action_end()
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return (
             await super().interaction_check(interaction)
             and interaction.user is not None
             and interaction.user.id in self.game.players
-            and not self.disabled
+            and not self.is_ignoring_interactions
         )
 
     def toggle_strike_through(self):
@@ -170,8 +165,7 @@ class NopeView(BaseView):
 
     async def finish_confirmation(self, interaction: discord.Interaction):
         self.game.last_interaction = interaction
-        self.disabled = True
-        self.stop()
+        self.ignore_interactions()
         self.disable_all_items()
         self.remove_item(self.action_row)
         self.remove_item(self.timer_display)

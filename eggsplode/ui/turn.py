@@ -4,13 +4,13 @@ Contains the TurnView class, which provides buttons to take actions.
 
 from typing import TYPE_CHECKING
 import discord
-from eggsplode.ui.base import BaseView
+from eggsplode.ui.base import BaseGameView
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
-class TurnView(BaseView):
+class TurnView(BaseGameView):
     def __init__(self, game: "Game"):
         super().__init__(game)
         self.turn_prompt = discord.ui.TextDisplay(game.turn_prompt)
@@ -38,6 +38,6 @@ class TurnView(BaseView):
         return True
 
     async def deactivate(self):
-        self.stop()
+        self.ignore_interactions()
         self.game.events.turn_end -= self.deactivate
         self.game.events.game_end -= self.deactivate

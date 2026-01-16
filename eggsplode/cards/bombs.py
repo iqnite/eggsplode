@@ -86,16 +86,16 @@ async def radioeggtive(
     if timed_out:
         game.deck.insert(random.randint(0, len(game.deck)), "radioeggtive_face_up")
         await game.send(TextView("radioeggtive", game.current_player_id), interaction)
-    else:
-        view = DefuseView(
-            game,
-            lambda: radioeggtive_finish(game),
-            card="radioeggtive_face_up",
-            prev_card="radioeggtive",
-        )
-        if await view.skip_if_deck_empty():
-            return
-        await interaction.respond(view=view, ephemeral=True)
+        return
+    view = DefuseView(
+        game,
+        lambda: radioeggtive_finish(game),
+        card="radioeggtive_face_up",
+        prev_card="radioeggtive",
+    )
+    if await view.skip_if_deck_empty():
+        return
+    await interaction.respond(view=view, ephemeral=True)
 
 
 async def radioeggtive_face_up(

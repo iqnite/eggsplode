@@ -428,10 +428,7 @@ class Game:
             self.last_interaction = interaction
         if self.last_interaction is None:
             raise ValueError("last_interaction is None")
-        try:
-            await self.last_interaction.response.send_message(view=view)
-        except discord.errors.InteractionResponded:
-            await self.last_interaction.followup.send(view=view)
+        await self.last_interaction.respond(view=view)
         logger.debug("Game %s: Sent message: %s", self.id, view.copy_text())
 
     @property

@@ -82,17 +82,17 @@ class DigDeeperView(SelectionView):
         self.add_item(self.dig_deeper_section)
 
     async def finish(self, interaction: discord.Interaction | None = None):
+        await super().finish()
         if not interaction:
             interaction = self.game.last_interaction
             if not interaction:
                 raise ValueError("No last interaction set for the game.")
         _, hold = await self.game.draw_from(interaction)
-        self.stop()
         if hold:
             await self.game.events.turn_end()
 
     async def dig_deeper(self, interaction: discord.Interaction):
-        self.stop()
+        self.ignore_interactions()
         self.disable_all_items()
         await interaction.edit(view=self)
         await self.game.send(
