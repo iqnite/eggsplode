@@ -2,7 +2,14 @@
     "eggsplode": {
         "title": "Eggsplode",
         "description": "If you draw this card and don't have a Defuse, you lose the game.",
-        "emoji": "💣"
+        "emoji": "💣",
+        "meta": {
+            "recipemaker": {
+                "hideHandOut": true,
+                "fixedHandOut": true,
+                "defaultHandOut": 0
+            }
+        }
     },
     "defuse": {
         "title": "Defuse",
@@ -82,12 +89,24 @@
     "radioeggtive": {
         "title": "Radioeggtive",
         "description": "Put this card back into the deck face up.",
-        "emoji": "☢️"
+        "emoji": "☢️",
+        "meta": {
+            "recipemaker": {
+                "hideHandOut": true,
+                "fixedHandOut": true,
+                "defaultHandOut": 0
+            }
+        }
     },
     "radioeggtive_face_up": {
         "title": "Radioeggtive (Face up)!",
         "description": "You lose the game. No escape.",
-        "emoji": "💥"
+        "emoji": "💥",
+        "meta": {
+            "recipemaker": {
+                "exclude": true
+            }
+        }
     },
     "draw_from_bottom": {
         "title": "Draw from the bottom",
