@@ -88,7 +88,7 @@
     },
     "radioeggtive": {
         "title": "Radioeggtive",
-        "description": "Put this card back into the deck face up.",
+        "description": "If drawn face down, put this card back into the deck face up. If drawn face up, you lose the game.",
         "emoji": "☢️",
         "meta": {
             "recipemaker": {
