@@ -150,12 +150,10 @@ class Game:
         self.last_interaction = interaction
         self.inactivity_count = 0
         self.started = True
-        logger.info(
-            "Game %s: Started.\nPlayers: %s\nRecipe: %s",
-            self.id,
-            self.players,
-            self.config["recipe"],
-        )
+        logger.info("Game %s: Started.", self.id)
+        logger.debug("Players: %s", self.players)
+        logger.debug("Recipe: %s", self.config["recipe"])
+        logger.debug("Hands: %s", self.hands)
         await self.send(TextView("game_started"), interaction)
         await self.events.turn_start()
         await self.action_timer()
