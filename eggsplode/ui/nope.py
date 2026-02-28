@@ -167,8 +167,6 @@ class NopeView(BaseGameView):
         self.game.last_interaction = interaction
         self.ignore_interactions()
         try:
-            self.remove_item(self.action_row)
-            self.remove_item(self.timer_display)
             self.disable_all_items()
             await interaction.edit(view=self)
         finally:
