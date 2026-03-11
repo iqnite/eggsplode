@@ -22,6 +22,7 @@ async def attegg(game: "Game", interaction: discord.Interaction):
         ),
         target_player_id=game.next_player_id,
         ok_callback_action=lambda _: attegg_finish(game),
+        timeout=10,
     )
     await game.send(view, interaction)
 
@@ -48,6 +49,7 @@ async def targeted_attegg_begin(
         ),
         target_player_id=target_player_id,
         ok_callback_action=lambda _: attegg_finish(game, target_player_id),
+        timeout=10,
     )
     await game.send(view, interaction)
 

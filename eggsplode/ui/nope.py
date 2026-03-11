@@ -22,7 +22,7 @@ class NopeView(BaseGameView):
             Callable[[discord.Interaction | None], Coroutine] | None
         ) = None,
         nope_callback_action: Callable[[], None] | None = None,
-        timeout=10,
+        timeout=7,
     ):
         super().__init__(game, timeout=timeout)
         self.game = game

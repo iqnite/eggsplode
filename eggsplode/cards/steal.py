@@ -74,6 +74,7 @@ async def food_combo_begin(
         ok_callback_action=lambda target_interaction: food_combo_finish(
             game, interaction, target_interaction, target_player_id
         ),
+        timeout=10,
     )
     await game.send(view, interaction)
 
