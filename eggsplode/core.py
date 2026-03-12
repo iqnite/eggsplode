@@ -108,7 +108,7 @@ class Game:
 
     def hand_out(self, recipe: dict, hand_out_pool: list):
         max_cards_per_player = min(
-            recipe.get("cards_per_player", 8), len(hand_out_pool) // len(self.players)
+            recipe.get("cards_per_player", 7), len(hand_out_pool) // len(self.players)
         )
         random.shuffle(hand_out_pool)
         for hand in self.hands.values():

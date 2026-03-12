@@ -52,15 +52,12 @@ class TestGameSetup(unittest.TestCase):
             "attegg": 4,
             "shuffle": 4,
             "see_future": 5,
-            "food0": 4,
-            "food1": 4,
-            "food2": 4,
-            "food3": 4,
+            "steal": 8,
         }
         self.game.setup()
         for hand in self.game.hands.values():
             self.assertEqual(hand.count("defuse"), 1)
-            self.assertEqual(len(hand), 8)
+            self.assertEqual(len(hand), 7)
         self.assert_deck_count_equal("eggsplode", 3)
         self.assert_deck_count_equal("radioeggtive", 0)
         for card, count in expected_cards.items():
@@ -81,7 +78,7 @@ class TestGameSetup(unittest.TestCase):
         self.game.setup()
         for hand in self.game.hands.values():
             self.assertEqual(hand.count("defuse"), 1)
-            self.assertEqual(len(hand), 8)
+            self.assertEqual(len(hand), 7)
         self.assert_deck_count_equal("eggsplode", 5)
 
     def test_expand_radioeggtive(self):

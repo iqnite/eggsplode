@@ -1,7 +1,7 @@
 {
     "classic": {
         "name": "Classic",
-        "description": "Equivalent to the original Exploding Kittens game",
+        "description": "Equivalent to the original Exploding Kittens game.",
         "emoji": "💥",
         "cards": {
             "defuse": {
@@ -13,15 +13,12 @@
             "skip": 4,
             "shuffle": 4,
             "see_future": 5,
-            "food0": 4,
-            "food1": 4,
-            "food2": 4,
-            "food3": 4
+            "steal": 8
         }
     },
     "classic_radioeggtive": {
         "name": "Radioeggtive Expansion",
-        "description": "Equivalent to the Imploding Kittens expansion",
+        "description": "Equivalent to the Imploding Kittens expansion.",
         "emoji": "☢️",
         "cards": {
             "defuse": {
@@ -39,10 +36,7 @@
             "skip": 4,
             "shuffle": 4,
             "see_future": 5,
-            "food0": 4,
-            "food1": 4,
-            "food2": 4,
-            "food3": 4,
+            "steal": 8,
             "radioeggtive": {
                 "amount": 1,
                 "hand_out": 0,
@@ -57,7 +51,7 @@
     },
     "classic_eggsperiment": {
         "name": "Eggsperiment Expansion",
-        "description": "Equivalent to the Barking Kittens expansion",
+        "description": "Equivalent to the Barking Kittens expansion.",
         "emoji": "🧪",
         "cards": {
             "defuse": {
@@ -69,10 +63,7 @@
             "skip": 4,
             "shuffle": 4,
             "see_future": 5,
-            "food0": 4,
-            "food1": 4,
-            "food2": 4,
-            "food3": 4,
+            "steal": 8,
             "eggsperiment": {
                 "amount": 2,
                 "hand_out": 0,
@@ -88,8 +79,8 @@
         }
     },
     "all_cards": {
-        "name": "All cards",
-        "description": "Uses all available cards",
+        "name": "Megamix",
+        "description": "The largest variety of cards, for the most chaotic games.",
         "emoji": "💯",
         "cards": {
             "defuse": {
