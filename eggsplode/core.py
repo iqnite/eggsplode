@@ -84,7 +84,7 @@ class Game:
                     cards_to_add = (
                         [card]
                         * info.get("amount", 0)
-                        * self.card_multiplier(info.get("expand_beyond", 5))
+                        * self.card_multiplier(info.get("expand_beyond", 4))
                     )
 
                 if "hand_out" in info:
