@@ -46,9 +46,16 @@
         "emoji": "🔮",
         "usable": true
     },
+    "steal": {
+        "title": "Steal",
+        "description": "Steal a card from an opponent.",
+        "emoji": "🧲",
+        "usable": true,
+        "explicit": true
+    },
     "food0": {
         "title": "Boiled egg",
-        "description": "Use 2 of this card to steal a card from another player!",
+        "description": "Use 2 of this card to steal a card from another player.",
         "emoji": "🥚",
         "usable": true,
         "explicit": true,
@@ -56,7 +63,7 @@
     },
     "food1": {
         "title": "Fried egg",
-        "description": "Use 2 of this card to steal a card from another player!",
+        "description": "Use 2 of this card to steal a card from another player.",
         "emoji": "🍳",
         "usable": true,
         "explicit": true,
@@ -64,7 +71,7 @@
     },
     "food2": {
         "title": "Ham & Eggs",
-        "description": "Use 2 of this card to steal a card from another player!",
+        "description": "Use 2 of this card to steal a card from another player.",
         "emoji": "🥓",
         "usable": true,
         "explicit": true,
@@ -72,7 +79,7 @@
     },
     "food3": {
         "title": "Pancake",
-        "description": "Use 2 of this card to steal a card from another player!",
+        "description": "Use 2 of this card to steal a card from another player.",
         "emoji": "🥞",
         "usable": true,
         "explicit": true,
@@ -80,7 +87,7 @@
     },
     "food4": {
         "title": "Fried chicken",
-        "description": "Use 2 of this card to steal a card from another player!",
+        "description": "Use 2 of this card to steal a card from another player.",
         "emoji": "🍗",
         "usable": true,
         "explicit": true,

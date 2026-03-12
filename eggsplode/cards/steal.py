@@ -79,7 +79,9 @@ async def food_combo_begin(
     await game.send(view, interaction)
 
 
-async def food_combo(game: "Game", interaction: discord.Interaction, card: str):
+async def food_combo(
+    game: "Game", interaction: discord.Interaction, card: str = "steal"
+):
     if not game.any_player_has_cards():
         await interaction.respond(
             view=TextView("no_players_have_cards"),
