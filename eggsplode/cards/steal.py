@@ -89,15 +89,16 @@ async def food_combo(
             delete_after=10,
         )
         return
-    if card in game.current_player_hand:
-        game.current_player_hand.remove(card)
-    else:
-        await interaction.respond(
-            view=TextView("card_not_found", card),
-            ephemeral=True,
-            delete_after=10,
-        )
-        return
+    if card != "steal":
+        if card in game.current_player_hand:
+            game.current_player_hand.remove(card)
+        else:
+            await interaction.respond(
+                view=TextView("card_not_found", card),
+                ephemeral=True,
+                delete_after=10,
+            )
+            return
     view = ChoosePlayerView(
         game,
         lambda target_player_id: food_combo_begin(
