@@ -131,7 +131,7 @@
         "name": "Mind Games",
         "description": "You know so much, but you can do so little.",
         "emoji": "🧠",
-        "cards_per_player": 5,
+        "cards_per_player": 6,
         "cards": {
             "defuse": {
                 "hand_out": 1
@@ -151,7 +151,7 @@
         "name": "Card Hoarders",
         "description": "No skipping, only drawing.",
         "emoji": "🗃️",
-        "cards_per_player": 5,
+        "cards_per_player": 6,
         "cards": {
             "defuse": {
                 "hand_out": 1
@@ -220,7 +220,7 @@
         "name": "Power Plant",
         "description": "Radioeggtive only.",
         "emoji": "☢️",
-        "cards_per_player": 6,
+        "cards_per_player": 7,
         "cards": {
             "radioeggtive": {
                 "auto_amount": -1,
@@ -395,7 +395,7 @@
         "name": "Sharing is caring",
         "description": "What's mine is yours, and what's yours is mine.",
         "emoji": "♥️",
-        "cards_per_player": 5,
+        "cards_per_player": 6,
         "cards": {
             "defuse": {
                 "amount": 1,
@@ -448,7 +448,7 @@
         "name": "No risk, no fun",
         "description": "A risk vs reward game, where safety isn't always safe.",
         "emoji": "🎲",
-        "cards_per_player": 5,
+        "cards_per_player": 6,
         "cards": {
             "defuse": {
                 "amount": 4,
