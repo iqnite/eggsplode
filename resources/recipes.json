@@ -1,7 +1,7 @@
 {
     "classic": {
         "name": "Classic",
-        "description": "Equivalent to the original Exploding Kittens game",
+        "description": "Equivalent to the original Exploding Kittens game.",
         "emoji": "💥",
         "cards": {
             "defuse": {
@@ -18,7 +18,7 @@
     },
     "classic_radioeggtive": {
         "name": "Radioeggtive Expansion",
-        "description": "Equivalent to the Imploding Kittens expansion",
+        "description": "Equivalent to the Imploding Kittens expansion.",
         "emoji": "☢️",
         "cards": {
             "defuse": {
@@ -51,7 +51,7 @@
     },
     "classic_eggsperiment": {
         "name": "Eggsperiment Expansion",
-        "description": "Equivalent to the Barking Kittens expansion",
+        "description": "Equivalent to the Barking Kittens expansion.",
         "emoji": "🧪",
         "cards": {
             "defuse": {
@@ -79,8 +79,8 @@
         }
     },
     "all_cards": {
-        "name": "All cards",
-        "description": "Uses all available cards",
+        "name": "Megamix",
+        "description": "The largest variety of cards, for the most chaotic games.",
         "emoji": "💯",
         "cards": {
             "defuse": {
