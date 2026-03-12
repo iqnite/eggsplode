@@ -49,7 +49,7 @@
     "steal": {
         "title": "Steal",
         "description": "Steal a card from an opponent.",
-        "emoji": "🧲",
+        "emoji": "🤑",
         "usable": true,
         "explicit": true
     },
