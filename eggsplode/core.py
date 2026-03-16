@@ -429,6 +429,11 @@ class Game:
         await self.last_interaction.respond(view=view)
         logger.debug("Game %s: Sent message: %s", self.id, view.copy_text())
 
+    def random_turn_prompt(self) -> str:
+        return format_message(
+            "next_turn_random", self.current_player_id, random_from_list=True
+        )
+
     @property
     def turn_prompt(self) -> str:
         return format_message("next_turn", self.current_player_id)

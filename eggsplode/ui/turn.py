@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class TurnView(BaseGameView):
     def __init__(self, game: "Game"):
         super().__init__(game)
-        self.turn_prompt = discord.ui.TextDisplay(game.turn_prompt)
+        self.turn_prompt = discord.ui.TextDisplay(game.random_turn_prompt())
         self.add_item(self.turn_prompt)
         self.play_button = discord.ui.Button(
             label="Play a card", style=discord.ButtonStyle.primary, emoji="🎴"
