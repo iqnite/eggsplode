@@ -52,7 +52,7 @@ class TestGameSetup(unittest.TestCase):
             "attegg": 4,
             "shuffle": 4,
             "see_future": 5,
-            "steal": 8,
+            "steal": 6,
         }
         self.game.setup()
         for hand in self.game.hands.values():
@@ -63,6 +63,18 @@ class TestGameSetup(unittest.TestCase):
         for card, count in expected_cards.items():
             hand_count = sum(hand.count(card) for hand in self.game.hands.values())
             self.assertEqual(self.game.deck.count(card) + hand_count, count)
+
+    def test_card_amount(self):
+        self.players = ["forb", "dorb", "sorb", "gorb", "iorb", "morb"]
+        for _ in enumerate(self.players.copy()):
+            for recipe_name, recipe in default_recipes.items():
+                with self.subTest(recipe=recipe_name):
+                    self.recipe = recipe
+                    self.game.setup()
+                    for hand in self.game.hands.values():
+                        self.assertEqual(len(hand), recipe.get("cards_per_player", 7))
+                    self.assertGreaterEqual(len(self.game.deck), len(self.players) - 1)
+            self.players.pop()
 
     def test_trim_classic(self):
         self.players = ["forb", "dorb", "sorb"]
