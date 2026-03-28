@@ -52,7 +52,10 @@ class TestGameSetup(unittest.TestCase):
             "attegg": 4,
             "shuffle": 4,
             "see_future": 5,
-            "steal": 6,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4,
+            "food3": 4,
         }
         self.game.setup()
         for hand in self.game.hands.values():
