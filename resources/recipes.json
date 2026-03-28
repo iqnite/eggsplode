@@ -13,7 +13,10 @@
             "skip": 4,
             "shuffle": 4,
             "see_future": 5,
-            "steal": 6
+            "food0": 4,
+            "food1": 4,
+            "food2": 4,
+            "food3": 4
         }
     },
     "classic_radioeggtive": {
@@ -36,7 +39,10 @@
             "skip": 4,
             "shuffle": 4,
             "see_future": 5,
-            "steal": 6,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4,
+            "food3": 4,
             "radioeggtive": {
                 "amount": 1,
                 "hand_out": 0,
@@ -63,7 +69,10 @@
             "skip": 4,
             "shuffle": 4,
             "see_future": 5,
-            "steal": 6,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4,
+            "food3": 4,
             "eggsperiment": {
                 "amount": 2,
                 "hand_out": 0,
@@ -98,7 +107,10 @@
             "skip": 4,
             "shuffle": 4,
             "see_future": 5,
-            "steal": 6,
+            "food0": 4,
+            "food1": 4,
+            "food2": 4,
+            "food3": 4,
             "radioeggtive": {
                 "amount": 1,
                 "hand_out": 0,
