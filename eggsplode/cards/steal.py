@@ -79,7 +79,9 @@ async def food_combo_begin(
     await game.send(view, interaction)
 
 
-async def food_combo(game: "Game", interaction: discord.Interaction, card: str):
+async def food_combo(
+    game: "Game", interaction: discord.Interaction, card: str = "steal"
+):
     if not game.any_player_has_cards():
         await interaction.respond(
             view=TextView("no_players_have_cards"),
@@ -87,15 +89,16 @@ async def food_combo(game: "Game", interaction: discord.Interaction, card: str):
             delete_after=10,
         )
         return
-    if card in game.current_player_hand:
-        game.current_player_hand.remove(card)
-    else:
-        await interaction.respond(
-            view=TextView("card_not_found", card),
-            ephemeral=True,
-            delete_after=10,
-        )
-        return
+    if card != "steal":
+        if card in game.current_player_hand:
+            game.current_player_hand.remove(card)
+        else:
+            await interaction.respond(
+                view=TextView("card_not_found", card),
+                ephemeral=True,
+                delete_after=10,
+            )
+            return
     view = ChoosePlayerView(
         game,
         lambda target_player_id: food_combo_begin(

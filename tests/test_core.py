@@ -60,12 +60,24 @@ class TestGameSetup(unittest.TestCase):
         self.game.setup()
         for hand in self.game.hands.values():
             self.assertEqual(hand.count("defuse"), 1)
-            self.assertEqual(len(hand), 8)
+            self.assertEqual(len(hand), 7)
         self.assert_deck_count_equal("eggsplode", 3)
         self.assert_deck_count_equal("radioeggtive", 0)
         for card, count in expected_cards.items():
             hand_count = sum(hand.count(card) for hand in self.game.hands.values())
             self.assertEqual(self.game.deck.count(card) + hand_count, count)
+
+    def test_card_amount(self):
+        self.players = ["forb", "dorb", "sorb", "gorb", "iorb", "morb"]
+        for _ in enumerate(self.players.copy()):
+            for recipe_name, recipe in default_recipes.items():
+                with self.subTest(recipe=recipe_name):
+                    self.recipe = recipe
+                    self.game.setup()
+                    for hand in self.game.hands.values():
+                        self.assertEqual(len(hand), recipe.get("cards_per_player", 7))
+                    self.assertGreaterEqual(len(self.game.deck), len(self.players) - 1)
+            self.players.pop()
 
     def test_trim_classic(self):
         self.players = ["forb", "dorb", "sorb"]
@@ -81,7 +93,7 @@ class TestGameSetup(unittest.TestCase):
         self.game.setup()
         for hand in self.game.hands.values():
             self.assertEqual(hand.count("defuse"), 1)
-            self.assertEqual(len(hand), 8)
+            self.assertEqual(len(hand), 7)
         self.assert_deck_count_equal("eggsplode", 5)
 
     def test_expand_radioeggtive(self):

@@ -26,6 +26,7 @@ PLAY_ACTIONS = {
     "bury": bury,
     "share_future": share_future,
     "dig_deeper": dig_deeper,
+    "steal": food_combo,
 } | {
     f"food{i}": lambda game, interaction, i=i: food_combo(game, interaction, f"food{i}")
     for i in range(5)
