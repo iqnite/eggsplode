@@ -145,11 +145,12 @@ class StartGameView(BaseView):
         await self.message.edit(view=self)
 
     def terminate_view(self):
-        self.ignore_interactions()
-        self.remove_item(self.players_container)
-        self.remove_item(self.settings_container)
-        self.remove_item(self.join_game_button)
-        self.header.accessory = discord.ui.Button(emoji="🚫", disabled=True)
+        if not self.is_ignoring_interactions:
+            self.ignore_interactions()
+            self.remove_item(self.players_container)
+            self.remove_item(self.settings_container)
+            self.remove_item(self.join_game_button)
+            self.header.accessory = discord.ui.Button(emoji="🚫", disabled=True)
 
     async def start_game(self, interaction: discord.Interaction):
         if not await check_permissions(self.game, interaction):
