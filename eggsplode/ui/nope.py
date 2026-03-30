@@ -112,20 +112,20 @@ class NopeView(BaseGameView):
             await interaction.respond(
                 view=TextView("no_nope_cards"), ephemeral=True, delete_after=5
             )
+            return
+        self.nope_count += 1
+        self.nope_button.label = "Nope!" if not self.noped else "Yup!"
+        self.toggle_strike_through()
+        self.action_messages.append(
+            format_message("message_edit_on_nope", interaction.user.id)
+            if self.noped
+            else format_message("message_edit_on_yup", interaction.user.id)
+        )
+        self.action_text_display.content = "\n".join(self.action_messages)
+        if self.noped:
+            self.action_row.remove_item(self.ok_button)
         else:
-            self.nope_count += 1
-            self.nope_button.label = "Nope!" if not self.noped else "Yup!"
-            self.toggle_strike_through()
-            self.action_messages.append(
-                format_message("message_edit_on_nope", interaction.user.id)
-                if self.noped
-                else format_message("message_edit_on_yup", interaction.user.id)
-            )
-            self.action_text_display.content = "\n".join(self.action_messages)
-            if self.noped:
-                self.action_row.remove_item(self.ok_button)
-            else:
-                self.action_row.add_item(self.ok_button)
+            self.action_row.add_item(self.ok_button)
         await interaction.edit(view=self)
 
     async def ok_callback(self, interaction: discord.Interaction):
