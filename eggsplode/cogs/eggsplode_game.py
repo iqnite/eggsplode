@@ -37,7 +37,10 @@ class EggsplodeGame(commands.Cog):
         self.app = app
 
     async def get_game(
-        self, interaction: discord.Interaction, quiet: bool = False
+        self,
+        interaction: discord.Interaction,
+        quiet: bool = False,
+        must_be_player: bool = True,
     ) -> Game | None:
         game_id = interaction.channel_id
         if not (game_id and interaction.user):
@@ -52,7 +55,10 @@ class EggsplodeGame(commands.Cog):
                     view=TextView("game_not_found"), ephemeral=True
                 )
             return None
-        if interaction.user.id not in game.players + game.config.get("players", []):
+        if (
+            must_be_player
+            and interaction.user.id not in game.players + game.config.get("players", [])
+        ):
             if not quiet:
                 await interaction.respond(
                     view=TextView("user_not_in_game"), ephemeral=True
@@ -128,6 +134,43 @@ class EggsplodeGame(commands.Cog):
             await game.play_callback(ctx.interaction, card)
         else:
             await game.show_hand(ctx.interaction)
+
+    @discord.slash_command(
+        name="players",
+        description="View the list of players in the current game.",
+        integration_types={
+            discord.IntegrationType.guild_install,
+            discord.IntegrationType.user_install,
+        },
+    )
+    async def list_players(self, ctx: discord.ApplicationContext):
+        await ctx.response.defer(ephemeral=True)
+        if not ctx.interaction.user:
+            raise ValueError("interaction.user is None")
+        game = await self.get_game(ctx.interaction, must_be_player=False)
+        if game is None:
+            return
+        await ctx.respond(
+            view=TextView(
+                (
+                    "\n".join(
+                        format_message(
+                            "players_list_item_emoji",
+                            i + 1,
+                            (
+                                "⏩"
+                                if game.current_player_id == pid
+                                else "⚡" if game.action_player_id == pid else "👤"
+                            ),
+                            pid,
+                        )
+                        for i, pid in enumerate(game.players)
+                    )
+                ),
+                verbatim=True,
+            ),
+            ephemeral=True,
+        )
 
     @discord.slash_command(
         name="games",
