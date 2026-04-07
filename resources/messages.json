@@ -230,6 +230,7 @@
     "status_user_installs": "User Installs: {}",
     "steal_prompt": "Choose a player to steal a card from.",
     "stolen_card_public": "🎭 <@{}> stole a card from <@{}>!",
+    "stolen_card_public_begg_timeout": "🎭 <@{}> didn't respond to <@{}>'s request in time, so a random card was stolen!",
     "stolen_card_them": "<@{}> stole 1 of your {} cards (you have {} left)",
     "stolen_card_you": "You stole: {} (you have {} now)",
     "swapped_top_bottom": "↕️ <@{}> swapped the top and bottom cards on the deck!",

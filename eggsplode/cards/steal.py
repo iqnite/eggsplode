@@ -67,7 +67,9 @@ async def begg_ask_card(
         return
     if not target_interaction:
         # If the target player doesn't respond in time, steal a random card
-        await food_combo_finish(game, interaction, None, target_player_id)
+        await steal_finish(
+            game, interaction, None, target_player_id, text_variant="_begg_timeout"
+        )
         return
     view = ChooseCardView(
         game,
@@ -101,11 +103,12 @@ async def begg_finish(
         await game.events.action_end()
 
 
-async def food_combo_finish(
+async def steal_finish(
     game: "Game",
     interaction: discord.Interaction,
     target_interaction: discord.Interaction | None,
     target_player_id: int,
+    text_variant: str = "",
 ):
     target_hand = game.hands[target_player_id]
     if not target_hand:
@@ -119,7 +122,11 @@ async def food_combo_finish(
     game.hands[target_player_id].remove(stolen_card)
     game.current_player_hand.append(stolen_card)
     await game.send(
-        TextView("stolen_card_public", game.current_player_id, target_player_id),
+        TextView(
+            f"stolen_card_public{text_variant}",
+            game.current_player_id,
+            target_player_id,
+        ),
         interaction,
     )
     try:
@@ -160,7 +167,7 @@ async def food_combo_begin(
             target_player_id,
         ),
         target_player_id=target_player_id,
-        ok_callback_action=lambda target_interaction: food_combo_finish(
+        ok_callback_action=lambda target_interaction: steal_finish(
             game, interaction, target_interaction, target_player_id
         ),
         timeout=10,
