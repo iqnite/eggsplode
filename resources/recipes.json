@@ -13,6 +13,7 @@
             "skip": 4,
             "shuffle": 4,
             "see_future": 5,
+            "begg": 4,
             "food0": 4,
             "food1": 4,
             "food2": 4,
@@ -39,6 +40,7 @@
             "skip": 4,
             "shuffle": 4,
             "see_future": 5,
+            "begg": 4,
             "food0": 4,
             "food1": 4,
             "food2": 4,
@@ -69,6 +71,7 @@
             "skip": 4,
             "shuffle": 4,
             "see_future": 5,
+            "begg": 4,
             "food0": 4,
             "food1": 4,
             "food2": 4,
@@ -107,6 +110,7 @@
             "skip": 4,
             "shuffle": 4,
             "see_future": 5,
+            "begg": 4,
             "food0": 4,
             "food1": 4,
             "food2": 4,
@@ -206,7 +210,7 @@
     },
     "attegg_of_atteggs": {
         "name": "Attegg of the Atteggs",
-        "description": "Stegg those Atteggs!",
+        "description": "Stack those Atteggs!",
         "emoji": "⚡",
         "cards": {
             "defuse": {
@@ -402,7 +406,7 @@
     },
     "sharing_is_caring": {
         "name": "Sharing is caring",
-        "description": "What's mine is yours, and what's yours is mine.",
+        "description": "What's mine is yours... even the bad stuff.",
         "emoji": "♥️",
         "cards_per_player": 6,
         "cards": {
@@ -410,6 +414,7 @@
                 "amount": 1,
                 "hand_out": 1
             },
+            "begg": 4,
             "food0": 6,
             "food1": 6,
             "food2": 6,
@@ -473,6 +478,7 @@
             "reverse": 3,
             "alter_future_now": 2,
             "share_future": 3,
+            "begg": 4,
             "food1": 4,
             "food2": 6,
             "food3": 6

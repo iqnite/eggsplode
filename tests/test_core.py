@@ -52,6 +52,7 @@ class TestGameSetup(unittest.TestCase):
             "attegg": 4,
             "shuffle": 4,
             "see_future": 5,
+            "begg": 4,
             "food0": 4,
             "food1": 4,
             "food2": 4,
