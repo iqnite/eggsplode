@@ -5,7 +5,7 @@ Contains the views for the short interactions in the game, such as "Defuse".
 from typing import Callable, Coroutine, TYPE_CHECKING
 import discord
 
-from eggsplode.strings import format_message, tooltip
+from eggsplode.strings import format_message, tooltip, available_cards
 from eggsplode.ui.base import BaseView
 
 if TYPE_CHECKING:
@@ -90,6 +90,91 @@ class ChoosePlayerView(BaseView):
         if not isinstance(self.user_select.values[0], str):
             raise TypeError("user_select.values[0] is not a str")
         await self.callback_action(int(self.user_select.values[0]))
+
+
+class ChooseCardView(BaseView):
+    def __init__(
+        self,
+        game: "Game",
+        target_player_id: int,
+        callback_action: Callable[[list[str]], Coroutine],
+        text: str | None = None,
+        min_cards: int = 1,
+        max_cards: int = 1,
+    ):
+        super().__init__(timeout=20, disable_on_timeout=True)
+        self.game = game
+        self.target_player_id = target_player_id
+        self.target_hand: dict[str, int] = self.game.group_hand(target_player_id)
+        self.callback_action = callback_action
+        self.card_select = None
+        self.action_row = None
+        if text:
+            self.add_item(discord.ui.TextDisplay(text))
+        self.min_cards = min_cards
+        self.max_cards = max_cards
+        self.game.events.game_end += self.ignore_interactions
+        self.target_hand_size = sum(self.target_hand.values())
+        if self.min_cards > self.target_hand_size:
+            raise ValueError("Player does not have enough cards to select")
+
+    def _auto_select_cards(self) -> list[str]:
+        selected_cards: list[str] = []
+        for card, count in sorted(
+            self.target_hand.items(), key=lambda item: (-item[1], item[0])
+        ):
+            remaining = self.min_cards - len(selected_cards)
+            if remaining <= 0:
+                break
+            selected_cards.extend([card] * min(count, remaining))
+        if len(selected_cards) < self.min_cards:
+            raise ValueError("Player does not have enough cards to select")
+        return selected_cards
+
+    async def on_timeout(self):
+        if not self.is_ignoring_interactions:
+            self.ignore_interactions()
+            await self.callback_action(self._auto_select_cards())
+
+    async def skip_if_single_option(self) -> bool:
+        if self.target_hand_size == self.min_cards:
+            await self.callback_action(self._auto_select_cards())
+            return True
+        return False
+
+    async def create_card_selection(self):
+        options = [
+            discord.SelectOption(
+                value=card,
+                label=format_message(
+                    "card_with_count", available_cards[card]["title"], count
+                ),
+                emoji=available_cards[card].get("emoji", None),
+                description=(
+                    available_cards[card]["description"][:99]
+                    if available_cards[card].get("description", None)
+                    else None
+                ),
+            )
+            for card, count in self.target_hand.items()
+        ]
+        self.card_select = discord.ui.Select(
+            placeholder="Select a card",
+            min_values=self.min_cards,
+            max_values=min(self.max_cards, self.target_hand_size),
+            options=options,
+        )
+        self.card_select.callback = self.selection_callback
+        self.action_row = discord.ui.ActionRow(self.card_select)
+        self.add_item(self.action_row)
+
+    async def selection_callback(self, interaction: discord.Interaction):
+        if not (interaction and self.card_select):
+            return
+        self.ignore_interactions()
+        self.disable_all_items()
+        await interaction.edit(view=self, delete_after=0)
+        await self.callback_action(self.card_select.values)
 
 
 class DefuseView(SelectionView):

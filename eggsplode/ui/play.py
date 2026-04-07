@@ -4,7 +4,12 @@ Contains the PlayView class, which is used to display the play interface for a g
 
 from typing import TYPE_CHECKING
 import discord
-from eggsplode.strings import available_cards, MAX_COMPONENTS, format_message, replace_emojis
+from eggsplode.strings import (
+    available_cards,
+    MAX_COMPONENTS,
+    format_message,
+    replace_emojis,
+)
 from eggsplode.ui.base import BaseView, TextView
 
 if TYPE_CHECKING:
@@ -57,6 +62,10 @@ class PlayView(BaseView):
                 and (
                     available_cards[card].get("now", False)
                     or self.game.current_player_id == self.user_id
+                )
+                and (
+                    (not available_cards[card].get("others_need_cards", False))
+                    or self.game.any_player_has_cards(exclude_player_id=self.user_id)
                 )
             )
             section = discord.ui.Section(
