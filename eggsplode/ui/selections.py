@@ -145,7 +145,9 @@ class ChooseCardView(BaseView):
         options = [
             discord.SelectOption(
                 value=card,
-                label=format_message("card_with_count", card, count),
+                label=format_message(
+                    "card_with_count", available_cards[card]["title"], count
+                ),
                 emoji=available_cards[card].get("emoji", None),
                 description=available_cards[card].get("description", None),
             )
