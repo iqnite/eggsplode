@@ -12,6 +12,12 @@ if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
+async def begg(game: "Game", interaction: discord.Interaction):
+    await interaction.respond(
+        view=TextView("not_implemented"), ephemeral=True
+    )  # TODO: implement begg card
+
+
 async def food_combo_finish(
     game: "Game",
     interaction: discord.Interaction,
