@@ -46,6 +46,13 @@
         "emoji": "🔮",
         "usable": true
     },
+    "begg": {
+        "title": "Begg",
+        "description": "Force an opponent to give you a card of their choice.",
+        "emoji": "❤️",
+        "usable": true,
+        "explicit": true
+    },
     "steal": {
         "title": "Steal",
         "description": "Steal a card from an opponent.",
