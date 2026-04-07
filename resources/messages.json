@@ -199,7 +199,7 @@
     "play_section": "**{} {}**\n{}",
     "players": "## Players",
     "players_list_item": "- <@{}>",
-    "players_list_item_emoji": "{}. {} <@{}>",
+    "players_command_list_item": "{}. {} <@{}> ({} cards)",
     "predicted": "🔮 <@{}> looked at the next 3 cards on the deck!",
     "radioeggtive": "## ☢️ <@{}> drew the Radioeggtive card and put it back into the deck face up!",
     "radioeggtive_face_up": "## 💥 <@{}> drew the Radioeggtive card face up and eggsploded!\n{}",

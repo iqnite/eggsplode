@@ -155,7 +155,7 @@ class EggsplodeGame(commands.Cog):
                 (
                     "\n".join(
                         format_message(
-                            "players_list_item_emoji",
+                            "players_command_list_item",
                             i + 1,
                             (
                                 "⏩"
@@ -163,6 +163,7 @@ class EggsplodeGame(commands.Cog):
                                 else "⚡" if game.action_player_id == pid else "👤"
                             ),
                             pid,
+                            len(game.hands.get(pid, [])),
                         )
                         for i, pid in enumerate(game.players)
                     )
