@@ -109,7 +109,8 @@ class ChooseCardView(BaseView):
         self.callback_action = callback_action
         self.card_select = None
         self.action_row = None
-        self.text = text
+        if text:
+            self.add_item(discord.ui.TextDisplay(text))
         self.min_cards = min_cards
         self.max_cards = max_cards
         self.game.events.game_end += self.ignore_interactions
@@ -154,7 +155,7 @@ class ChooseCardView(BaseView):
             for card, count in self.target_hand.items()
         ]
         self.card_select = discord.ui.Select(
-            placeholder=self.text or "Select a card",
+            placeholder="Select a card",
             min_values=self.min_cards,
             max_values=min(self.max_cards, self.target_hand_size),
             options=options,
