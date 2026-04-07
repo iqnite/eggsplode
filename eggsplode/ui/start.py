@@ -178,7 +178,7 @@ class StartGameView(BaseView):
             discord.SelectOption(
                 value=id,
                 label=recipe["name"],
-                description=recipe["description"],
+                description=recipe["description"][:99],
                 emoji=replace_emojis(recipe["emoji"]),
                 default=id == self.game.config["recipe_id"],
             )

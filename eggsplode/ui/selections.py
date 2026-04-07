@@ -66,7 +66,7 @@ class ChoosePlayerView(BaseView):
         options = [
             discord.SelectOption(
                 value=str(user_id),
-                label=f"{user.display_name} ({len(self.game.hands[user_id])} cards)",
+                label=f"{user.display_name[:80]} ({len(self.game.hands[user_id])} cards)",
             )
             for user_id in self.eligible_players
             if (user := await self.game.app.get_or_fetch(discord.User, user_id))
