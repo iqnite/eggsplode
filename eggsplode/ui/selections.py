@@ -141,7 +141,7 @@ class ChooseCardView(BaseView):
             return True
         return False
 
-    async def create_user_selection(self):
+    async def create_card_selection(self):
         options = [
             discord.SelectOption(
                 value=card,

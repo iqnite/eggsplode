@@ -6,16 +6,99 @@ import random
 from typing import TYPE_CHECKING
 import discord
 from eggsplode.strings import available_cards, format_message, replace_emojis, tooltip
-from eggsplode.ui import ChoosePlayerView, NopeView, TextView
+from eggsplode.ui import ChoosePlayerView, ChooseCardView, NopeView, TextView
 
 if TYPE_CHECKING:
     from eggsplode.core import Game
 
 
 async def begg(game: "Game", interaction: discord.Interaction):
-    await interaction.respond(
-        view=TextView("not_implemented"), ephemeral=True
-    )  # TODO: implement begg card
+    if not game.any_player_has_cards():
+        await interaction.respond(
+            view=TextView("no_players_have_cards"),
+            ephemeral=True,
+            delete_after=10,
+        )
+        return
+    view = ChoosePlayerView(
+        game,
+        lambda target_player_id: begg_begin(game, interaction, target_player_id),
+        condition=lambda user_id: user_id != game.current_player_id
+        and len(game.hands[user_id]) > 0,
+    )
+    if await view.skip_if_single_option():
+        return
+    await view.create_user_selection()
+    await interaction.respond(view=view, ephemeral=True)
+
+
+async def begg_begin(
+    game: "Game", interaction: discord.Interaction, target_player_id: int
+):
+    view = NopeView(
+        game,
+        message=format_message(
+            "before_begg",
+            game.current_player_id,
+            target_player_id,
+        ),
+        target_player_id=target_player_id,
+        ok_callback_action=lambda target_interaction: begg_ask_card(
+            game, interaction, target_interaction, target_player_id
+        ),
+        timeout=10,
+    )
+    await game.send(view, interaction)
+
+
+async def begg_ask_card(
+    game: "Game",
+    interaction: discord.Interaction,
+    target_interaction: discord.Interaction | None,
+    target_player_id: int,
+):
+    target_hand = game.hands[target_player_id]
+    if not target_hand:
+        await game.send(
+            TextView("no_cards_to_steal", game.current_player_id, target_player_id),
+            interaction,
+        )
+        await game.events.action_end()
+        return
+    if not target_interaction:
+        # If the target player doesn't respond in time, steal a random card
+        await food_combo_finish(game, interaction, None, target_player_id)
+        return
+    view = ChooseCardView(
+        game,
+        target_player_id,
+        lambda cards: begg_finish(game, interaction, target_player_id, cards[0]),
+        text=format_message("begg_prompt", game.current_player_id),
+    )
+    await view.create_card_selection()
+    await target_interaction.respond(view=view, ephemeral=True)
+
+
+async def begg_finish(
+    game, interaction: discord.Interaction, target_player_id: int, card: str
+):
+    game.hands[target_player_id].remove(card)
+    game.current_player_hand.append(card)
+    await game.send(
+        TextView("begg_success", target_player_id, game.current_player_id),
+        interaction,
+    )
+    try:
+        await interaction.respond(
+            view=TextView(
+                "begg_success_you",
+                tooltip(card),
+                game.current_player_hand.count(card),
+            ),
+            ephemeral=True,
+        )
+    finally:
+        await game.events.action_end()
 
 
 async def food_combo_finish(
