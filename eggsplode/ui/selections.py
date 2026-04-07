@@ -150,7 +150,11 @@ class ChooseCardView(BaseView):
                     "card_with_count", available_cards[card]["title"], count
                 ),
                 emoji=available_cards[card].get("emoji", None),
-                description=available_cards[card].get("description", None),
+                description=(
+                    available_cards[card]["description"][:99]
+                    if available_cards[card].get("description", None)
+                    else None
+                ),
             )
             for card, count in self.target_hand.items()
         ]
