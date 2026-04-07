@@ -124,8 +124,8 @@ async def steal_finish(
     await game.send(
         TextView(
             f"stolen_card_public{text_variant}",
-            game.current_player_id,
-            target_player_id,
+            action_player=game.current_player_id,
+            target_player=target_player_id,
         ),
         interaction,
     )
