@@ -13,13 +13,6 @@ if TYPE_CHECKING:
 
 
 async def begg(game: "Game", interaction: discord.Interaction):
-    if not game.any_player_has_cards():
-        await interaction.respond(
-            view=TextView("no_players_have_cards"),
-            ephemeral=True,
-            delete_after=10,
-        )
-        return
     view = ChoosePlayerView(
         game,
         lambda target_player_id: begg_begin(game, interaction, target_player_id),
@@ -178,13 +171,6 @@ async def food_combo_begin(
 async def food_combo(
     game: "Game", interaction: discord.Interaction, card: str = "steal"
 ):
-    if not game.any_player_has_cards():
-        await interaction.respond(
-            view=TextView("no_players_have_cards"),
-            ephemeral=True,
-            delete_after=10,
-        )
-        return
     if card != "steal":
         if card in game.current_player_hand:
             game.current_player_hand.remove(card)

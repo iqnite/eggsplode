@@ -348,9 +348,10 @@ class Game:
             if any(card in self.hands[player] for card in card_names)
         ]
 
-    def any_player_has_cards(self) -> bool:
+    def any_player_has_cards(self, exclude_player_id: int | None = None) -> bool:
         eligible_players = self.players.copy()
-        eligible_players.remove(self.current_player_id)
+        if exclude_player_id is not None:
+            eligible_players.remove(exclude_player_id)
         return any(self.hands[player] for player in eligible_players)
 
     def card_comes_in(self, card) -> int | None:
