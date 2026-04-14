@@ -468,11 +468,10 @@ class InfoView(discord.ui.DesignerView):
             format_message("status_memory", psutil.virtual_memory().percent)
         )
         self.container.add_separator()
-        application_info = await self.app.application_info()
         self.container.add_section(
             discord.ui.TextDisplay(
                 format_message(
-                    "status_installs", application_info.approximate_guild_count
+                    "status_installs", len(self.app.guilds)
                 )
             ),
             accessory=discord.ui.Button(
