@@ -5,6 +5,7 @@ Contains owner only commands.
 import asyncio
 import logging
 import discord
+from discord.ext import commands
 from eggsplode.commands import EggsplodeApp
 from eggsplode.strings import format_message, test_guild_id, app_config
 
@@ -12,7 +13,7 @@ from eggsplode.strings import format_message, test_guild_id, app_config
 logger = logging.getLogger(__name__)
 
 
-class Owner(discord.Cog):
+class Owner(commands.Cog):
     def __init__(self, app: EggsplodeApp):
         self.app = app
 
@@ -21,7 +22,7 @@ class Owner(discord.Cog):
         description="Restart the bot.",
         guild_ids=[test_guild_id],
     )
-    # @commands.is_owner()
+    @commands.is_owner()
     async def restart(self, ctx: discord.ApplicationContext):
         await self.maintenance(ctx)
         while self.app.game_count > 0:
@@ -36,7 +37,7 @@ class Owner(discord.Cog):
         description="Download the latest version, install dependencies, and restart the bot.",
         guild_ids=[test_guild_id],
     )
-    # @commands.is_owner()
+    @commands.is_owner()
     async def update(self, ctx: discord.ApplicationContext):
         update_command = app_config.get("update_command", "")
         if not update_command:
@@ -50,7 +51,7 @@ class Owner(discord.Cog):
         description="Enable maintenance mode on the bot.",
         guild_ids=[test_guild_id],
     )
-    # @commands.is_owner()
+    @commands.is_owner()
     async def maintenance(self, ctx: discord.ApplicationContext):
         self.app.remove_inactive_games()
         self.app.admin_maintenance = not self.app.admin_maintenance
@@ -78,7 +79,7 @@ class Owner(discord.Cog):
         input_type=str,
         required=True,
     )
-    # @commands.is_owner()
+    @commands.is_owner()
     async def execute(self, ctx: discord.ApplicationContext, command: str):
         await ctx.response.defer(ephemeral=True)
         process = await asyncio.create_subprocess_shell(
@@ -112,7 +113,7 @@ class Owner(discord.Cog):
         input_type=str,
         required=True,
     )
-    # @commands.is_owner()
+    @commands.is_owner()
     async def get_file(self, ctx: discord.ApplicationContext, file_path: str):
         await ctx.response.defer(ephemeral=True)
         try:
@@ -126,7 +127,7 @@ class Owner(discord.Cog):
         description="List all games.",
         guild_ids=[test_guild_id],
     )
-    # @commands.is_owner()
+    @commands.is_owner()
     async def list_games(self, ctx: discord.ApplicationContext):
         await ctx.respond(
             format_message(
@@ -165,7 +166,7 @@ class Owner(discord.Cog):
         input_type=str,
         required=False,
     )
-    # @commands.is_owner()
+    @commands.is_owner()
     async def set_status(
         self,
         ctx: discord.ApplicationContext,
