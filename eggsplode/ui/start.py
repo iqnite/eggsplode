@@ -470,9 +470,7 @@ class InfoView(discord.ui.DesignerView):
         self.container.add_separator()
         self.container.add_section(
             discord.ui.TextDisplay(
-                format_message(
-                    "status_installs", len(self.app.guilds)
-                )
+                format_message("status_installs", len(self.app.guilds))
             ),
             accessory=discord.ui.Button(
                 label="Install",
