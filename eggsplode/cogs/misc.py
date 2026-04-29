@@ -66,6 +66,29 @@ class Misc(commands.Cog):
         except discord.HTTPException:
             await ctx.respond(view=TextView("eggify_error"), ephemeral=True)
 
+    @discord.message_command(
+        name="Clownify",
+        description="Instantly win any argument! Use responsibly.",
+        integration_types={
+            discord.IntegrationType.guild_install,
+            discord.IntegrationType.user_install,
+        },
+    )
+    async def clownify(self, ctx: discord.ApplicationContext, message: discord.Message):
+        await ctx.defer(invisible=True)
+        new_message = ""
+        for i, char in enumerate(message.content):
+            new_message += char.lower() if i % 2 else char.upper()
+        try:
+            await ctx.respond(
+                view=TextView(
+                    f'"{new_message}" 🤡',
+                    verbatim=True,
+                )
+            )
+        except discord.HTTPException:
+            await ctx.respond(view=TextView("eggify_error"), ephemeral=True)
+
 
 def setup(app: EggsplodeApp):
     app.add_cog(Misc(app))
