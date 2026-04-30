@@ -396,7 +396,7 @@ class InfoLinkRow(discord.ui.ActionRow):
         super().__init__()  # pylint: disable=no-value-for-parameter
         self.add_item(
             discord.ui.Button(
-                label="Online Help",
+                label="Online help",
                 url="https://github.com/iqnite/eggsplode/wiki",
                 emoji="❓",
             )
@@ -408,7 +408,7 @@ class InfoLinkRow(discord.ui.ActionRow):
             )
         ).add_item(
             discord.ui.Button(
-                label="Official Server",
+                label="Official server",
                 url="https://discord.gg/UGm36FkGDF",
                 emoji=replace_emojis("💬"),
             )

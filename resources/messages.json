@@ -68,12 +68,12 @@
     "hang_warning": "⚠️ **There have been reports of the *Play* and *Draw* buttons not responding in some cases.** If that happens to you, sending </play:1378720596153860260> or </draw:1378720596153860259> should solve the issue. I'm sorry for the inconvenience and working on a fix!",
     "help0": [
         "# How to start a game",
-        "Use the </start:1325457141628141661> command to create a new game. Once everyone has joined, select **Start** to begin!",
+        "Use the </start:1325457141628141661> command to create a new game. Once everyone has joined, select **🚀 Start** to begin!",
         "# How to play",
-        "Once it's your turn, **Play** as many cards as you want. You can also not play any cards.",
-        "After that, **Draw** a card from the deck to end your turn. If you draw an **Eggsplode** card, you eggsplode and are out of the game!",
-        "If you have a **Defuse** card, it will be played automatically and you can put the **Eggsplode** card back into the deck.",
-        "To learn more about the cards, check out the **Cards** section."
+        "Once it's your turn, **🎴 Play** as many cards as you want. You can also not play any cards.",
+        "After that, **🤚 Draw** a card from the deck to end your turn. If you draw an **💣 Eggsplode** card, you are out of the game!",
+        "If you have a **🔧 Defuse** card, it will be played automatically and you can put the **💣 Eggsplode** card back into the deck.",
+        "To learn more about the cards, check out the **❓ Online help** below."
     ],
     "help1": [
         "# Cards (1)",
