@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 import psutil
 import discord
 from eggsplode.strings import (
+    app_messages,
     default_recipes,
     app_info,
     format_message,
@@ -222,7 +223,7 @@ class EditRecipeModal(discord.ui.DesignerModal):
         self.recipe_input = discord.ui.InputText(
             style=discord.InputTextStyle.long,
             value=json.dumps(self.game.config["recipe"], indent=2),
-            placeholder=format_message("recipe_json_placeholder"),
+            placeholder=app_messages["recipe_json_placeholder"],
             required=True,
             min_length=2,
             max_length=4000,
