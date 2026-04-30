@@ -124,7 +124,9 @@ class ShareFutureView(discord.ui.DesignerView):
             discord.ui.TextDisplay(format_message("shared_future", *self.player_ids))
         )
         self.view_button = discord.ui.Button(
-            label="View next cards", style=discord.ButtonStyle.primary, emoji="👀"
+            label=format_message("view_next_cards_button"),
+            style=discord.ButtonStyle.primary,
+            emoji="👀",
         )
         self.view_button.callback = self.view_cards
         self.add_item(discord.ui.ActionRow(self.view_button))

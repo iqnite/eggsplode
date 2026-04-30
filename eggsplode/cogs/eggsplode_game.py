@@ -74,7 +74,7 @@ class EggsplodeGame(commands.Cog):
 
     @discord.slash_command(
         name="start",
-        description="Start a new Eggsplode game!",
+        description=format_message("cmd_start_desc"),
         integration_types={
             discord.IntegrationType.guild_install,
         },
@@ -84,7 +84,7 @@ class EggsplodeGame(commands.Cog):
 
     @discord.slash_command(
         name="draw",
-        description="Draw a card from the deck.",
+        description=format_message("cmd_draw_desc"),
         integration_types={
             discord.IntegrationType.guild_install,
             discord.IntegrationType.user_install,
@@ -99,7 +99,7 @@ class EggsplodeGame(commands.Cog):
 
     @discord.slash_command(
         name="play",
-        description="Play a card from your hand.",
+        description=format_message("cmd_play_desc"),
         integration_types={
             discord.IntegrationType.guild_install,
             discord.IntegrationType.user_install,
@@ -107,7 +107,7 @@ class EggsplodeGame(commands.Cog):
     )
     @discord.option(
         name="card",
-        description="The card to play.",
+        description=format_message("cmd_play_option_card_desc"),
         input_type=str,
         required=False,
         autocomplete=discord.utils.basic_autocomplete(card_autocomplete),
@@ -137,7 +137,7 @@ class EggsplodeGame(commands.Cog):
 
     @discord.slash_command(
         name="players",
-        description="View the list of players in the current game.",
+        description=format_message("cmd_players_desc"),
         integration_types={
             discord.IntegrationType.guild_install,
             discord.IntegrationType.user_install,
@@ -175,7 +175,7 @@ class EggsplodeGame(commands.Cog):
 
     @discord.slash_command(
         name="games",
-        description="View and jump to the games you've joined.",
+        description=format_message("cmd_games_desc"),
         integration_types={
             discord.IntegrationType.guild_install,
             discord.IntegrationType.user_install,
@@ -205,7 +205,7 @@ class EggsplodeGame(commands.Cog):
 
     @discord.slash_command(
         name="end",
-        description="End the current Eggsplode game.",
+        description=format_message("cmd_end_desc"),
         integration_types={discord.IntegrationType.guild_install},
     )
     @discord.default_permissions(manage_messages=True)

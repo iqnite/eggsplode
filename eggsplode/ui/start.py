@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 import psutil
 import discord
 from eggsplode.strings import (
-    app_messages,
     default_recipes,
     app_info,
     format_message,
@@ -56,7 +55,9 @@ class StartGameView(BaseView):
         self.title = discord.ui.TextDisplay(format_message("start"))
         self.header.add_item(self.title)
         self.start_game_button = discord.ui.Button(
-            label="Start", style=discord.ButtonStyle.green, emoji="🚀"
+            label=format_message("start_button"),
+            style=discord.ButtonStyle.green,
+            emoji="🚀",
         )
         self.start_game_button.callback = self.start_game
         self.header.accessory = self.start_game_button
@@ -64,7 +65,9 @@ class StartGameView(BaseView):
 
         self.players_container = discord.ui.Container()
         self.join_game_button = discord.ui.Button(
-            label="Join", style=discord.ButtonStyle.blurple, emoji="👋"
+            label=format_message("join_button"),
+            style=discord.ButtonStyle.blurple,
+            emoji="👋",
         )
         self.join_game_button.callback = self.join_game
         self.players_container.add_section(
@@ -76,7 +79,9 @@ class StartGameView(BaseView):
         self.add_item(self.players_container)
 
         self.help_button = discord.ui.Button(
-            label="Help", style=discord.ButtonStyle.secondary, emoji="❓"
+            label=format_message("help_button"),
+            style=discord.ButtonStyle.secondary,
+            emoji="❓",
         )
         self.help_button.callback = self.help
         self.settings_container = discord.ui.Container()
@@ -86,13 +91,15 @@ class StartGameView(BaseView):
         )
         self.recipe_select = discord.ui.Select(
             options=self.recipe_options,
-            placeholder="Custom",
+            placeholder=format_message("recipe_custom_placeholder"),
             min_values=1,
             max_values=1,
         )
         self.recipe_select.callback = self.recipe_callback
         self.edit_recipe_button = discord.ui.Button(
-            label="Edit", style=discord.ButtonStyle.secondary, emoji="✏️"
+            label=format_message("edit_button"),
+            style=discord.ButtonStyle.secondary,
+            emoji="✏️",
         )
         self.edit_recipe_button.callback = self.edit_recipe
         self.settings_container.add_section(
@@ -104,7 +111,9 @@ class StartGameView(BaseView):
         self.settings_container.add_item(self.recipe_action_row)
         self.settings_container.add_separator()
         self.advanced_settings_button = discord.ui.Button(
-            label="View", style=discord.ButtonStyle.secondary, emoji="⚙️"
+            label=format_message("view_button"),
+            style=discord.ButtonStyle.secondary,
+            emoji="⚙️",
         )
         self.advanced_settings_button.callback = self.advanced_settings
         self.settings_container.add_section(
@@ -202,7 +211,7 @@ class StartGameView(BaseView):
 
 class EditRecipeModal(discord.ui.DesignerModal):
     def __init__(self, parent_view: StartGameView, *args, **kwargs):
-        super().__init__(*args, **kwargs, title="Edit Recipe")
+        super().__init__(*args, **kwargs, title=format_message("edit_recipe_title"))
         self.parent_view = parent_view
         self.parent_message = self.parent_view.message
         if self.parent_message is None:
@@ -213,12 +222,14 @@ class EditRecipeModal(discord.ui.DesignerModal):
         self.recipe_input = discord.ui.InputText(
             style=discord.InputTextStyle.long,
             value=json.dumps(self.game.config["recipe"], indent=2),
-            placeholder=app_messages["recipe_json_placeholder"],
+            placeholder=format_message("recipe_json_placeholder"),
             required=True,
             min_length=2,
             max_length=4000,
         )
-        self.recipe_input_label = discord.ui.Label("Recipe JSON", self.recipe_input)
+        self.recipe_input_label = discord.ui.Label(
+            format_message("recipe_json_label"), self.recipe_input
+        )
         self.add_item(self.recipe_input_label)
 
     async def callback(self, interaction: discord.Interaction):
@@ -251,11 +262,13 @@ class EditRecipeModal(discord.ui.DesignerModal):
 
 class SettingsModal(discord.ui.DesignerModal):
     def __init__(self, game: "Game", *args, **kwargs):
-        super().__init__(*args, **kwargs, title="Balancing Settings")
+        super().__init__(
+            *args, **kwargs, title=format_message("balancing_settings_title")
+        )
         self.game = game
         self.inputs = {
             "deck_size": {
-                "label": "Maximum cards on deck",
+                "label": format_message("setting_label_deck_size"),
                 "input": discord.ui.InputText(
                     placeholder="",
                     value=self.game.config.get("deck_size", None),
@@ -263,9 +276,9 @@ class SettingsModal(discord.ui.DesignerModal):
                 ),
             },
             "turn_timeout": {
-                "label": "[Beta] Turn timeout (seconds)",
+                "label": format_message("setting_label_turn_timeout"),
                 "input": discord.ui.InputText(
-                    placeholder="40",
+                    placeholder=format_message("setting_placeholder_turn_timeout"),
                     value=self.game.config.get("turn_timeout", None),
                     required=False,
                 ),
@@ -320,11 +333,13 @@ class SettingsModal(discord.ui.DesignerModal):
             try:
                 value = required_type(value)
             except ValueError:
-                return False, f"Must be a {required_type.__name__}."
+                return False, format_message(
+                    "validate_must_be_type", required_type.__name__
+                )
         if min_value and value < min_value:
-            return False, f"Must be at least {min_value}."
+            return False, format_message("validate_minimum", min_value)
         if max_value and value > max_value:
-            return False, f"Must be at most {max_value}."
+            return False, format_message("validate_maximum", max_value)
         return True, ""
 
     def clear_items(self) -> None: ...
@@ -396,32 +411,32 @@ class InfoLinkRow(discord.ui.ActionRow):
         super().__init__()  # pylint: disable=no-value-for-parameter
         self.add_item(
             discord.ui.Button(
-                label="Online help",
-                url="https://github.com/iqnite/eggsplode/wiki",
+                label=format_message("link_online_help_label"),
+                url=format_message("link_online_help_url"),
                 emoji="❓",
             )
         ).add_item(
             discord.ui.Button(
-                label="Website",
-                url="https://iqnite.github.io/",
+                label=format_message("link_website_label"),
+                url=format_message("link_website_url"),
                 emoji=replace_emojis("🌐"),
             )
         ).add_item(
             discord.ui.Button(
-                label="Official server",
-                url="https://discord.gg/UGm36FkGDF",
+                label=format_message("link_official_server_label"),
+                url=format_message("link_official_server_url"),
                 emoji=replace_emojis("💬"),
             )
         ).add_item(
             discord.ui.Button(
-                label="Vote on top.gg",
-                url="https://top.gg/bot/1325443178622484590/vote",
+                label=format_message("link_vote_label"),
+                url=format_message("link_vote_url"),
                 emoji="🎉",
             )
         ).add_item(
             discord.ui.Button(
-                label="Support the development",
-                url="https://buymeacoffee.com/phorb",
+                label=format_message("link_support_label"),
+                url=format_message("link_support_url"),
                 emoji="♥️",
             )
         )
@@ -445,8 +460,8 @@ class InfoView(discord.ui.DesignerView):
                 format_message("version_pycord", discord.__version__)
             ),
             accessory=discord.ui.Button(
-                label="Change log",
-                url="https://github.com/iqnite/eggsplode/releases",
+                label=format_message("changelog_button"),
+                url=format_message("link_changelog_url"),
                 emoji="📜",
             ),
         )
@@ -476,8 +491,8 @@ class InfoView(discord.ui.DesignerView):
                 )
             ),
             accessory=discord.ui.Button(
-                label="Install",
-                url="https://discord.com/oauth2/authorize?client_id=1325443178622484590",
+                label=format_message("install_button"),
+                url=format_message("link_install_url"),
                 emoji="➕",
             ),
         )

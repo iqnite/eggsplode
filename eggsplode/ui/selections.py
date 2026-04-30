@@ -16,7 +16,9 @@ class SelectionView(BaseView):
     def __init__(self, timeout: int = 20):
         super().__init__(timeout=timeout, disable_on_timeout=True)
         self.confirm_button = discord.ui.Button(
-            label="Confirm", style=discord.ButtonStyle.green, emoji="✅"
+            label=format_message("confirm_button"),
+            style=discord.ButtonStyle.green,
+            emoji="✅",
         )
         self.confirm_button.callback = self.confirm
 
@@ -72,7 +74,7 @@ class ChoosePlayerView(BaseView):
             if (user := await self.game.app.get_or_fetch(discord.User, user_id))
         ]
         self.user_select = discord.ui.Select(
-            placeholder="Select a player",
+            placeholder=format_message("select_player_placeholder"),
             min_values=1,
             max_values=1,
             options=options,
@@ -159,7 +161,7 @@ class ChooseCardView(BaseView):
             for card, count in self.target_hand.items()
         ]
         self.card_select = discord.ui.Select(
-            placeholder="Select a card",
+            placeholder=format_message("select_card_placeholder"),
             min_values=self.min_cards,
             max_values=min(self.max_cards, self.target_hand_size),
             options=options,
@@ -193,13 +195,21 @@ class DefuseView(SelectionView):
         self.card_position = 0
         self.move_prompt_display = discord.ui.TextDisplay(self.move_prompt)
         self.add_item(self.move_prompt_display)
-        self.top_button = discord.ui.Button(label="Top", emoji="⏫")
+        self.top_button = discord.ui.Button(
+            label=format_message("defuse_top_button"), emoji="⏫"
+        )
         self.top_button.callback = self.top
-        self.move_up_button = discord.ui.Button(label="Move up", emoji="🔼")
+        self.move_up_button = discord.ui.Button(
+            label=format_message("defuse_move_up_button"), emoji="🔼"
+        )
         self.move_up_button.callback = self.move_up
-        self.move_down_button = discord.ui.Button(label="Move down", emoji="🔽")
+        self.move_down_button = discord.ui.Button(
+            label=format_message("defuse_move_down_button"), emoji="🔽"
+        )
         self.move_down_button.callback = self.move_down
-        self.bottom_button = discord.ui.Button(label="Bottom", emoji="⏬")
+        self.bottom_button = discord.ui.Button(
+            label=format_message("defuse_bottom_button"), emoji="⏬"
+        )
         self.bottom_button.callback = self.bottom
         self.move_action_row = discord.ui.ActionRow(
             self.top_button,

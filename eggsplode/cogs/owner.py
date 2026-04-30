@@ -9,7 +9,6 @@ from discord.ext import commands
 from eggsplode.commands import EggsplodeApp
 from eggsplode.strings import format_message, test_guild_id, app_config
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -19,7 +18,7 @@ class Owner(commands.Cog):
 
     @discord.slash_command(
         name="restart",
-        description="Restart the bot.",
+        description=format_message("cmd_restart_desc"),
         guild_ids=[test_guild_id],
     )
     @commands.is_owner()
@@ -34,21 +33,23 @@ class Owner(commands.Cog):
 
     @discord.slash_command(
         name="update",
-        description="Download the latest version, install dependencies, and restart the bot.",
+        description=format_message("cmd_update_desc"),
         guild_ids=[test_guild_id],
     )
     @commands.is_owner()
     async def update(self, ctx: discord.ApplicationContext):
         update_command = app_config.get("update_command", "")
         if not update_command:
-            await ctx.respond("Update command is not configured.", ephemeral=True)
+            await ctx.respond(
+                format_message("update_command_not_configured"), ephemeral=True
+            )
             return
         await self.execute(ctx, update_command)
         await self.restart(ctx)
 
     @discord.slash_command(
         name="maintenance",
-        description="Enable maintenance mode on the bot.",
+        description=format_message("cmd_maintenance_desc"),
         guild_ids=[test_guild_id],
     )
     @commands.is_owner()
@@ -70,12 +71,12 @@ class Owner(commands.Cog):
 
     @discord.slash_command(
         name="execute",
-        description="Run a command on the bot.",
+        description=format_message("cmd_execute_desc"),
         guild_ids=[test_guild_id],
     )
     @discord.option(
         name="command",
-        description="The command to run on the bot.",
+        description=format_message("cmd_execute_option_command_desc"),
         input_type=str,
         required=True,
     )
@@ -104,12 +105,12 @@ class Owner(commands.Cog):
 
     @discord.slash_command(
         name="get_file",
-        description="Get a file from the bot.",
+        description=format_message("cmd_get_file_desc"),
         guild_ids=[test_guild_id],
     )
     @discord.option(
         name="file_path",
-        description="The path to the file to get.",
+        description=format_message("cmd_get_file_option_path_desc"),
         input_type=str,
         required=True,
     )
@@ -124,7 +125,7 @@ class Owner(commands.Cog):
 
     @discord.slash_command(
         name="all_games",
-        description="List all games.",
+        description=format_message("cmd_all_games_desc"),
         guild_ids=[test_guild_id],
     )
     @commands.is_owner()
@@ -137,9 +138,9 @@ class Owner(commands.Cog):
                         "list_item_2",
                         game_id,
                         (
-                            "(active)"
+                            format_message("game_state_active")
                             if getattr(game, "running", False)
-                            else "(inactive)"
+                            else format_message("game_state_inactive")
                         ),
                     )
                     for game_id, game in self.app.games.items()
@@ -150,19 +151,19 @@ class Owner(commands.Cog):
 
     @discord.slash_command(
         name="set_status",
-        description="Set the bot's status.",
+        description=format_message("cmd_set_status_desc"),
         guild_ids=[test_guild_id],
     )
     @discord.option(
         name="status",
-        description="The status to set the bot to.",
+        description=format_message("cmd_set_status_option_status_desc"),
         input_type=str,
         required=False,
         choices=list(discord.Status.__members__.keys()),
     )
     @discord.option(
         name="status_message",
-        description="The status message to show.",
+        description=format_message("cmd_set_status_option_message_desc"),
         input_type=str,
         required=False,
     )

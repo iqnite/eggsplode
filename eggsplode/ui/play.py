@@ -132,7 +132,7 @@ class PlayView(BaseView):
             await interaction.edit(view=self)
 
         button = discord.ui.Button(
-            label="Page " + str(to_page + 1),
+            label=format_message("page_button", to_page + 1),
             style=discord.ButtonStyle.secondary,
             emoji="◀️" if step < 0 else "▶️",
         )

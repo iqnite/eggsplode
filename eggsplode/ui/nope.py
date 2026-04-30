@@ -37,7 +37,9 @@ class NopeView(BaseGameView):
         self.timer_display = discord.ui.TextDisplay(self.timer_text)
         self.add_item(self.timer_display)
         self.nope_button = discord.ui.Button(
-            label="Nope!", style=discord.ButtonStyle.red, emoji="🛑"
+            label=format_message("nope_button"),
+            style=discord.ButtonStyle.red,
+            emoji="🛑",
         )
         self.nope_button.callback = self.nope_callback
         self.ok_button = discord.ui.Button(
@@ -51,7 +53,7 @@ class NopeView(BaseGameView):
 
     @property
     def ok_label(self) -> str:
-        return "OK!" + (
+        return format_message("ok_button") + (
             f" ({len(self.players_confirmed)}/{len(self.game.players) - 1})"
             if self.target_player_id is None
             else ""
@@ -114,7 +116,11 @@ class NopeView(BaseGameView):
             )
             return
         self.nope_count += 1
-        self.nope_button.label = "Nope!" if not self.noped else "Yup!"
+        self.nope_button.label = (
+            format_message("nope_button")
+            if not self.noped
+            else format_message("yup_button")
+        )
         self.toggle_strike_through()
         self.action_messages.append(
             format_message("message_edit_on_nope", interaction.user.id)

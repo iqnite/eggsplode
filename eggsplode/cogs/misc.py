@@ -5,6 +5,7 @@ Contains additional commands.
 import discord
 from discord.ext import commands
 from eggsplode.commands import EggsplodeApp
+from eggsplode.strings import format_message
 from eggsplode.ui import HelpView, InfoView
 from eggsplode.ui.base import TextView
 
@@ -15,7 +16,7 @@ class Misc(commands.Cog):
 
     @discord.slash_command(
         name="help",
-        description="Learn how to play Eggsplode and view useful info!",
+        description=format_message("cmd_help_desc"),
         integration_types={
             discord.IntegrationType.guild_install,
             discord.IntegrationType.user_install,
@@ -26,7 +27,7 @@ class Misc(commands.Cog):
 
     @discord.slash_command(
         name="info",
-        description="Show the status and some other info about the app.",
+        description=format_message("cmd_info_desc"),
         integration_types={
             discord.IntegrationType.guild_install,
             discord.IntegrationType.user_install,
@@ -40,7 +41,7 @@ class Misc(commands.Cog):
 
     @discord.message_command(
         name="Eggify",
-        description="Eggify a message!",
+        description=format_message("cmd_eggify_desc"),
         integration_types={
             discord.IntegrationType.guild_install,
             discord.IntegrationType.user_install,
@@ -68,7 +69,7 @@ class Misc(commands.Cog):
 
     @discord.message_command(
         name="Clownify",
-        description="Instantly win any argument! Use responsibly.",
+        description=format_message("cmd_clownify_desc"),
         integration_types={
             discord.IntegrationType.guild_install,
             discord.IntegrationType.user_install,
@@ -82,7 +83,7 @@ class Misc(commands.Cog):
         try:
             await ctx.respond(
                 view=TextView(
-                    f'"{new_message}" 🤡',
+                    format_message("clownify_output", new_message),
                     verbatim=True,
                 )
             )

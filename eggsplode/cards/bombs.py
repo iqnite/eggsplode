@@ -22,8 +22,8 @@ class GameOverView(discord.ui.DesignerView):
         self.funding_container.add_section(
             discord.ui.TextDisplay(format_message("funding_title")),
             accessory=discord.ui.Button(
-                label="Support the development",
-                url="https://buymeacoffee.com/phorb",
+                label=format_message("link_support_label"),
+                url=format_message("link_support_url"),
                 emoji="♥️",
             ),
         )
