@@ -427,7 +427,29 @@ class Game:
             self.last_interaction = interaction
         if self.last_interaction is None:
             raise ValueError("last_interaction is None")
-        await self.last_interaction.respond(view=view)
+        try:
+            await self.last_interaction.respond(view=view)
+        except discord.HTTPException as error:
+            if (
+                getattr(error, "status", None) != 401
+                or getattr(error, "code", None) != 50027
+            ):
+                raise
+
+            channel = self.last_interaction.channel
+            if channel is None:
+                raise
+
+            logger.warning(
+                "Game %s: Falling back to channel send after invalid interaction token.",
+                self.id,
+            )
+            if isinstance(channel, (discord.ForumChannel, discord.CategoryChannel)):
+                logger.error(
+                    "Game %s: Cannot send message to forum or category channel.", self.id
+                )
+                return
+            await channel.send(view=view)
         logger.debug("Game %s: Sent message: %s", self.id, view.copy_text())
 
     def random_turn_prompt(self) -> str:

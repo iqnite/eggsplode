@@ -4,11 +4,13 @@ Contains tests for the core module.
 
 import json
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
+import discord
 from eggsplode import cards
 from eggsplode.core import Game
 from eggsplode.strings import available_cards, default_recipes
 from eggsplode.ui.start import COVERED_RECIPE_EXCEPTIONS
+from eggsplode.ui.base import TextView
 
 
 class TestGameSetup(unittest.TestCase):
@@ -184,3 +186,25 @@ class TestRecipeLoading(unittest.TestCase):
         for recipe in dummy_recipes:
             with self.assertRaises(COVERED_RECIPE_EXCEPTIONS):
                 self.game.load_recipe(recipe)
+
+
+class TestGameSend(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        self.game = Game(MagicMock(), {"players": [1], "recipe": {}})
+
+    async def test_send_falls_back_to_channel_on_invalid_webhook_token(self):
+        interaction = MagicMock()
+        interaction.respond = AsyncMock(
+            side_effect=discord.HTTPException(
+                MagicMock(status=401),
+                {"code": 50027, "message": "Invalid Webhook Token"},
+            )
+        )
+        channel = MagicMock()
+        channel.send = AsyncMock()
+        interaction.channel = channel
+
+        await self.game.send(TextView("timeout"), interaction)
+
+        interaction.respond.assert_awaited_once()
+        channel.send.assert_awaited_once()

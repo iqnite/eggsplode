@@ -2,8 +2,10 @@
 Contains the StartGameView class which handles the start game view in the Discord bot.
 """
 
+import asyncio
 import datetime
 import json
+import logging
 import time
 from typing import TYPE_CHECKING
 import psutil
@@ -21,6 +23,7 @@ if TYPE_CHECKING:
     from eggsplode.commands import EggsplodeApp
     from eggsplode.core import Game
 
+logger = logging.getLogger(__name__)
 
 COVERED_RECIPE_EXCEPTIONS = (
     AttributeError,
@@ -177,7 +180,16 @@ class StartGameView(BaseView):
         self.disable_all_items()
         self.start_game_button.label = format_message("started")
         await interaction.edit(view=self)
-        await self.game.start(interaction)
+
+        async def run_game():
+            try:
+                await self.game.start(interaction)
+            except Exception: # pylint: disable=broad-except
+                logger.exception(
+                    "Game %s: Unhandled error while running.", self.game.id
+                )
+
+        asyncio.create_task(run_game())
 
     async def help(self, interaction: discord.Interaction):
         await interaction.respond(view=HelpView(), ephemeral=True)
