@@ -87,7 +87,7 @@
     "end_game_warning": "⚠️ **This will end the game and remove all players from it.**\nAre you sure you want to end the game?",
     "file_send_error": "❌ An error occurred. Please check the file path and size and try again.",
     "funding_title": "**Enjoyed the game?**",
-    "game_already_exists": "❌ This channel already has a game running!",
+    "game_already_exists": "❌ This channel already has an active game! If you are an administrator, you can use </end:1328036788643823695> to end it and start a new one.",
     "game_cancelled": "**🚫 Everyone left, so the game has been cancelled. You can start a new game with </start:1325457141628141661>.**",
     "game_ended": "🚫 The current game has been ended manually by an administrator.",
     "game_not_found": "❌ No game found in this channel! Type **/start** to start a new game!\n*Eggsplode must be installed on a server to play. [Add it to a server](https://discord.com/oauth2/authorize?client_id=1325443178622484590) or [join a server that already has it](https://discord.gg/UGm36FkGDF).*",

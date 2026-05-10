@@ -184,7 +184,7 @@ class StartGameView(BaseView):
         async def run_game():
             try:
                 await self.game.start(interaction)
-            except Exception: # pylint: disable=broad-except
+            except Exception:  # pylint: disable=broad-except
                 logger.exception(
                     "Game %s: Unhandled error while running.", self.game.id
                 )
