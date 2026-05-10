@@ -200,11 +200,7 @@ class TestGameSend(unittest.IsolatedAsyncioTestCase):
                 {"code": 50027, "message": "Invalid Webhook Token"},
             )
         )
-        channel = MagicMock()
-        channel.send = AsyncMock()
-        interaction.channel = channel
-
+        self.game.channel = AsyncMock()
         await self.game.send(TextView("timeout"), interaction)
-
         interaction.respond.assert_awaited_once()
-        channel.send.assert_awaited_once()
+        self.game.channel.send.assert_awaited_once()
