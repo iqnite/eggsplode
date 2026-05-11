@@ -44,7 +44,7 @@ class Game:
             str, Callable[[Game, discord.Interaction], Coroutine]
         ] = cards.PLAY_ACTIONS
         self.draw_actions: dict[
-            str, Callable[[Game, discord.Interaction, bool | None], Coroutine]
+            str, Callable[[Game, discord.Interaction | None, bool | None], Coroutine]
         ] = cards.DRAW_ACTIONS
         self.turn_warnings: list[Callable[[Game], str]] = cards.TURN_WARNINGS
         self.events.turn_end += self.next_turn
@@ -252,7 +252,7 @@ class Game:
         await self.play_actions[card](self, interaction)
 
     async def draw(
-        self, interaction: discord.Interaction, card: str, timed_out: bool = False
+        self, interaction: discord.Interaction | None, card: str, timed_out: bool = False
     ) -> tuple[str, bool]:
         if card in self.draw_actions:
             await self.draw_actions[card](self, interaction, timed_out)
@@ -317,7 +317,7 @@ class Game:
             await self.send(view, interaction)
 
     async def draw_from(
-        self, interaction: discord.Interaction, index: int = -1, timed_out: bool = False
+        self, interaction: discord.Interaction | None, index: int = -1, timed_out: bool = False
     ) -> tuple[str, bool]:
         turn_player: int = self.current_player_id
         self.last_interaction = interaction
@@ -326,7 +326,7 @@ class Game:
             await self.send(
                 view=TextView("user_drew_card", turn_player), interaction=interaction
             )
-            if not timed_out:
+            if not timed_out and interaction is not None:
                 await interaction.respond(
                     view=TextView(
                         "you_drew_card",
@@ -376,8 +376,6 @@ class Game:
             await asyncio.sleep(5)
 
     async def on_action_timeout(self):
-        if self.last_interaction is None:
-            raise TypeError("last_interaction is None")
         if not self.active:
             return
         self.pause()
