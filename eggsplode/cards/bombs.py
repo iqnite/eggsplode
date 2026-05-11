@@ -35,11 +35,11 @@ async def game_over(game: "Game", interaction: discord.Interaction | None):
 
 
 async def eggsplode(
-    game: "Game", interaction: discord.Interaction, timed_out: bool = False
+    game: "Game", interaction: discord.Interaction | None, timed_out: bool = False
 ):
     if "defuse" in game.current_player_hand:
         game.current_player_hand.remove("defuse")
-        if timed_out:
+        if timed_out or interaction is None:
             game.deck.insert(random.randint(0, len(game.deck)), "eggsplode")
             await game.send(TextView("defused", game.current_player_id), interaction)
             return
@@ -81,9 +81,9 @@ async def radioeggtive_finish(game: "Game"):
 
 
 async def radioeggtive(
-    game: "Game", interaction: discord.Interaction, timed_out: bool = False
+    game: "Game", interaction: discord.Interaction | None, timed_out: bool = False
 ):
-    if timed_out:
+    if timed_out or interaction is None:
         game.deck.insert(random.randint(0, len(game.deck)), "radioeggtive_face_up")
         await game.send(TextView("radioeggtive", game.current_player_id), interaction)
         return
@@ -99,7 +99,7 @@ async def radioeggtive(
 
 
 async def radioeggtive_face_up(
-    game: "Game", interaction: discord.Interaction, timed_out: bool | None = False
+    game: "Game", interaction: discord.Interaction | None, timed_out: bool | None = False
 ):
     prev_player = game.current_player_id
     game.remove_player(prev_player)

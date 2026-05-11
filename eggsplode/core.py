@@ -39,11 +39,12 @@ class Game:
         self.paused = False
         self.inactivity_count = 0
         self.last_interaction: discord.Interaction | None = None
+        self.channel = None
         self.play_actions: dict[
             str, Callable[[Game, discord.Interaction], Coroutine]
         ] = cards.PLAY_ACTIONS
         self.draw_actions: dict[
-            str, Callable[[Game, discord.Interaction, bool | None], Coroutine]
+            str, Callable[[Game, discord.Interaction | None, bool | None], Coroutine]
         ] = cards.DRAW_ACTIONS
         self.turn_warnings: list[Callable[[Game], str]] = cards.TURN_WARNINGS
         self.events.turn_end += self.next_turn
@@ -148,6 +149,7 @@ class Game:
         self.setup()
         self.last_activity = datetime.now()
         self.last_interaction = interaction
+        self.channel = self.last_interaction.channel
         self.inactivity_count = 0
         self.started = True
         logger.info("Game %s: Started.", self.id)
@@ -250,7 +252,7 @@ class Game:
         await self.play_actions[card](self, interaction)
 
     async def draw(
-        self, interaction: discord.Interaction, card: str, timed_out: bool = False
+        self, interaction: discord.Interaction | None, card: str, timed_out: bool = False
     ) -> tuple[str, bool]:
         if card in self.draw_actions:
             await self.draw_actions[card](self, interaction, timed_out)
@@ -315,7 +317,7 @@ class Game:
             await self.send(view, interaction)
 
     async def draw_from(
-        self, interaction: discord.Interaction, index: int = -1, timed_out: bool = False
+        self, interaction: discord.Interaction | None, index: int = -1, timed_out: bool = False
     ) -> tuple[str, bool]:
         turn_player: int = self.current_player_id
         self.last_interaction = interaction
@@ -324,7 +326,7 @@ class Game:
             await self.send(
                 view=TextView("user_drew_card", turn_player), interaction=interaction
             )
-            if not timed_out:
+            if not timed_out and interaction is not None:
                 await interaction.respond(
                     view=TextView(
                         "you_drew_card",
@@ -374,8 +376,6 @@ class Game:
             await asyncio.sleep(5)
 
     async def on_action_timeout(self):
-        if self.last_interaction is None:
-            raise TypeError("last_interaction is None")
         if not self.active:
             return
         self.pause()
@@ -425,10 +425,35 @@ class Game:
     ):
         if interaction is not None:
             self.last_interaction = interaction
-        if self.last_interaction is None:
-            raise ValueError("last_interaction is None")
-        await self.last_interaction.respond(view=view)
+        if self.last_interaction is not None:
+            try:
+                await self.last_interaction.respond(view=view)
+            except discord.HTTPException as error:
+                if (
+                    getattr(error, "status", None) != 401
+                    or getattr(error, "code", None) != 50027
+                ):
+                    raise
+                self.last_interaction = None
+                logger.warning(
+                    "Game %s: Falling back to channel send after invalid interaction token.",
+                    self.id,
+                )
+                await self.send_in_channel(view)
+        else:
+            await self.send_in_channel(view)
         logger.debug("Game %s: Sent message: %s", self.id, view.copy_text())
+
+    async def send_in_channel(self, view: discord.ui.View | discord.ui.DesignerView):
+        if self.channel is None:
+            raise ValueError("Game.channel is None")
+        if isinstance(self.channel, (discord.ForumChannel, discord.CategoryChannel)):
+            logger.error(
+                "Game %s: Cannot send message to forum or category channel.",
+                self.id,
+            )
+            return
+        await self.channel.send(view=view)
 
     def random_turn_prompt(self) -> str:
         return format_message(
