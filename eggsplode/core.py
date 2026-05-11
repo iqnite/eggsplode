@@ -435,6 +435,10 @@ class Game:
                 ):
                     raise
                 self.last_interaction = None
+                logger.warning(
+                    "Game %s: Falling back to channel send after invalid interaction token.",
+                    self.id,
+                )
                 await self.send_in_channel(view)
         else:
             await self.send_in_channel(view)
@@ -443,10 +447,6 @@ class Game:
     async def send_in_channel(self, view: discord.ui.View | discord.ui.DesignerView):
         if self.channel is None:
             raise ValueError("Game.channel is None")
-        logger.warning(
-            "Game %s: Falling back to channel send after invalid interaction token.",
-            self.id,
-        )
         if isinstance(self.channel, (discord.ForumChannel, discord.CategoryChannel)):
             logger.error(
                 "Game %s: Cannot send message to forum or category channel.",
