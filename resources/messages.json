@@ -20,7 +20,7 @@
     "begg_success_you": "You got: {} (you have {} now)",
     "bold_list_item": "- **{} {}**",
     "bug_reported": "🐞 Bug reported! Thank you for your help!\nYou can also join our support server at https://discord.gg/UGm36FkGDF",
-    "buried": "🪦 <@{}> repositioned the top card on the deck!",
+    "buried": "🪏 <@{}> repositioned the top card on the deck!",
     "card_not_found": "❌ You don't have the card: `{}`",
     "card_with_count": "{} ({}x)",
     "changelog_button": "Change log",
