@@ -239,8 +239,7 @@ class Game:
                 if not available_cards[card].get("usable", False):
                     continue
                 if (
-                    available_cards[card].get("combo", 0) > 0
-                    and player_cards.count(card) < 2
+                    player_cards.count(card) < available_cards[card].get("combo", 0)
                 ):
                     continue
             if card in result:
