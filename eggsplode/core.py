@@ -252,7 +252,10 @@ class Game:
         await self.play_actions[card](self, interaction)
 
     async def draw(
-        self, interaction: discord.Interaction | None, card: str, timed_out: bool = False
+        self,
+        interaction: discord.Interaction | None,
+        card: str,
+        timed_out: bool = False,
     ) -> tuple[str, bool]:
         if card in self.draw_actions:
             await self.draw_actions[card](self, interaction, timed_out)
@@ -317,7 +320,10 @@ class Game:
             await self.send(view, interaction)
 
     async def draw_from(
-        self, interaction: discord.Interaction | None, index: int = -1, timed_out: bool = False
+        self,
+        interaction: discord.Interaction | None,
+        index: int = -1,
+        timed_out: bool = False,
     ) -> tuple[str, bool]:
         turn_player: int = self.current_player_id
         self.last_interaction = interaction
@@ -350,11 +356,18 @@ class Game:
             if any(card in self.hands[player] for card in card_names)
         ]
 
-    def any_player_has_cards(self, exclude_player_id: int | None = None) -> bool:
-        eligible_players = self.players.copy()
+    def hand_sizes(self) -> dict[int, int]:
+        return {player: len(hand) for player, hand in self.hands.items()}
+
+    def any_player_has_cards(
+        self, exclude_player_id: int | None = None, min_cards: int = 1
+    ) -> bool:
+        sizes = self.hand_sizes()
         if exclude_player_id is not None:
-            eligible_players.remove(exclude_player_id)
-        return any(self.hands[player] for player in eligible_players)
+            sizes.pop(exclude_player_id, None)
+        if not sizes:
+            return False
+        return max(sizes.values()) >= min_cards
 
     def card_comes_in(self, card) -> int | None:
         for i in range(len(self.deck) - 1, -1, -1):
