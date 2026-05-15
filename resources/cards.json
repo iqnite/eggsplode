@@ -177,7 +177,7 @@
     "bury": {
         "title": "Bury",
         "description": "End your turn by looking at the top card and putting it back into the deck.",
-        "emoji": ":shovel:",
+        "emoji": "🪦",
         "usable": true
     },
     "self_attegg": {
