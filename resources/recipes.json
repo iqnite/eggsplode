@@ -137,7 +137,8 @@
             "alter_future_now": 2,
             "super_skip": 1,
             "dig_deeper": 4,
-            "swap_top_bottom": 4
+            "swap_top_bottom": 4,
+            "trade": 4
         }
     },
     "mind_games": {

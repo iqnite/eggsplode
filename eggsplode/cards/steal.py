@@ -234,6 +234,13 @@ async def trade_choose_card(
     target_player_id: int,
 ):
     target_hand = game.hands[target_player_id]
+    if not target_hand:
+        await game.send(
+            TextView("no_cards_to_steal", game.current_player_id, target_player_id),
+            interaction,
+        )
+        await game.events.action_end()
+        return
     stolen_card = random.choice(target_hand)
     game.hands[target_player_id].remove(stolen_card)
     game.current_player_hand.append(stolen_card)
