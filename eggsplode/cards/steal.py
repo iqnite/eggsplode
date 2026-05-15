@@ -102,6 +102,7 @@ async def steal_finish(
     target_interaction: discord.Interaction | None,
     target_player_id: int,
     text_variant: str = "",
+    cards_to_restore: list[str] | None = None,
 ):
     target_hand = game.hands[target_player_id]
     if not target_hand:
@@ -114,6 +115,9 @@ async def steal_finish(
     stolen_card = random.choice(target_hand)
     game.hands[target_player_id].remove(stolen_card)
     game.current_player_hand.append(stolen_card)
+    if cards_to_restore:
+        for card in cards_to_restore:
+            target_hand.append(card)
     await game.send(
         TextView(
             f"stolen_card_public{text_variant}",
@@ -319,3 +323,83 @@ class TradeFinishedView(discord.ui.DesignerView):
             ),
             ephemeral=True,
         )
+
+
+async def raid(game: "Game", interaction: discord.Interaction):
+    view = ChoosePlayerView(
+        game,
+        lambda target_player_id: raid_begin(game, interaction, target_player_id),
+        condition=lambda user_id: user_id != game.current_player_id
+        and len(game.hands[user_id]) > 0,
+    )
+    if await view.skip_if_single_option():
+        return
+    await view.create_user_selection()
+    await interaction.respond(view=view, ephemeral=True)
+
+
+async def raid_begin(
+    game: "Game", interaction: discord.Interaction, target_player_id: int
+):
+    view = NopeView(
+        game,
+        message=format_message(
+            "before_raid",
+            game.current_player_id,
+            target_player_id,
+        ),
+        target_player_id=target_player_id,
+        ok_callback_action=lambda target_interaction: raid_choose_cards(
+            game, interaction, target_interaction, target_player_id
+        ),
+        timeout=10,
+    )
+    await game.send(view, interaction)
+
+
+async def raid_choose_cards(
+    game: "Game",
+    interaction: discord.Interaction,
+    target_interaction: discord.Interaction | None,
+    target_player_id: int,
+    hidden_cards: list[str] | None = None,
+):
+    if hidden_cards is None:
+        hidden_cards = []
+    target_hand = game.hands[target_player_id]
+    if len(target_hand) < 3 - len(hidden_cards):
+        # Cancel the raid if the target player doesn't have enough cards left to hide
+        await game.send(
+            TextView("no_cards_to_steal", game.current_player_id, target_player_id),
+            interaction,
+        )
+        await game.events.action_end()
+        return
+    if hidden_cards:
+        target_hand.remove(hidden_cards[-1])
+    if len(hidden_cards) >= 2 or not target_interaction:
+        await steal_finish(
+            game,
+            interaction,
+            target_interaction=None,
+            target_player_id=target_player_id,
+            text_variant="" if target_interaction else "_raid_timeout",
+            cards_to_restore=hidden_cards,
+        )
+        return
+    view = ChooseCardView(
+        game,
+        target_player_id,
+        lambda cards: raid_choose_cards(
+            game,
+            interaction,
+            target_interaction,
+            target_player_id,
+            hidden_cards + cards,
+        ),
+        text=format_message(
+            "raid_prompt", len(hidden_cards) + 1, game.current_player_id
+        ),
+    )
+    await view.create_card_selection()
+    await target_interaction.respond(view=view, ephemeral=True)
