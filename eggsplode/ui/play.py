@@ -55,13 +55,15 @@ class PlayView(BaseView):
         if not user_cards:
             return
         for card, count in user_cards.items():
-            min_cards_others = available_cards[card].get("min_cards_others", 0)
+            card_properties = available_cards[card]
+            min_cards_others = card_properties.get("min_cards_others", 0)
+            min_cards_self = card_properties.get("min_cards_self", 0)
             card_playable = (
                 not self.game.paused
-                and available_cards[card].get("usable", False)
-                and (available_cards[card].get("combo", 0) == 0 or count > 1)
+                and card_properties.get("usable", False)
+                and (count >= card_properties.get("combo", 0))
                 and (
-                    available_cards[card].get("now", False)
+                    card_properties.get("now", False)
                     or self.game.current_player_id == self.user_id
                 )
                 and (
@@ -69,6 +71,10 @@ class PlayView(BaseView):
                     or self.game.any_player_has_cards(
                         exclude_player_id=self.user_id, min_cards=min_cards_others
                     )
+                )
+                and (
+                    (min_cards_self < 1)
+                    or len(self.game.hands[self.user_id]) >= min_cards_self
                 )
             )
             section = discord.ui.Section(
