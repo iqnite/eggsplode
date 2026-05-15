@@ -203,5 +203,14 @@
         "description": "End your turn by looking at the top card on the deck. Decide whether to keep it or put it back and blindly draw the next one.",
         "emoji": "⛏️",
         "usable": true
+    },
+    "trade": {
+        "title": "Trade",
+        "description": "Steal a random card from an opponent, then give them a card.",
+        "emoji": "🤝",
+        "usable": true,
+        "explicit": true,
+        "min_cards_others": 1,
+        "min_cards_self": 2
     }
 }

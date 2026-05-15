@@ -5,7 +5,7 @@ Contains the string to function mappings for card actions.
 from .skips import bury, dig_deeper, draw_from_bottom, reverse, skip, super_skip
 from .bombs import eggsplode, radioeggtive, radioeggtive_face_up, eggsperiment
 from .deck import deck_count, radioeggtive_warning, shuffle, swap_top_bottom
-from .steal import food_combo, begg
+from .steal import food_combo, begg, trade
 from .future import alter_future, see_future, share_future
 from .atteggs import attegg, self_attegg, targeted_attegg
 
@@ -28,6 +28,7 @@ PLAY_ACTIONS = {
     "dig_deeper": dig_deeper,
     "begg": begg,
     "steal": food_combo,
+    "trade": trade,
 } | {
     f"food{i}": lambda game, interaction, i=i: food_combo(game, interaction, f"food{i}")
     for i in range(5)

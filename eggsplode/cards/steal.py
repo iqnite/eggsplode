@@ -193,3 +193,122 @@ async def food_combo(
         return
     await view.create_user_selection()
     await interaction.respond(view=view, ephemeral=True)
+
+
+async def trade(game: "Game", interaction: discord.Interaction):
+    view = ChoosePlayerView(
+        game,
+        lambda target_player_id: trade_begin(game, interaction, target_player_id),
+        condition=lambda user_id: user_id != game.current_player_id
+        and len(game.hands[user_id]) > 0,
+    )
+    if await view.skip_if_single_option():
+        return
+    await view.create_user_selection()
+    await interaction.respond(view=view, ephemeral=True)
+
+
+async def trade_begin(
+    game: "Game", interaction: discord.Interaction, target_player_id: int
+):
+    view = NopeView(
+        game,
+        message=format_message(
+            "before_trade",
+            game.current_player_id,
+            target_player_id,
+        ),
+        target_player_id=target_player_id,
+        ok_callback_action=lambda target_interaction: trade_choose_card(
+            game, interaction, target_interaction, target_player_id
+        ),
+        timeout=10,
+    )
+    await game.send(view, interaction)
+
+
+async def trade_choose_card(
+    game: "Game",
+    interaction: discord.Interaction,
+    target_interaction: discord.Interaction | None,
+    target_player_id: int,
+):
+    target_hand = game.hands[target_player_id]
+    stolen_card = random.choice(target_hand)
+    game.hands[target_player_id].remove(stolen_card)
+    game.current_player_hand.append(stolen_card)
+    if target_interaction:
+        await target_interaction.respond(
+            view=TextView(
+                "stolen_card_them_trade",
+                game.current_player_id,
+                tooltip(stolen_card),
+                target_hand.count(stolen_card),
+            ),
+            ephemeral=True,
+        )
+    view = ChooseCardView(
+        game,
+        game.current_player_id,
+        lambda cards: trade_finish(game, interaction, target_player_id, cards[0]),
+        text=format_message(
+            "choose_card_to_trade", tooltip(stolen_card), target_player_id
+        ),
+    )
+    await view.create_card_selection()
+    await interaction.respond(view=view, ephemeral=True)
+
+
+async def trade_finish(
+    game: "Game",
+    interaction: discord.Interaction,
+    target_player_id: int,
+    card_to_give: str,
+):
+    game.current_player_hand.remove(card_to_give)
+    game.hands[target_player_id].append(card_to_give)
+    try:
+        await interaction.respond(
+            view=TradeFinishedView(game, target_player_id, card_to_give),
+        )
+    finally:
+        await game.events.action_end()
+
+
+class TradeFinishedView(discord.ui.DesignerView):
+    def __init__(self, game: "Game", target_player_id: int, card_given: str):
+        super().__init__(timeout=None)
+        self.game = game
+        self.target_player_id = target_player_id
+        self.card_given = card_given
+        self.add_item(
+            discord.ui.TextDisplay(
+                format_message(
+                    "trade_success", game.current_player_id, target_player_id
+                )
+            )
+        )
+        self.view_button = discord.ui.Button(
+            label=format_message("view_traded_cards_button"),
+            style=discord.ButtonStyle.primary,
+            emoji="👀",
+        )
+        self.view_button.callback = self.view_card
+        self.add_item(discord.ui.ActionRow(self.view_button))
+
+    async def view_card(self, interaction: discord.Interaction):
+        if not interaction.user:
+            return
+        if interaction.user.id != self.target_player_id:
+            await interaction.respond(
+                view=TextView("not_allowed_to_view_cards"), ephemeral=True
+            )
+            return
+        await interaction.respond(
+            view=TextView(
+                "traded_card_them",
+                tooltip(self.card_given),
+                self.game.hands[self.target_player_id].count(self.card_given),
+            ),
+            ephemeral=True,
+        )
