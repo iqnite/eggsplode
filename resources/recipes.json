@@ -421,6 +421,7 @@
             "food2": 6,
             "share_future": 4,
             "skip": 4,
+            "trade": 4,
             "eggsperiment": {
                 "amount": 2,
                 "hand_out": 0,
@@ -480,6 +481,7 @@
             "alter_future_now": 2,
             "share_future": 3,
             "begg": 4,
+            "trade": 2,
             "food1": 4,
             "food2": 6,
             "food3": 6
