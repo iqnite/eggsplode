@@ -230,7 +230,7 @@
         "### ⌛ <@{}>, rise and shine!",
         "### ⌛ It's your turn, <@{}>! Don't burn the eggs!"
     ],
-    "no_cards_to_steal": "🎭 {} wanted to steal a card from {}, but they had no cards left. Better luck next time!",
+    "no_cards_to_steal": "🎭 <@{}> wanted to steal a card from <@{}>, but they didn't have enough cards left. Better luck next time!",
     "no_nope_cards": "❌ You have no **Nope** cards to play!",
     "no_players_have_cards": "❌ No players have cards!",
     "no_recipes": "No recipes selected.",
@@ -295,6 +295,7 @@
     "steal_prompt": "Choose a player to steal a card from.",
     "stolen_card_public": "🎭 <@{action_player}> stole a card from <@{target_player}>!",
     "stolen_card_public_begg_timeout": "🎭 <@{target_player}> didn't respond to <@{action_player}>'s request in time, so a random card was stolen!",
+    "stolen_card_public_raid_timeout": "🎭 <@{target_player}> didn't respond to <@{action_player}>'s request in time, so a random card was stolen!",
     "stolen_card_them": "<@{}> stole 1 of your {} cards (you have {} left)",
     "stolen_card_them_trade": "<@{}> took your {} card (you have {} left). Waiting for them to choose a card to give back...",
     "stolen_card_you": "You stole: {} (you have {} now)",
@@ -324,5 +325,7 @@
     "view_traded_cards_button": "View traded card",
     "you_drew_card": "You drew: {} (you have {} now)",
     "your_cards": "**It's not your turn!** Here are your cards:",
-    "yup_button": "Yup!"
+    "yup_button": "Yup!",
+    "before_raid": "🏴‍☠️ <@{}> wants to steal a random card from <@{}>, but they will hide 2 cards before the steal!",
+    "raid_prompt": "Please choose the {}. card to hide from <@{}>."
 }

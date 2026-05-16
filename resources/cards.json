@@ -212,5 +212,13 @@
         "explicit": true,
         "min_cards_others": 1,
         "min_cards_self": 2
+    },
+    "raid": {
+        "title": "Raid",
+        "description": "Steal a random card from an opponent, but they hide 2 cards before you do.",
+        "emoji": "🏴‍☠️",
+        "usable": true,
+        "explicit": true,
+        "min_cards_others": 3
     }
 }
