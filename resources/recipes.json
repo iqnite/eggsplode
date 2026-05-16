@@ -138,7 +138,8 @@
             "super_skip": 1,
             "dig_deeper": 4,
             "swap_top_bottom": 4,
-            "trade": 4
+            "trade": 4,
+            "raid": 4
         }
     },
     "mind_games": {
@@ -158,7 +159,7 @@
             "food0": 4,
             "food1": 4,
             "food2": 4,
-            "food3": 4
+            "raid": 2
         }
     },
     "card_hoarders": {
@@ -190,7 +191,7 @@
             "nope": 4,
             "food0": 4,
             "food1": 4,
-            "food2": 4
+            "raid": 2
         }
     },
     "egg_fight": {
@@ -250,8 +251,9 @@
             "draw_from_bottom": 3,
             "swap_top_bottom": 3,
             "reverse": 4,
-            "food0": 6,
-            "food1": 6
+            "raid": 4,
+            "food0": 4,
+            "food1": 4
         }
     },
     "danger_mode": {
@@ -369,8 +371,9 @@
             "attegg": 3,
             "targeted_attegg": 2,
             "bury": 3,
-            "food0": 10,
-            "reverse": 4
+            "food0": 8,
+            "reverse": 4,
+            "raid": 2
         }
     },
     "eggzilla": {
@@ -482,9 +485,10 @@
             "share_future": 3,
             "begg": 4,
             "trade": 2,
+            "raid": 2,
             "food1": 4,
-            "food2": 6,
-            "food3": 6
+            "food2": 4,
+            "food3": 4
         }
     }
 }
