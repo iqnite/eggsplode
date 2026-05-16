@@ -381,7 +381,7 @@ async def raid_choose_cards(
         await steal_finish(
             game,
             interaction,
-            target_interaction=None,
+            target_interaction=target_interaction,
             target_player_id=target_player_id,
             text_variant="" if target_interaction else "_raid_timeout",
             cards_to_restore=hidden_cards,
