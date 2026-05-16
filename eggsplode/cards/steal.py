@@ -330,7 +330,7 @@ async def raid(game: "Game", interaction: discord.Interaction):
         game,
         lambda target_player_id: raid_begin(game, interaction, target_player_id),
         condition=lambda user_id: user_id != game.current_player_id
-        and len(game.hands[user_id]) > 0,
+        and len(game.hands[user_id]) >= 3,
     )
     if await view.skip_if_single_option():
         return
