@@ -99,7 +99,9 @@ async def radioeggtive(
 
 
 async def radioeggtive_face_up(
-    game: "Game", interaction: discord.Interaction | None, timed_out: bool | None = False
+    game: "Game",
+    interaction: discord.Interaction | None,
+    timed_out: bool | None = False,
 ):
     prev_player = game.current_player_id
     game.remove_player(prev_player)
@@ -145,9 +147,7 @@ async def eggsperiment_finish(
             ),
             interaction,
         )
-        del game.players[game.players.index(target_player_id)]
-        del game.hands[target_player_id]
-        game.current_player = game.players.index(game.current_player_id)
+        game.remove_player(target_player_id)
         if len(game.players) == 1:
             await game_over(game, interaction)
             return

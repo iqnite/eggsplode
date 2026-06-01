@@ -238,9 +238,7 @@ class Game:
             if usable_only:
                 if not available_cards[card].get("usable", False):
                     continue
-                if (
-                    player_cards.count(card) < available_cards[card].get("combo", 0)
-                ):
+                if player_cards.count(card) < available_cards[card].get("combo", 0):
                     continue
             if card in result:
                 continue
@@ -343,9 +341,16 @@ class Game:
         return card, hold
 
     def remove_player(self, user_id: int):
-        del self.players[self.players.index(user_id)]
+        removed_index = self.players.index(user_id)
+        del self.players[removed_index]
         del self.hands[user_id]
-        self.current_player -= 1
+        if len(self.players) < 1:
+            self.current_player = -1
+            logger.warning("Removed last player from game.")
+        elif removed_index < self.current_player and self.current_player > 0:
+            self.current_player -= 1
+        elif self.current_player >= len(self.players):
+            self.current_player = 0
         self.remaining_turns = 0
 
     def players_with_cards(self, *card_names: str) -> list[int]:
