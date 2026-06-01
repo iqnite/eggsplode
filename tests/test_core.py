@@ -204,3 +204,41 @@ class TestGameSend(unittest.IsolatedAsyncioTestCase):
         await self.game.send(TextView("timeout"), interaction)
         interaction.respond.assert_awaited_once()
         self.game.channel.send.assert_awaited_once()
+
+
+class TestPlayerRemoval(unittest.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.game = Game(MagicMock(), {"players": [1, 2, 3], "recipe": {}})
+        self.game.players = [1, 2, 3]
+        self.game.hands = {1: [], 2: [], 3: []}
+
+    def test_remove_player_before_current_keeps_active_turn(self):
+        self.game.current_player = 2
+
+        self.game.remove_player(1)
+
+        self.assertEqual(self.game.players, [2, 3])
+        self.assertEqual(self.game.current_player_id, 3)
+        self.assertEqual(self.game.current_player, 1)
+
+    def test_remove_current_player_at_start_stays_in_bounds(self):
+        self.game.current_player = 0
+
+        self.game.remove_player(1)
+
+        self.assertEqual(self.game.players, [2, 3])
+        self.assertEqual(self.game.current_player_id, 2)
+        self.assertEqual(self.game.current_player, 0)
+
+    def test_remove_last_player(self):
+        self.game.players = [1]
+        self.game.remove_player(1)
+        self.assertEqual(len(self.game.players), 0)
+        self.assertEqual(self.game.current_player, -1)
+
+    def test_remove_player_overflow(self):
+        self.game.players = [1, 2, 3]
+        self.game.current_player = 2
+        self.game.remove_player(3)
+        self.assertEqual(self.game.current_player, 0)
