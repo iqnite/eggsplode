@@ -39,9 +39,9 @@ async def begg_begin(
         ok_callback_action=lambda target_interaction: begg_ask_card(
             game, interaction, target_interaction, target_player_id
         ),
-        timeout=10,
     )
     await game.send(view, interaction)
+    await view.start_timer()
 
 
 async def begg_ask_card(
@@ -167,9 +167,9 @@ async def food_combo_begin(
         ok_callback_action=lambda target_interaction: steal_finish(
             game, interaction, target_interaction, target_player_id
         ),
-        timeout=10,
     )
     await game.send(view, interaction)
+    await view.start_timer()
 
 
 async def food_combo(
@@ -226,9 +226,9 @@ async def trade_begin(
         ok_callback_action=lambda target_interaction: trade_choose_card(
             game, interaction, target_interaction, target_player_id
         ),
-        timeout=10,
     )
     await game.send(view, interaction)
+    await view.start_timer()
 
 
 async def trade_choose_card(
@@ -352,9 +352,9 @@ async def raid_begin(
         ok_callback_action=lambda target_interaction: raid_choose_cards(
             game, interaction, target_interaction, target_player_id
         ),
-        timeout=10,
     )
     await game.send(view, interaction)
+    await view.start_timer()
 
 
 async def raid_choose_cards(
