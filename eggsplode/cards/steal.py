@@ -41,7 +41,7 @@ async def begg_begin(
         ),
     )
     await game.send(view, interaction)
-    await view.start_timer(interaction)
+    await view.start_timer()
 
 
 async def begg_ask_card(
@@ -169,7 +169,7 @@ async def food_combo_begin(
         ),
     )
     await game.send(view, interaction)
-    await view.start_timer(interaction)
+    await view.start_timer()
 
 
 async def food_combo(
@@ -228,7 +228,7 @@ async def trade_begin(
         ),
     )
     await game.send(view, interaction)
-    await view.start_timer(interaction)
+    await view.start_timer()
 
 
 async def trade_choose_card(
@@ -354,7 +354,7 @@ async def raid_begin(
         ),
     )
     await game.send(view, interaction)
-    await view.start_timer(interaction)
+    await view.start_timer()
 
 
 async def raid_choose_cards(

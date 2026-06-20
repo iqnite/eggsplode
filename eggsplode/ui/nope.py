@@ -27,7 +27,6 @@ class NopeView(BaseGameView):
         ) = None,
         nope_callback_action: Callable[[], None] | None = None,
         timeout: float | None = None,
-        ok_delay: float | None = None,
     ):
         super().__init__(game, timeout=None)
         if timeout is None:
@@ -37,7 +36,6 @@ class NopeView(BaseGameView):
                 else strings.EXPLICIT_NOPE_TIMEOUT
             )
         self.nope_timeout = timeout
-        self.ok_delay = strings.OK_DELAY if ok_delay is None else ok_delay
         self._is_timer_awaiting_reset = False
         self.game = game
         self.action_messages = [message]
@@ -49,7 +47,7 @@ class NopeView(BaseGameView):
         self._timer_task: asyncio.Task[None] | None = None
         self.action_text_display = discord.ui.TextDisplay(message)
         self.add_item(self.action_text_display)
-        self.timer_display = discord.ui.TextDisplay(self.get_timer_text(self.ok_delay))
+        self.timer_display = discord.ui.TextDisplay(self.get_timer_text())
         self.add_item(self.timer_display)
         self.nope_button = discord.ui.Button(
             label=format_message("nope_button"),
@@ -61,42 +59,31 @@ class NopeView(BaseGameView):
             label=self.ok_label,
             style=discord.ButtonStyle.green,
             emoji="✅",
-            disabled=self.ok_delay > 0,
         )
         self.ok_button.callback = self.ok_callback
         self.action_row = discord.ui.ActionRow(self.nope_button, self.ok_button)
         self.add_item(self.action_row)
 
-    async def start_timer(self, interaction: discord.Interaction | None):
+    async def start_timer(self):
         if self._timer_task is not None and not self._timer_task.done():
             self._timer_task.cancel()
-        self._timer_task = asyncio.create_task(self._run_timer(interaction))
+        self._timer_task = asyncio.create_task(self._run_timer())
 
-    async def _run_timer(self, interaction: discord.Interaction | None):
-        if self.message is None and interaction is None:
-            raise ValueError(
-                "Cannot start timer when NopeView.message and interaction are None"
-            )
-        self.timer_display.content = self.get_timer_text(
-            self.ok_delay + self.nope_timeout
-        )
-        await self.edit(interaction)
-        if self.ok_delay > 0:
-            await asyncio.sleep(self.ok_delay)
-            self.ok_button.disabled = False
-        start_time = datetime.now()
-        self.timer_display.content = self.get_timer_text()
-        await self.edit(interaction)
-        while True:
-            if self._is_timer_awaiting_reset:
-                self._is_timer_awaiting_reset = False
-                start_time = datetime.now()
-            if datetime.now() - start_time >= timedelta(seconds=self.nope_timeout):
-                break
-            await asyncio.sleep(0.1)
-        await self.on_nope_timeout()
+    async def _run_timer(self):
+        try:
+            start_time = datetime.now()
+            while True:
+                if self._is_timer_awaiting_reset:
+                    self._is_timer_awaiting_reset = False
+                    start_time = datetime.now()
+                if datetime.now() - start_time >= timedelta(seconds=self.nope_timeout):
+                    break
+                await asyncio.sleep(0.1)
+            await self.on_nope_timeout()
+        except asyncio.CancelledError:
+            pass
 
-    async def edit(self, interaction):
+    async def edit(self, interaction: discord.Interaction | None = None):
         if self.message is None:
             if interaction is None:
                 raise ValueError(
@@ -136,8 +123,6 @@ class NopeView(BaseGameView):
     async def on_nope_timeout(self):
         if not self.is_ignoring_interactions:
             self.ignore_interactions()
-            if self._timer_task is not None and not self._timer_task.done():
-                self._timer_task.cancel()
             if not self.is_noped and self.ok_callback_action:
                 await self.ok_callback_action(None)
             else:
@@ -234,6 +219,8 @@ class NopeView(BaseGameView):
     async def finish_confirmation(self, interaction: discord.Interaction):
         self.game.last_interaction = interaction
         self.ignore_interactions()
+        if self._timer_task is not None and not self._timer_task.done():
+            self._timer_task.cancel()
         try:
             self.disable_all_items()
             await interaction.edit(view=self)

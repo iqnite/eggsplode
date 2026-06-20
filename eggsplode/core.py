@@ -316,7 +316,7 @@ class Game:
                 ),
             )
             await self.send(view, interaction)
-            await view.start_timer(interaction)
+            await view.start_timer()
 
     async def draw_from(
         self,
