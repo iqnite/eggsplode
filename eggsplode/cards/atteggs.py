@@ -53,6 +53,7 @@ async def targeted_attegg_begin(
         timeout=10,
     )
     await game.send(view, interaction)
+    await view.start_timer(interaction)
 
 
 async def targeted_attegg(game: "Game", interaction: discord.Interaction):
