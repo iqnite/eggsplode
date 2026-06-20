@@ -80,6 +80,7 @@ class NopeView(BaseGameView):
         self.timer_display.content = self.get_timer_text(
             self.ok_delay + self.nope_timeout
         )
+        await self.edit(interaction)
         if self.ok_delay > 0:
             await asyncio.sleep(self.ok_delay)
             self.ok_button.disabled = False
