@@ -167,8 +167,7 @@
         "title": "Reverse",
         "description": "End your turn without drawing and reverse the order of play.",
         "emoji": "🔄",
-        "usable": true,
-        "target_ok_required": true
+        "usable": true
     },
     "eggsperiment": {
         "title": "Eggsperiment",
