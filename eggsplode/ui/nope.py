@@ -136,6 +136,8 @@ class NopeView(BaseGameView):
     async def on_nope_timeout(self):
         if not self.is_ignoring_interactions:
             self.ignore_interactions()
+            if self._timer_task is not None and not self._timer_task.done():
+                self._timer_task.cancel()
             if not self.is_noped and self.ok_callback_action:
                 await self.ok_callback_action(None)
             else:
