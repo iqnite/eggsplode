@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 MAX_COMPONENTS = 40
 NOPE_TIMEOUT = 7
 EXPLICIT_NOPE_TIMEOUT = 15
-NOPE_DELAY = 2
+OK_DELAY = 2
 
 load_dotenv()
 discord_token: str = os.getenv("DISCORD_TOKEN", "")

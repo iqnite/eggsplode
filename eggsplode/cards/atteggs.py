@@ -25,6 +25,7 @@ async def attegg(game: "Game", interaction: discord.Interaction):
         timeout=10,
     )
     await game.send(view, interaction)
+    await view.start_timer(interaction)
 
 
 async def attegg_finish(game: "Game", target_player_id=None, turns: int = 3):
