@@ -3,6 +3,7 @@ Contains the game logic for the Eggsplode game.
 """
 
 import asyncio
+import inspect
 import json
 import logging
 import random
@@ -347,6 +348,9 @@ class Game:
         if len(self.players) < 1:
             self.current_player = -1
             logger.warning("Removed last player from game.")
+        elif removed_index == self.current_player:
+            # Decrease index, next turn will increment it back to the same player
+            self.current_player -= 1
         elif removed_index < self.current_player and self.current_player > 0:
             self.current_player -= 1
         elif self.current_player >= len(self.players):

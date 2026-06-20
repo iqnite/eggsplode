@@ -226,6 +226,7 @@ class TestPlayerRemoval(unittest.TestCase):
         self.game.current_player = 0
 
         self.game.remove_player(1)
+        self.game.current_player = self.game.next_player
 
         self.assertEqual(self.game.players, [2, 3])
         self.assertEqual(self.game.current_player_id, 2)
@@ -241,4 +242,11 @@ class TestPlayerRemoval(unittest.TestCase):
         self.game.players = [1, 2, 3]
         self.game.current_player = 2
         self.game.remove_player(3)
+        self.game.current_player = self.game.next_player
         self.assertEqual(self.game.current_player, 0)
+
+    def test_remove_other_player_overflow(self):
+        self.game.players = [1, 2, 3]
+        self.game.current_player = 1
+        self.game.remove_player(3)
+        self.assertEqual(self.game.current_player, 1)
