@@ -32,8 +32,7 @@
         "title": "Skip",
         "description": "End your turn without drawing.",
         "emoji": "🏃‍♂️‍➡️",
-        "usable": true,
-        "target_ok_required": true
+        "usable": true
     },
     "shuffle": {
         "title": "Shuffle",
@@ -134,8 +133,7 @@
         "title": "Draw from the bottom",
         "description": "End your turn by drawing from the bottom instead of the top.",
         "emoji": "🔽",
-        "usable": true,
-        "target_ok_required": true
+        "usable": true
     },
     "swap_top_bottom": {
         "title": "Swap top and bottom",
@@ -180,15 +178,13 @@
         "title": "Bury",
         "description": "End your turn by looking at the top card and putting it back into the deck.",
         "emoji": "🪦",
-        "usable": true,
-        "target_ok_required": true
+        "usable": true
     },
     "self_attegg": {
         "title": "Self-Attegg",
         "description": "Play 2 more turns in a row.",
         "emoji": "↩️",
-        "usable": true,
-        "target_ok_required": true
+        "usable": true
     },
     "share_future": {
         "title": "Share the future",
@@ -200,15 +196,13 @@
         "title": "Super Skip",
         "description": "End your turn without drawing. If you're under the effect of an Attegg, end all of your turns.",
         "emoji": "🚀",
-        "usable": true,
-        "target_ok_required": true
+        "usable": true
     },
     "dig_deeper": {
         "title": "Dig Deeper",
         "description": "End your turn by looking at the top card on the deck. Decide whether to keep it or put it back and blindly draw the next one.",
         "emoji": "⛏️",
-        "usable": true,
-        "target_ok_required": true
+        "usable": true
     },
     "trade": {
         "title": "Trade",
