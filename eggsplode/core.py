@@ -509,7 +509,7 @@ class Event:
         callbacks = self._subscribers.copy()
         for callback in callbacks:
             r = callback(*args, **kwargs)
-            if isinstance(r, Coroutine):
+            if inspect.isawaitable(r):
                 await r
 
     __call__ = notify
