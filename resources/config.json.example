@@ -1,5 +1,5 @@
 {
-    "test_guild_id": "",
+    "test_guild_id": "YOUR_TEST_GUILD_ID",
     "log_backups": 9,
     "log_bytes": 5242880,
     "log_level": "INFO",

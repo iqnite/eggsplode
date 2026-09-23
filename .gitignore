@@ -4,3 +4,5 @@
 .coverage
 resources/emojis.json
 resources/config.json
+scripts/service-start.sh
+scripts/eggsplode.service

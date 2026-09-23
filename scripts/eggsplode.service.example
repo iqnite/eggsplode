@@ -1,0 +1,14 @@
+[Unit]
+Description=Eggsplode Discord Bot Service
+After=network.target
+
+[Service]
+Type=simple
+User=CURRENT_USER
+WorkingDirectory=WORKING_DIRECTORY
+ExecStart=bash WORKING_DIRECTORY/scripts/service-start.sh
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
