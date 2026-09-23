@@ -49,7 +49,7 @@ if [ -n "$YOUR_TEST_GUILD_ID" ]; then
 fi
 echo ""
 
-read "Setup complete! Start the bot now? (Y/n): " START_BOT
+read -p "Setup complete! Start the bot now? (Y/n): " START_BOT
 if [[ "$START_BOT" =~ ^[Yy ]$ ]]; then
     sudo systemctl start eggsplode.service
 fi
