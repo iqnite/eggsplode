@@ -50,6 +50,6 @@ fi
 echo ""
 
 read -p "Setup complete! Start the bot now? (Y/n): " START_BOT
-if [[ "$START_BOT" =~ ^[Yy ]$ ]]; then
+if [[ -z "$START_BOT" || "$START_BOT" =~ ^[Yy]$ ]]; then
     sudo systemctl start eggsplode.service
 fi
