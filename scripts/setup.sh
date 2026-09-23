@@ -5,7 +5,7 @@ echo "This script will install all dependencies and set up the environment for E
 echo ""
 
 read -p "Enter your Discord bot token (leave blank to skip): " YOUR_BOT_TOKEN
-read -p "Enter your Discord test guild ID (leave blank to skip): " YOUR_TEST_GUILD_ID
+read -p "Enter your Discord test server ID (leave blank to skip): " YOUR_TEST_GUILD_ID
 
 echo "(1/$STEPS) Installing dependencies..."
 sudo apt update -y

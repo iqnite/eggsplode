@@ -23,7 +23,7 @@ Eggsplode is the Discord adaptation of the **Exploding Kittens** card game, a hi
 
 **Eggsplode is completely free and open-source.**
 
-*No eggs were injured while making this game.*
+_No eggs were injured while making this game._
 
 ## Credits
 
@@ -36,24 +36,39 @@ Eggsplode is the Discord adaptation of the **Exploding Kittens** card game, a hi
 
 Parts of the code review and debugging process were assisted by GitHub Copilot.
 
-## Installing (Test version)
+## Installing
+
+> [!NOTE]
+> This guide is for installing Eggsplode on your own machine. If you want to install it on a Discord server, please follow the [installation link](https://iqnite.github.io/eggsplode/install.html)
 
 ### 1. Bot Setup
 
 First, we need to create a Bot on Discord's side.
 
-1. On the [Discord Dev Portal](https://discord.com/developers/applications), click on *New Application*. Customize the title, icon, description, etc.
-2. In the *Installation* page, select `application.commands` in both *User Install* and *Guild Install*. Also select `bot` in *Guild Install*. Under *Permissions*, select the following:
+1. On the [Discord Dev Portal](https://discord.com/developers/applications), click on _New Application_. Customize the title, icon, description, etc.
+2. In the _Installation_ page, select `application.commands` in both _User Install_ and _Guild Install_. Also select `bot` in _Guild Install_. Under _Permissions_, select the following:
     - Send Messages
     - Send Messages in Threads
     - Attach Files
     - Embed Links
-3. Under *Install Link*, make sure *Discord Provided Link* is selected. Copy the install link and open it to install your bot. For now, you should only install it to a test server.
-4. In the *Bot* page, click on *Reset Token*. Copy the new token to a safe place (we'll need it later).
-5. In Discord, enable *Developer Mode* under *User Settings* > *Advanced*.
-6. Right-click on your test server and select *Copy Server ID*.
+3. Under _Install Link_, make sure _Discord Provided Link_ is selected. Copy the install link and open it to install your bot. For now, you should only install it to a test server.
+4. In the _Bot_ page, click on _Reset Token_. Copy the new token to a safe place (we'll need it later).
+5. In Discord, enable _Developer Mode_ under _User Settings_ > _Developer_.
+6. Right-click on your test server and select _Copy Server ID_. Store it in a safe place (we'll need it later). In some places, this is also referred to as the _Guild ID_.
 
-### 2. Project Setup
+### 2. Project Setup and Installation (automatic, Linux only)
+
+Eggsplode provides a setup script that will automatically set up the project for you. **This is recommended for production servers only.** For development, it is recommended to follow the manual setup instructions in the next section instead.
+
+To run it, simply execute the following command:
+
+```bash
+bash <(wget -qO- https://raw.githubusercontent.com/iqnite/eggsplode/main/scripts/setup.sh)
+```
+
+After the script is done, Eggsplode should be fully set up. You can skip the next sections and start using the bot right away!
+
+### 2. Project Setup (manual)
 
 Clone the Git repo and go to the folder you cloned the repo into.
 
