@@ -77,6 +77,12 @@
         "description": "Unlocked by playing a Nope on a Begg.",
         "emoji": "💔"
     },
+    "hiding": {
+        "title": "Something to hide",
+        "flavor": "alright, keep your secrets!",
+        "description": "Unlocked by playing a Nope on a See the Future card.",
+        "emoji": "🥸"
+    },
     "trust_nobody": {
         "title": "Trust nobody",
         "flavor": "Wanted to scam me, huh?",
