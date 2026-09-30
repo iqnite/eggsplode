@@ -424,7 +424,8 @@
             "food2": 6,
             "share_future": 4,
             "skip": 4,
-            "trade": 4,
+            "trade": 3,
+            "raid": 3,
             "eggsperiment": {
                 "amount": 2,
                 "hand_out": 0,
