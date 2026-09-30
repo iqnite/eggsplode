@@ -2,20 +2,20 @@
 Contains the commands for the Eggsplode game.
 """
 
-from datetime import datetime
 import logging
+from datetime import datetime
+
 import discord
-from discord.ext import commands
+
 from eggsplode.core import Game
 from eggsplode.strings import game_timeout
 from eggsplode.ui import StartGameView
 from eggsplode.ui.base import TextView
 
-
 logger = logging.getLogger(__name__)
 
 
-class EggsplodeApp(commands.Bot):
+class EggsplodeApp(discord.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.admin_maintenance: bool = False

@@ -12,7 +12,7 @@ from eggsplode.strings import format_message, test_guild_id, app_config
 logger = logging.getLogger(__name__)
 
 
-class Owner(commands.Cog):
+class Owner(discord.Cog):
     def __init__(self, app: EggsplodeApp):
         self.app = app
 

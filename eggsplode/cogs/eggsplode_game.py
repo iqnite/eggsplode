@@ -3,10 +3,11 @@ Contains commands for the main Eggsplode game.
 """
 
 import discord
-from discord.ext import commands
+
 from eggsplode.commands import EggsplodeApp
 from eggsplode.core import Game
-from eggsplode.strings import available_cards, get_card_by_title, format_message
+from eggsplode.strings import (available_cards, format_message,
+                               get_card_by_title)
 from eggsplode.ui.base import TextView
 from eggsplode.ui.start import EndGameView
 
@@ -32,7 +33,7 @@ async def invisible_defer(interaction: discord.Interaction):
     await interaction.respond(view=TextView("defer"), ephemeral=True, delete_after=0)
 
 
-class EggsplodeGame(commands.Cog):
+class EggsplodeGame(discord.Cog):
     def __init__(self, app: EggsplodeApp):
         self.app = app
 

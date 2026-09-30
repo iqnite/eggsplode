@@ -2,10 +2,11 @@
 Contains the views for the short interactions in the game, such as "Defuse".
 """
 
-from typing import Callable, Coroutine, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Coroutine
+
 import discord
 
-from eggsplode.strings import format_message, tooltip, available_cards
+from eggsplode.strings import available_cards, format_message, tooltip
 from eggsplode.ui.base import BaseView
 
 if TYPE_CHECKING:

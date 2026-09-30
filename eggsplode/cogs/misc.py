@@ -3,14 +3,14 @@ Contains additional commands.
 """
 
 import discord
-from discord.ext import commands
+
 from eggsplode.commands import EggsplodeApp
 from eggsplode.strings import format_message
 from eggsplode.ui import HelpView, InfoView
 from eggsplode.ui.base import TextView
 
 
-class Misc(commands.Cog):
+class Misc(discord.Cog):
     def __init__(self, app: EggsplodeApp):
         self.app = app
 
