@@ -2,6 +2,7 @@
 Contains the commands for the Eggsplode game.
 """
 
+import asyncio
 import logging
 from datetime import datetime
 
@@ -33,6 +34,22 @@ class EggsplodeApp(discord.Bot):
 
     async def ready(self):
         logger.info("App ready.")
+
+    async def close(self) -> None:
+        logger.info("App shutdown requested.")
+        self.admin_maintenance = True
+        self.remove_inactive_games()
+        start_time = datetime.now()
+        while self.game_count > 0:
+            await asyncio.sleep(10)
+            if (datetime.now() - start_time).total_seconds() > game_timeout:
+                logger.warning(
+                    "Games %s: Force closing after %s seconds.",
+                    list(self.games.keys()),
+                    game_timeout,
+                )
+                break
+        return await super().close()
 
     async def handle_error(self, event_method: str, *_, **__) -> None:
         logger.exception("in %s", event_method, exc_info=True)
