@@ -5,7 +5,10 @@ Also contains defuse-like actions.
 
 import random
 from typing import TYPE_CHECKING
+
 import discord
+
+from eggsplode import database
 from eggsplode.strings import format_message
 from eggsplode.ui import ChoosePlayerView, DefuseView, TextView
 
@@ -30,8 +33,10 @@ class GameOverView(discord.ui.DesignerView):
 
 
 async def game_over(game: "Game", interaction: discord.Interaction | None):
-    await game.send(GameOverView(game.players[0]), interaction)
+    winner = game.players[0]
+    await game.send(GameOverView(winner), interaction)
     await game.events.game_end()
+    await database.increase_games_won(winner)
 
 
 async def eggsplode(

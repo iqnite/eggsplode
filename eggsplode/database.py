@@ -9,7 +9,7 @@ from eggsplode.strings import database_path
 
 
 class User(Model):
-    user_id = fields.IntField(pk=True)
+    user_id = fields.BigIntField(pk=True)
     games_played = fields.IntField(default=0)
     games_won = fields.IntField(default=0)
 
@@ -18,6 +18,7 @@ async def init():
     await Tortoise.init(
         db_url=f"sqlite://{database_path}",
         modules={"models": [__name__]},
+        _enable_global_fallback=True,
     )
     await Tortoise.generate_schemas()
 

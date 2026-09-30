@@ -8,7 +8,6 @@ from datetime import datetime
 
 import discord
 
-from eggsplode import database
 from eggsplode.core import Game
 from eggsplode.strings import game_timeout
 from eggsplode.ui import StartGameView
@@ -34,7 +33,6 @@ class EggsplodeApp(discord.Bot):
         )
 
     async def ready(self):
-        await database.init()
         logger.info("App ready.")
 
     async def close(self) -> None:
@@ -51,7 +49,6 @@ class EggsplodeApp(discord.Bot):
                     game_timeout,
                 )
                 break
-        await database.close()
         return await super().close()
 
     async def handle_error(self, event_method: str, *_, **__) -> None:
