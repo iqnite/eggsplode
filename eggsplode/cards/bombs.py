@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import discord
 
 from eggsplode import database
-from eggsplode.strings import format_message
+from eggsplode.strings import achievement_unlocked_message, format_message
 from eggsplode.ui import ChoosePlayerView, DefuseView, TextView
 
 if TYPE_CHECKING:
@@ -17,9 +17,18 @@ if TYPE_CHECKING:
 
 
 class GameOverView(discord.ui.DesignerView):
-    def __init__(self, winner):
+    def __init__(self, winner: int, games_won: int):
         super().__init__(timeout=None)
-        self.add_item(discord.ui.TextDisplay(format_message("game_over", winner)))
+        self.add_item(
+            discord.ui.TextDisplay(
+                format_message("game_over", winner)
+                + (
+                    "\n" + achievement_unlocked_message(f"{games_won}_wins")
+                    if games_won in [1, 50]
+                    else ""
+                )
+            )
+        )
         self.funding_container = discord.ui.Container(color=discord.Color.yellow())
         self.add_item(self.funding_container)
         self.funding_container.add_section(
@@ -34,9 +43,9 @@ class GameOverView(discord.ui.DesignerView):
 
 async def game_over(game: "Game", interaction: discord.Interaction | None):
     winner = game.players[0]
-    await game.send(GameOverView(winner), interaction)
+    games_won = await database.increase_games_won(winner)
+    await game.send(GameOverView(winner, games_won), interaction)
     await game.events.game_end()
-    await database.increase_games_won(winner)
 
 
 async def eggsplode(

@@ -1,5 +1,5 @@
 {
-    "champion": {
+    "50_wins": {
         "title": "Champion",
         "flavor": "I am the best!",
         "description": "Unlocked by winning 50 classic games.",
@@ -89,19 +89,19 @@
         "description": "Unlocked by looking at the future right after the player before you Defused.",
         "emoji": "🫣"
     },
-    "first_win": {
+    "1_wins": {
         "title": "It starts with one...",
         "flavor": "... thing, I don't know why...",
         "description": "Unlocked by winning a classic game.",
         "emoji": ":one:"
     },
-    "first_loss": {
+    "1_losses": {
         "title": "The first of many",
         "flavor": "Don't worry, you'll get better.",
         "description": "Unlocked by losing a game.",
         "emoji": "💥"
     },
-    "first_game": {
+    "1_games": {
         "title": "The journey begins",
         "flavor": "Welcome!",
         "description": "Unlocked by completing a classic game.",
