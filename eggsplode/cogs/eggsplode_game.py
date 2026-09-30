@@ -6,9 +6,9 @@ import discord
 
 from eggsplode.commands import EggsplodeApp
 from eggsplode.core import Game
-from eggsplode.strings import (available_cards, format_message,
-                               get_card_by_title)
+from eggsplode.strings import available_cards, format_message, get_card_by_title
 from eggsplode.ui.base import TextView
+from eggsplode.ui.profile import ProfileView
 from eggsplode.ui.start import EndGameView
 
 
@@ -202,6 +202,57 @@ class EggsplodeGame(discord.Cog):
                 verbatim=True,
             ),
             ephemeral=True,
+        )
+
+    @discord.slash_command(
+        name="profile",
+        description=format_message("cmd_profile_desc"),
+        integration_types={
+            discord.IntegrationType.guild_install,
+            discord.IntegrationType.user_install,
+        },
+    )
+    @discord.option(
+        name="user",
+        description=format_message("cmd_profile_option_user_id_desc"),
+        input_type=discord.SlashCommandOptionType.user,
+        required=False,
+    )
+    async def show_profile_slash(
+        self, ctx: discord.ApplicationContext, user: discord.User | None = None
+    ):
+        await self.show_profile(ctx.interaction, user)
+
+    @discord.user_command(
+        name=format_message("ctx_profile_name"),
+        description=format_message("cmd_profile_desc"),
+        integration_types={
+            discord.IntegrationType.guild_install,
+            discord.IntegrationType.user_install,
+        },
+    )
+    async def show_profile_user_command(
+        self, ctx: discord.ApplicationContext, user: discord.User
+    ):
+        await self.show_profile(ctx.interaction, user)
+
+    async def show_profile(
+        self, interaction: discord.Interaction, user: discord.User | None = None
+    ):
+        await interaction.response.defer(ephemeral=True)
+        if user:
+            user_id = user.id
+        elif interaction.user:
+            user_id = interaction.user.id
+        else:
+            await interaction.respond(
+                view=TextView("user_not_found"), ephemeral=True
+            )
+            return
+        view = ProfileView(self.app, user_id)
+        await view.load_user_profile()
+        await interaction.respond(
+            view=view, ephemeral=True
         )
 
     @discord.slash_command(

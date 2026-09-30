@@ -37,6 +37,7 @@ except FileNotFoundError:
 
 test_guild_id: int = int(app_config.get("test_guild_id", 0))
 game_timeout: int = int(app_config.get("game_timeout", 1800))
+database_path: str = app_config.get("database_path", "data/eggsplode.db")
 
 
 def replace_emojis(text: str) -> str:

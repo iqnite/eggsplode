@@ -4,11 +4,15 @@ Eggsplode Discord Bot Application
 This module contains the main application logic for the Eggsplode Discord bot.
 """
 
+import asyncio
 import logging
 from logging.handlers import RotatingFileHandler
+
 import discord
+
+from eggsplode import database
 from eggsplode.commands import EggsplodeApp
-from eggsplode.strings import discord_token, app_config, app_info
+from eggsplode.strings import app_config, app_info, discord_token
 
 
 def configure_logger(logger: logging.Logger, log_level_key: str):
@@ -49,7 +53,17 @@ status_activity = discord.CustomActivity(
 )
 app = EggsplodeApp(activity=status_activity)
 
+
+async def db_init():
+    await database.init()
+    app_logger.info("Database initialized.")
+
+
 if __name__ == "__main__":
     if log_path != "":
         app_logger.info("Program version %s started.", app_info["version"])
-    app.run(discord_token)
+    asyncio.run(db_init())
+    try:
+        app.run(discord_token)
+    finally:
+        asyncio.run(database.close())
