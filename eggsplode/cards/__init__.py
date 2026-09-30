@@ -2,12 +2,19 @@
 Contains the string to function mappings for card actions.
 """
 
-from .skips import bury, dig_deeper, draw_from_bottom, reverse, skip, super_skip
-from .bombs import eggsplode, radioeggtive, radioeggtive_face_up, eggsperiment
-from .deck import deck_count, radioeggtive_warning, shuffle, swap_top_bottom
-from .steal import food_combo, begg, raid, trade
-from .future import alter_future, see_future, share_future
+from typing import TYPE_CHECKING
+
+import discord
+
 from .atteggs import attegg, self_attegg, targeted_attegg
+from .bombs import eggsperiment, eggsplode, radioeggtive, radioeggtive_face_up
+from .deck import deck_count, radioeggtive_warning, shuffle, swap_top_bottom
+from .future import alter_future, see_future, share_future
+from .skips import bury, dig_deeper, draw_from_bottom, reverse, skip, super_skip
+from .steal import begg, food_combo, raid, trade
+
+if TYPE_CHECKING:
+    from eggsplode.core import Game
 
 PLAY_ACTIONS = {
     "attegg": attegg,
@@ -30,10 +37,20 @@ PLAY_ACTIONS = {
     "steal": food_combo,
     "trade": trade,
     "raid": raid,
-} | {
-    f"food{i}": lambda game, interaction, i=i: food_combo(game, interaction, f"food{i}")
-    for i in range(5)
 }
+
+
+for i in range(5):
+
+    def create_food_combo_function(i: int):
+        def food_combo_function(
+            game: "Game", interaction: discord.Interaction, i: int = i
+        ):
+            return food_combo(game, interaction, f"food{i}")
+
+        return food_combo_function
+
+    PLAY_ACTIONS[f"food{i}"] = create_food_combo_function(i)
 
 DRAW_ACTIONS = {
     "eggsplode": eggsplode,
