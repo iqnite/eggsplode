@@ -34,6 +34,11 @@ sed -i "s|CURRENT_USER|$USER|g" scripts/eggsplode.service
 sed -i "s|WORKING_DIRECTORY|$(pwd)|g" scripts/eggsplode.service
 chmod +x scripts/eggsplode.service
 sudo cp scripts/eggsplode.service /etc/systemd/system/eggsplode.service
+
+sudo mkdir -p /etc/systemd/system/eggsplode.service.d
+echo '[Service]
+TimeoutStopSec=900' | sudo tee /etc/systemd/system/eggsplode.service.d/override.conf > /dev/null
+
 sudo systemctl daemon-reload
 sudo systemctl enable eggsplode.service
 echo ""
