@@ -1,0 +1,104 @@
+{
+    "champion": {
+        "title": "Champion",
+        "flavor": "I am the best!",
+        "description": "Unlocked by winning 50 classic games.",
+        "emoji": "🏆"
+    },
+    "expert": {
+        "title": "Expert",
+        "flavor": "I know all the rules.",
+        "description": "Unlocked by using every card at least once.",
+        "emoji": "💯"
+    },
+    "tweaker": {
+        "title": "Tweaker",
+        "flavor": "Let me cook!",
+        "description": "Unlocked by creating a custom recipe.",
+        "emoji": "✏️"
+    },
+    "unstoppable": {
+        "title": "Unstoppable",
+        "flavor": "I said YUP!",
+        "description": "Unlocked by Yupping the same action 2 times in a row.",
+        "emoji": "💪"
+    },
+    "safe": {
+        "title": "Staying safe",
+        "flavor": "Please stay behind the yellow line!",
+        "description": "Unlocked by winning a classic game without defusing.",
+        "emoji": "🦺"
+    },
+    "survivor": {
+        "title": "Survivor",
+        "flavor": "I will survive!",
+        "description": "Unlocked by surviving 6 turn in a row without playing Atteggs or Skips.",
+        "emoji": "🧍"
+    },
+    "hoarder": {
+        "title": "Hoarder",
+        "flavor": "Cards are there to be collected!",
+        "description": "Unlocked by winning a classic game with 10 cards in hand.",
+        "emoji": "🫠"
+    },
+    "last_blood": {
+        "title": "Last blood",
+        "flavor": "Just in time!",
+        "description": "Unlocked by winning a classic game with no cards in hand.",
+        "emoji": "🩸"
+    },
+    "cant_read": {
+        "title": "I can't read",
+        "flavor": "D-A-N-G-E-R... What does that mean?",
+        "description": "Unlocked by ignoring a warning.",
+        "emoji": "🤷"
+    },
+    "cheater": {
+        "title": "CH34T3R",
+        "flavor": "I'm telling mom!",
+        "description": "Unlocked by cheating.",
+        "emoji": "🤐"
+    },
+    "scammed": {
+        "title": "Scammed",
+        "flavor": "Where's my money?",
+        "description": "Unlocked by wasting a food combo.",
+        "emoji": "😵"
+    },
+    "chef": {
+        "title": "Master Chef",
+        "flavor": "I know every food there is.",
+        "description": "Unlocked by using every food card type in a single game.",
+        "emoji": "👨‍🍳"
+    },
+    "heartbreaker": {
+        "title": "Heartbreaker",
+        "flavor": "I just asked...",
+        "description": "Unlocked by playing a Nope on a Begg.",
+        "emoji": "💔"
+    },
+    "trust_nobody": {
+        "title": "Trust nobody",
+        "flavor": "Wanted to scam me, huh?",
+        "description": "Unlocked by looking at the future right after the player before you Defused.",
+        "emoji": "🫣"
+    },
+    "first_win": {
+        "title": "It starts with one...",
+        "flavor": "... thing, I don't know why...",
+        "description": "Unlocked by winning a classic game.",
+        "emoji": ":one:"
+    },
+    "first_loss": {
+        "title": "The first of many",
+        "flavor": "Don't worry, you'll get better.",
+        "description": "Unlocked by losing a game.",
+        "emoji": "💥"
+    },
+    "first_game": {
+        "title": "The journey begins",
+        "flavor": "Welcome!",
+        "description": "Unlocked by completing a classic game.",
+        "emoji": "👋"
+    }
+}
