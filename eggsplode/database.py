@@ -18,6 +18,20 @@ class User(Model):
     games_won = fields.IntField(default=0)
 
 
+class Achievement(Model):
+    id = fields.IntField(pk=True)
+    code_name = fields.CharField(max_length=64, unique=True)
+
+
+class UserAchievement(Model):
+    user = fields.ForeignKeyField("models.User", related_name="achievements")
+    achievement = fields.ForeignKeyField("models.Achievement")
+    unlocked_at = fields.DatetimeField(auto_now_add=True)
+
+    class Meta:  # type: ignore
+        unique_together = (("user", "achievement"),)
+
+
 def db_operation(func):
     def wrapper(*args, **kwargs):
         try:
@@ -62,3 +76,19 @@ async def increase_games_won(user_id: int):
     user = await get_user(user_id)
     user.games_won += 1
     await user.save()
+
+
+@db_operation
+async def get_user_achievements(user_id: int) -> list[Achievement]:
+    user = await get_user(user_id)
+    achievements = (
+        await UserAchievement.filter(user=user).prefetch_related("achievement").all()
+    )
+    return [ua.achievement for ua in achievements]
+
+
+@db_operation
+async def unlock_achievement(user_id: int, code_name: str):
+    user = await get_user(user_id)
+    achievement = await Achievement.get(code_name=code_name)
+    await UserAchievement.get_or_create(user=user, achievement=achievement)
