@@ -260,6 +260,8 @@
     "players_command_list_item": "{}. {} <@{}> ({} cards)",
     "players_list_item": "- <@{}>",
     "predicted": "🔮 <@{}> looked at the next 3 cards on the deck!",
+    "profile_achievements_button": "Achievements",
+    "profile_achievements_list_item": "{} **{}**\n{}\n_{}_",
     "profile_games_played": "**Games played:** {}",
     "profile_games_won": "**Games won:** {}",
     "profile_title": "## <@{}>'s Profile",

@@ -7,7 +7,7 @@ import logging
 from tortoise import Tortoise, fields
 from tortoise.models import Model
 
-from eggsplode.strings import database_path
+from eggsplode.strings import database_path, all_achievements
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +51,8 @@ async def init():
         _enable_global_fallback=True,
     )
     await Tortoise.generate_schemas()
+    for code_name in all_achievements:
+        await Achievement.get_or_create(code_name=code_name)
 
 
 @db_operation
@@ -76,6 +78,12 @@ async def increase_games_won(user_id: int):
     user = await get_user(user_id)
     user.games_won += 1
     await user.save()
+
+
+@db_operation
+async def get_achievement(code_name: str) -> Achievement:
+    achievement, _ = await Achievement.get_or_create(code_name=code_name)
+    return achievement
 
 
 @db_operation

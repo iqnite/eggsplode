@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING
 import discord
 
 from eggsplode import database
-from eggsplode.strings import format_message
+from eggsplode.strings import all_achievements, format_message
+from eggsplode.ui.paginator import PaginatedView
 
 if TYPE_CHECKING:
     from eggsplode.commands import EggsplodeApp
@@ -18,12 +19,19 @@ class ProfileView(discord.ui.DesignerView):
         super().__init__(timeout=None)
         self.app = app
         self.user_id = user_id
+        self.achievements_button = discord.ui.Button(
+            label=format_message("profile_achievements_button"),
+            emoji="🏆",
+            style=discord.ButtonStyle.primary,
+        )
 
     async def load_user_profile(self):
-        database_task = database.get_user(self.user_id)
         discord_task = self.app.get_or_fetch(discord.User, self.user_id)
-        user_info_db = await database_task
+        user_info_task = database.get_user(self.user_id)
+        user_achievements_task = database.get_user_achievements(self.user_id)
         user_info_discord = await discord_task
+        user_info_db = await user_info_task
+        user_achievements = await user_achievements_task
         if user_info_discord is None:
             self.add_item(discord.ui.TextDisplay(format_message("user_not_found")))
             return
@@ -41,3 +49,52 @@ class ProfileView(discord.ui.DesignerView):
                 ),
             )
         )
+        self.achievements_button = discord.ui.Button(
+            label=format_message("profile_achievements_button"),
+            emoji=(
+                all_achievements[user_achievements[0]]["emoji"]
+                if user_achievements
+                else "❔"
+            ),
+            style=discord.ButtonStyle.primary,
+        )
+        self.achievements_button.callback = self.show_achievements
+        self.add_item(discord.ui.ActionRow(self.achievements_button))
+
+    async def show_achievements(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        user_achievements = await database.get_user_achievements(self.user_id)
+        view = AchievementsView(user_achievements)
+        await interaction.respond(view=view, ephemeral=True)
+
+
+class AchievementsView(PaginatedView):
+    def __init__(self, achievements: list[database.Achievement], is_own: bool = False):
+        super().__init__(timeout=None)
+        self.is_own = is_own
+        self.achievement_code_names = {a.code_name for a in achievements}
+        self.update_pagination(self.populate_items())
+
+    def populate_items(self):
+        locked = []
+        unlocked = []
+        for code_name, data in all_achievements.items():
+            is_unlocked = code_name in self.achievement_code_names
+            item = discord.ui.TextDisplay(
+                format_message(
+                    "profile_achievements_list_item",
+                    data["emoji"] if is_unlocked else "❔",
+                    data["title"],
+                    (
+                        data["description"]
+                        if self.is_own
+                        else ("???" if is_unlocked else "Locked")
+                    ),
+                    data["flavor"],
+                )
+            )
+            if is_unlocked:
+                unlocked.append(item)
+            else:
+                locked.append(item)
+        return unlocked + locked

@@ -29,6 +29,8 @@ with open("resources/cards.json", encoding="utf-8") as f:
     available_cards: dict = json.load(f)
 with open("resources/recipes.json", encoding="utf-8") as f:
     default_recipes: dict = json.load(f)
+with open("resources/achievements.json", encoding="utf-8") as f:
+    all_achievements: dict = json.load(f)
 try:
     with open("resources/emojis.json", encoding="utf-8") as f:
         app_emojis: dict = json.load(f)

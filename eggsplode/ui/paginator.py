@@ -22,7 +22,7 @@ class PaginatedView(BaseView):
     def page_count(self) -> int:
         return (len(self.page_items) + self.MAX_SECTIONS - 1) // self.MAX_SECTIONS
 
-    def update_pagination(self, items):
+    def update_pagination(self, items: list[discord.ui.ViewItem]):
         self.page_items = items
         if self.page_count:
             self.page_number = min(self.page_number, self.page_count - 1)
