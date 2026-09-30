@@ -2,9 +2,10 @@
 Common strings used by modules.
 """
 
-import os
 import json
+import os
 import random
+
 from dotenv import load_dotenv
 
 MAX_COMPONENTS = 40
