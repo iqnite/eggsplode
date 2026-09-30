@@ -71,6 +71,7 @@ async def increase_games_played(user_id: int):
     user = await get_user(user_id)
     user.games_played += 1
     await user.save()
+    return user.games_played
 
 
 @db_operation
@@ -78,6 +79,7 @@ async def increase_games_won(user_id: int):
     user = await get_user(user_id)
     user.games_won += 1
     await user.save()
+    return user.games_won
 
 
 @db_operation
