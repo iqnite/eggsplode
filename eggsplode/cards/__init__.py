@@ -40,7 +40,7 @@ PLAY_ACTIONS = {
 }
 
 
-for i in range(5):
+for j in range(5):
 
     def create_food_combo_function(i: int):
         def food_combo_function(
@@ -50,7 +50,7 @@ for i in range(5):
 
         return food_combo_function
 
-    PLAY_ACTIONS[f"food{i}"] = create_food_combo_function(i)
+    PLAY_ACTIONS[f"food{j}"] = create_food_combo_function(j)
 
 DRAW_ACTIONS = {
     "eggsplode": eggsplode,
