@@ -54,16 +54,9 @@ status_activity = discord.CustomActivity(
 app = EggsplodeApp(activity=status_activity)
 
 
-async def db_init():
-    await database.init()
-    app_logger.info("Database initialized.")
-
-
 if __name__ == "__main__":
     if log_path != "":
         app_logger.info("Program version %s started.", app_info["version"])
-    asyncio.run(db_init())
-    try:
-        app.run(discord_token)
-    finally:
-        asyncio.run(database.close())
+    app.loop.run_until_complete(database.init())
+    app_logger.info("Database initialized.")
+    app.run(discord_token)
