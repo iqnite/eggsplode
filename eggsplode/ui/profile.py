@@ -3,7 +3,7 @@ Contains the UI for user profiles and stats.
 """
 
 import asyncio
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 import discord
 
@@ -20,11 +20,8 @@ class ProfileView(discord.ui.DesignerView):
         super().__init__(timeout=None)
         self.app = app
         self.user_id = user_id
-        self.achievements_button = discord.ui.Button(
-            label=format_message("profile_achievements_button"),
-            emoji="🏆",
-            style=discord.ButtonStyle.primary,
-        )
+        self.achievements_button = None
+        self.achievements_view = AchievementsView()
 
     async def load_user_profile(self):
         user_info_discord, user_info_db, user_achievements = await asyncio.gather(
@@ -49,10 +46,16 @@ class ProfileView(discord.ui.DesignerView):
                 ),
             )
         )
+        user_achievements = await database.get_user_achievements(self.user_id)
+        self.achievements_view.set_achievements(user_achievements)
         self.achievements_button = discord.ui.Button(
-            label=format_message("profile_achievements_button"),
+            label=format_message(
+                "profile_achievements_button",
+                len(self.achievements_view.divided_achievements[0]),
+                len(all_achievements),
+            ),
             emoji=(
-                all_achievements[user_achievements[0]]["emoji"]
+                self.achievements_view.achievements[0].emoji
                 if user_achievements
                 else "❔"
             ),
@@ -64,32 +67,44 @@ class ProfileView(discord.ui.DesignerView):
     async def show_achievements(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
         user_achievements = await database.get_user_achievements(self.user_id)
-        view = AchievementsView(user_achievements)
-        await interaction.respond(view=view, ephemeral=True)
+        self.achievements_view.set_achievements(user_achievements)
+        await interaction.respond(view=self.achievements_view, ephemeral=True)
 
 
 class AchievementsView(PaginatedView):
-    def __init__(self, achievements: list[database.Achievement], is_own: bool = False):
+    def __init__(
+        self,
+        achievements: list[database.Achievement] | None = None,
+        is_own: bool = False,
+    ):
         super().__init__(timeout=None)
         self.is_own = is_own
-        self.achievements = achievements
-        self.update_pagination(self.populate_items())
+        self.achievements = []
+        self.divided_achievements = ([], [])
+        if achievements is not None:
+            self.set_achievements(achievements)
 
-    def populate_items(self):
-        locked = []
-        unlocked = []
+    def set_achievements(self, achievements: list[database.Achievement]):
+        self.divided_achievements = divide_achievements(achievements)
+        self.achievements = self.divided_achievements[0] + self.divided_achievements[1]
+        self.update_pagination(list(self.get_displays_for_achievements()))
+
+    def get_displays_for_achievements(self):
         for achievement in self.achievements:
-            item = discord.ui.TextDisplay(
+            yield discord.ui.TextDisplay(
                 format_message(
                     "profile_achievements_list_item",
                     achievement.emoji if achievement.is_unlocked else "❔",
                     achievement.title,
-                    (achievement.message if self.is_own else ""),
+                    achievement.message,
                     achievement.flavor,
                 )
             )
-            if achievement.is_unlocked:
-                unlocked.append(item)
-            else:
-                locked.append(item)
-        return unlocked + locked
+
+
+def divide_achievements(
+    achievements: list[database.Achievement],
+) -> tuple[list[database.Achievement], list[database.Achievement]]:
+    unlocked = [a for a in achievements if a.is_unlocked]
+    locked = [a for a in achievements if not a.is_unlocked]
+    return unlocked, locked
