@@ -2,6 +2,7 @@
 Contains the UI for user profiles and stats.
 """
 
+import asyncio
 from typing import TYPE_CHECKING
 
 import discord
@@ -26,12 +27,11 @@ class ProfileView(discord.ui.DesignerView):
         )
 
     async def load_user_profile(self):
-        discord_task = self.app.get_or_fetch(discord.User, self.user_id)
-        user_info_task = database.get_user(self.user_id)
-        user_achievements_task = database.get_user_achievements(self.user_id)
-        user_info_discord = await discord_task
-        user_info_db = await user_info_task
-        user_achievements = await user_achievements_task
+        user_info_discord, user_info_db, user_achievements = await asyncio.gather(
+            self.app.get_or_fetch(discord.User, self.user_id),
+            database.get_user(self.user_id),
+            database.get_user_achievements(self.user_id),
+        )
         if user_info_discord is None:
             self.add_item(discord.ui.TextDisplay(format_message("user_not_found")))
             return
