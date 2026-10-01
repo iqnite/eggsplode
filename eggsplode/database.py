@@ -16,6 +16,7 @@ class User(Model):
     user_id = fields.BigIntField(pk=True)
     games_played = fields.IntField(default=0)
     games_won = fields.IntField(default=0)
+    cards_played = fields.JSONField(default=dict)
 
 
 class Achievement(Model):
@@ -102,3 +103,17 @@ async def unlock_achievement(user_id: int, code_name: str):
     user = await get_user(user_id)
     achievement = await Achievement.get(code_name=code_name)
     await UserAchievement.get_or_create(user=user, achievement=achievement)
+
+
+@db_operation
+async def increase_card_played(user_id: int, card_name: str):
+    user = await get_user(user_id)
+    user.cards_played[card_name] = user.cards_played.get(card_name, 0) + 1
+    await user.save()
+    return user.cards_played[card_name]
+
+
+@db_operation
+async def get_cards_played(user_id: int) -> dict[str, int]:
+    user = await get_user(user_id)
+    return user.cards_played
