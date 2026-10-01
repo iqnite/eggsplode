@@ -289,6 +289,8 @@ class EditRecipeModal(discord.ui.DesignerModal):
         await interaction.followup.edit_message(
             self.parent_message.id, view=self.parent_view
         )
+        if interaction.user is not None:
+            await database.increase_user_custom_recipes(interaction.user.id)
 
     def clear_items(self) -> None: ...
 

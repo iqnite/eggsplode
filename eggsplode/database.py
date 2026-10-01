@@ -3,6 +3,7 @@ Contains methods and classes for interacting with the database.
 """
 
 import logging
+from functools import wraps
 
 from tortoise import Tortoise, fields
 from tortoise.models import Model
@@ -17,6 +18,7 @@ class User(Model):
     games_played = fields.IntField(default=0)
     games_won = fields.IntField(default=0)
     has_cheated = fields.BooleanField(default=False)
+    custom_recipes_created = fields.IntField(default=0)
 
 
 class Card(Model):
@@ -33,10 +35,11 @@ class UserCardUsage(Model):
 
 
 def db_operation(func):
-    def wrapper(*args, **kwargs):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
         try:
-            return func(*args, **kwargs)
-        except Exception as e:  # pylint: disable=broad-except
+            return await func(*args, **kwargs)
+        except Exception as e:
             logger.error("Error in database operation %s: %s", func.__name__, e)
             return None
 
@@ -105,6 +108,7 @@ async def get_user_achievements(user_id: int) -> list[Achievement]:
         Achievement("50_wins", progress=user.games_won),
         Achievement("expert", progress=await get_unique_user_card_count(user_id)),
         Achievement("cheater", progress=1 if user.has_cheated else 0),
+        Achievement("tweaker", progress=user.custom_recipes_created),
         Achievement("1_wins", progress=user.games_won),
         Achievement("1_games", progress=user.games_played),
     ]
@@ -124,6 +128,14 @@ async def increase_games_won(user_id: int):
     user.games_won += 1
     await user.save()
     return user.games_won
+
+
+@db_operation
+async def increase_user_custom_recipes(user_id: int):
+    user = await get_user(user_id)
+    user.custom_recipes_created += 1
+    await user.save()
+    return user.custom_recipes_created
 
 
 @db_operation
