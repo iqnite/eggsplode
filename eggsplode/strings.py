@@ -86,5 +86,5 @@ def tooltip(card: str, emoji=True) -> str:
 def achievement_unlocked_message(achievement: str) -> str:
     return format_message(
         "achievement_unlocked",
-        all_achievements.get(achievement, {}).get("emoji", "🏆"),
+        all_achievements.get(achievement, {}).get("emoji", "❔"),
     )

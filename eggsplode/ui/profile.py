@@ -94,10 +94,10 @@ class AchievementsView(PaginatedView):
             yield discord.ui.TextDisplay(
                 format_message(
                     "profile_achievements_list_item",
-                    achievement.emoji if achievement.is_unlocked else "❔",
-                    achievement.title,
-                    achievement.message,
-                    achievement.flavor,
+                    emoji=achievement.emoji if achievement.is_unlocked else "❔",
+                    title=achievement.title,
+                    flavor=achievement.flavor,
+                    message=achievement.message,
                 )
             )
 
