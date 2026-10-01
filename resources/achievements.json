@@ -22,11 +22,12 @@
         "unlocked": "Unlocked by creating a custom recipe.",
         "emoji": "✏️"
     },
-    "unstoppable": {
-        "title": "Unstoppable",
-        "flavor": "I said YUP!",
-        "unlocked": "Unlocked by Yupping the same action 2 times in a row.",
-        "emoji": "💪"
+    "3_nopes": {
+        "title": "Rock solid",
+        "flavor": "I said NOPE!",
+        "unlocked": "Unlocked by Noping the same action {} times in a row.",
+        "emoji": "💪",
+        "target": 3
     },
     "safe": {
         "title": "Staying safe",

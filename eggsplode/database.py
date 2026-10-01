@@ -20,6 +20,7 @@ class User(Model):
     games_won = fields.IntField(default=0)
     has_cheated = fields.BooleanField(default=False)
     custom_recipes_created = fields.IntField(default=0)
+    most_nopes_in_a_row = fields.IntField(default=0)
 
 
 class Card(Model):
@@ -85,14 +86,14 @@ class Achievement:
     def message(self) -> str:
         if self.is_unlocked:
             return (
-                self._unlocked_message
-                if self.target == 1
-                else self._unlocked_message.format(self.target)
+                self._unlocked_message.format(self.target)
+                if self._unlocked_message.count("{}") == 1
+                else self._unlocked_message
             )
         return (
-            self._locked_message
-            if self.target == 1
-            else self._locked_message.format(self.progress, self.target)
+            self._locked_message.format(self.progress, self.target)
+            if self._locked_message.count("{}") == 2
+            else self._locked_message
         )
 
 
@@ -103,6 +104,7 @@ async def get_user_achievements(user_id: int) -> list[Achievement]:
         Achievement("50_wins", progress=user.games_won),
         Achievement("expert", progress=await get_unique_user_card_count(user_id)),
         Achievement("cheater", progress=1 if user.has_cheated else 0),
+        Achievement("3_nopes", progress=user.most_nopes_in_a_row),
         Achievement("tweaker", progress=user.custom_recipes_created),
         Achievement("1_wins", progress=user.games_won),
         Achievement("1_games", progress=user.games_played),
@@ -160,3 +162,14 @@ async def set_user_cheated(user_id: int, cheated: bool = True):
 async def get_unique_user_card_count(user_id: int) -> int:
     user = await get_user(user_id)
     return await UserCardUsage.filter(user=user).distinct().count()
+
+
+@db_operation
+async def update_user_most_nopes_in_a_row(user_id: int, nopes: int) -> bool:
+    user = await get_user(user_id)
+    if nopes > user.most_nopes_in_a_row:
+        user.most_nopes_in_a_row = nopes
+        await user.save()
+        if nopes == 3:
+            return True
+    return False

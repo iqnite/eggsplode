@@ -43,6 +43,7 @@ class NopeView(BaseGameView):
         self.ok_callback_action = ok_callback_action
         self.nope_callback_action = nope_callback_action
         self.nope_count = 0
+        self.nopes_from = {}
         self.players_confirmed = set()
         self._timer_task: asyncio.Task[None] | None = None
         self.action_text_display = discord.ui.TextDisplay(message)
@@ -161,6 +162,17 @@ class NopeView(BaseGameView):
             )
             return
         await database.increase_user_card_usage(interaction.user.id, "nope")
+        self.nopes_from[interaction.user.id] = self.nopes_from.get(interaction.user.id, 0) + 1
+        if await database.update_user_most_nopes_in_a_row(
+            interaction.user.id, self.nopes_from[interaction.user.id]
+        ):
+            await interaction.respond(
+                view=TextView(
+                    strings.achievement_unlocked_message("3_nopes"), verbatim=True
+                ),
+                ephemeral=True,
+                delete_after=10,
+            )
         self.reset_timeout()
         self.timer_display.content = self.get_timer_text()
         self.nope_count += 1
