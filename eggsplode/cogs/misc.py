@@ -41,7 +41,6 @@ class Misc(discord.Cog):
 
     @discord.message_command(
         name="Eggify",
-        description=format_message("cmd_eggify_desc"),
         integration_types={
             discord.IntegrationType.guild_install,
             discord.IntegrationType.user_install,
@@ -69,7 +68,6 @@ class Misc(discord.Cog):
 
     @discord.message_command(
         name="Clownify",
-        description=format_message("cmd_clownify_desc"),
         integration_types={
             discord.IntegrationType.guild_install,
             discord.IntegrationType.user_install,

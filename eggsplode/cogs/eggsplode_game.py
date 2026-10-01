@@ -225,7 +225,6 @@ class EggsplodeGame(discord.Cog):
 
     @discord.user_command(
         name=format_message("ctx_profile_name"),
-        description=format_message("cmd_profile_desc"),
         integration_types={
             discord.IntegrationType.guild_install,
             discord.IntegrationType.user_install,
