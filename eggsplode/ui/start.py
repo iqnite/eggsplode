@@ -8,12 +8,16 @@ import json
 import logging
 import time
 from typing import TYPE_CHECKING
-import psutil
+
 import discord
+import psutil
+
+from eggsplode import database
 from eggsplode.strings import (
+    app_info,
     app_messages,
     default_recipes,
-    app_info,
+    achievement_unlocked_message,
     format_message,
     replace_emojis,
 )
@@ -246,6 +250,22 @@ class EditRecipeModal(discord.ui.DesignerModal):
         self.add_item(self.recipe_input_label)
 
     async def callback(self, interaction: discord.Interaction):
+        if self.recipe_input.value == format_message("xx"):
+            if interaction.user is None:
+                return
+            await database.set_user_cheated(interaction.user.id)
+            await interaction.response.send_message(
+                view=TextView(
+                    format_message(
+                        "xxy",
+                        interaction.user.id,
+                        achievement_unlocked_message("cheater"),
+                    ),
+                    verbatim=True,
+                ),
+                ephemeral=True,
+            )
+            return
         recipe_json = self.recipe_input.value
         if recipe_json is None:
             return

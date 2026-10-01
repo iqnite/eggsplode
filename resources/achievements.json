@@ -1,110 +1,121 @@
 {
     "50_wins": {
         "title": "Champion",
-        "flavor": "I am the best!",
-        "description": "Unlocked by winning 50 classic games.",
-        "emoji": "🏆"
+        "flavor": "_\"Unbelievable! You, [Player Name Here], must be the pride of [Server Name Here].\"_",
+        "locked": "{}/{} games won",
+        "unlocked": "Unlocked by winning {} games.",
+        "emoji": "🏆",
+        "target": 50
     },
     "expert": {
         "title": "Expert",
-        "flavor": "I know all the rules.",
-        "description": "Unlocked by using every card at least once.",
-        "emoji": "💯"
+        "flavor": "_\"This game has no secrets for me.\"_",
+        "locked": "{}/{} unique cards played",
+        "unlocked": "Unlocked by using every card at least once.",
+        "emoji": "💯",
+        "target": 27
     },
     "tweaker": {
         "title": "Tweaker",
-        "flavor": "Let me cook!",
-        "description": "Unlocked by creating a custom recipe.",
+        "flavor": "_\"Let me cook!\"_",
+        "locked": "Play with a custom recipe to unlock this achievement.",
+        "unlocked": "Unlocked by creating a custom recipe.",
         "emoji": "✏️"
     },
     "unstoppable": {
         "title": "Unstoppable",
-        "flavor": "I said YUP!",
-        "description": "Unlocked by Yupping the same action 2 times in a row.",
+        "flavor": "_\"I said YUP!\"_",
+        "unlocked": "Unlocked by Yupping the same action 2 times in a row.",
         "emoji": "💪"
     },
     "safe": {
         "title": "Staying safe",
-        "flavor": "Please stay behind the yellow line!",
-        "description": "Unlocked by winning a classic game without defusing.",
+        "flavor": "_\"Please step behind the yellow line!\"_",
+        "unlocked": "Unlocked by winning a classic game without defusing.",
         "emoji": "🦺"
     },
     "survivor": {
         "title": "Survivor",
-        "flavor": "I will survive!",
-        "description": "Unlocked by surviving 6 turn in a row without playing Atteggs or Skips.",
+        "flavor": "_\"I will survive!\"_",
+        "unlocked": "Unlocked by surviving 6 turns in a row without playing Atteggs or Skips.",
         "emoji": "🧍"
     },
     "hoarder": {
         "title": "Hoarder",
-        "flavor": "Cards are there to be collected!",
-        "description": "Unlocked by winning a classic game with 10 cards in hand.",
+        "flavor": "_\"Cards are there to be collected!\"_",
+        "unlocked": "Unlocked by winning a classic game with 10 cards in hand.",
         "emoji": "🫠"
     },
     "last_blood": {
         "title": "Last blood",
-        "flavor": "Just in time!",
-        "description": "Unlocked by winning a classic game with no cards in hand.",
+        "flavor": "_\"Just in time!\"_",
+        "unlocked": "Unlocked by winning a classic game with no cards in hand.",
         "emoji": "🩸"
     },
     "cant_read": {
-        "title": "I can't read",
-        "flavor": "D-A-N-G-E-R... What does that mean?",
-        "description": "Unlocked by ignoring a warning.",
+        "title": "Can't read",
+        "flavor": "_\"D-A-N-G-E-R... What does that mean?\"_",
+        "unlocked": "Unlocked by ignoring a warning.",
         "emoji": "🤷"
     },
     "cheater": {
         "title": "CH34T3R",
-        "flavor": "I'm telling mom!",
-        "description": "Unlocked by cheating.",
-        "emoji": "🤐"
+        "flavor": "_\"I hacked the Eggsplode mainframe and all I got was this lousy achievement.\"_",
+        "unlocked": "Unlocked by cheating.",
+        "emoji": "👾"
     },
     "scammed": {
         "title": "Scammed",
-        "flavor": "Where's my money?",
-        "description": "Unlocked by wasting a food combo.",
+        "flavor": "_\"Where is my card?\"_",
+        "unlocked": "Unlocked by failing to steal a card.",
         "emoji": "😵"
     },
     "chef": {
         "title": "Master Chef",
-        "flavor": "I know every food there is.",
-        "description": "Unlocked by using every food card type in a single game.",
+        "flavor": "_\"I ate those food.\"_",
+        "unlocked": "Unlocked by using every food card type in a single classic game.",
         "emoji": "👨‍🍳"
     },
     "heartbreaker": {
         "title": "Heartbreaker",
-        "flavor": "I just asked...",
-        "description": "Unlocked by playing a Nope on a Begg.",
+        "flavor": "_\"I just asked...\"_",
+        "unlocked": "Unlocked by playing a Nope on a Begg card.",
         "emoji": "💔"
     },
     "hiding": {
-        "title": "Something to hide",
-        "flavor": "alright, keep your secrets!",
-        "description": "Unlocked by playing a Nope on a See the Future card.",
+        "title": "Mr. Ious",
+        "flavor": "_\"Alright, keep your secrets!\"_",
+        "unlocked": "Unlocked by playing a Nope on a See the Future card.",
         "emoji": "🥸"
     },
     "trust_nobody": {
         "title": "Trust nobody",
-        "flavor": "Wanted to scam me, huh?",
-        "description": "Unlocked by looking at the future right after the player before you Defused.",
+        "flavor": "_\"Wanted to scam me, huh?\"_",
+        "unlocked": "Unlocked by looking at the future right after the player before you Defused.",
         "emoji": "🫣"
     },
     "1_wins": {
         "title": "It starts with one...",
-        "flavor": "... thing, I don't know why...",
-        "description": "Unlocked by winning a classic game.",
-        "emoji": ":one:"
+        "flavor": "_\"... thing, I don't know why...\"_",
+        "locked": "{}/{} games won",
+        "unlocked": "Unlocked by winning a game.",
+        "emoji": ":one:",
+        "target": 1
     },
     "1_losses": {
         "title": "The first of many",
-        "flavor": "Don't worry, you'll get better.",
-        "description": "Unlocked by losing a game.",
-        "emoji": "💥"
+        "flavor": "_\"Don't worry, you'll get better.\"_",
+        "locked": "{}/{} games lost",
+        "unlocked": "Unlocked by losing a game.",
+        "emoji": "💥",
+        "target": 1
     },
     "1_games": {
         "title": "The journey begins",
-        "flavor": "Welcome!",
-        "description": "Unlocked by completing a classic game.",
-        "emoji": "👋"
+        "flavor": "_\"Welcome!\"_",
+        "locked": "{}/{} games completed",
+        "unlocked": "Unlocked by completing a game.",
+        "emoji": "👋",
+        "target": 1
     }
 }

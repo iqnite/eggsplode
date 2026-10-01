@@ -7,7 +7,7 @@ import logging
 from tortoise import Tortoise, fields
 from tortoise.models import Model
 
-from eggsplode.strings import database_path, all_achievements
+from eggsplode.strings import all_achievements, database_path
 
 logger = logging.getLogger(__name__)
 
@@ -16,21 +16,21 @@ class User(Model):
     user_id = fields.BigIntField(pk=True)
     games_played = fields.IntField(default=0)
     games_won = fields.IntField(default=0)
-    cards_played = fields.JSONField(default=dict)
+    has_cheated = fields.BooleanField(default=False)
 
 
-class Achievement(Model):
+class Card(Model):
     id = fields.IntField(pk=True)
     code_name = fields.CharField(max_length=64, unique=True)
 
 
-class UserAchievement(Model):
-    user = fields.ForeignKeyField("models.User", related_name="achievements")
-    achievement = fields.ForeignKeyField("models.Achievement")
-    unlocked_at = fields.DatetimeField(auto_now_add=True)
+class UserCardUsage(Model):
+    user = fields.ForeignKeyField("models.User", related_name="item_usages")
+    item = fields.ForeignKeyField("models.Card")
+    use_count = fields.IntField(default=1)
 
     class Meta:  # type: ignore
-        unique_together = (("user", "achievement"),)
+        unique_together = (("user", "item"),)
 
 
 def db_operation(func):
@@ -52,8 +52,6 @@ async def init():
         _enable_global_fallback=True,
     )
     await Tortoise.generate_schemas()
-    for code_name in all_achievements:
-        await Achievement.get_or_create(code_name=code_name)
 
 
 @db_operation
@@ -65,6 +63,50 @@ async def close():
 async def get_user(user_id: int) -> User:
     user, _ = await User.get_or_create(user_id=user_id)
     return user
+
+
+class Achievement:
+    def __init__(self, code_name: str, progress: int = 0):
+        self.code_name = code_name
+        self.title = all_achievements[code_name]["title"]
+        self.flavor = all_achievements[code_name]["flavor"]
+        self._locked_message = all_achievements[code_name].get("locked", "???")
+        self._unlocked_message = all_achievements[code_name]["unlocked"]
+        self.emoji = all_achievements[code_name]["emoji"]
+        self.target = all_achievements[code_name].get("target", 1)
+        self.progress = progress
+
+    @property
+    def is_unlocked(self) -> bool:
+        return self.progress >= self.target
+
+    @property
+    def message(self) -> str:
+        if self.is_unlocked:
+            return (
+                self._unlocked_message
+                if self.target == 1
+                else self._unlocked_message.format(self.target)
+            )
+        return (
+            self._locked_message
+            if self.target == 1
+            else self._locked_message.format(self.progress, self.target)
+        )
+
+
+@db_operation
+async def get_user_achievements(user_id: int) -> list[Achievement]:
+    user = await get_user(user_id)
+    return [
+        Achievement("50_wins", progress=user.games_won),
+        Achievement(
+            "expert", progress=await UserCardUsage.filter(user=user).distinct().count()
+        ),
+        Achievement("cheater", progress=1 if user.has_cheated else 0),
+        Achievement("1_wins", progress=user.games_won),
+        Achievement("1_games", progress=user.games_played),
+    ]
 
 
 @db_operation
@@ -84,36 +126,23 @@ async def increase_games_won(user_id: int):
 
 
 @db_operation
-async def get_achievement(code_name: str) -> Achievement:
-    achievement, _ = await Achievement.get_or_create(code_name=code_name)
-    return achievement
+async def get_user_card_usage(user_id: int, code_name: str) -> UserCardUsage:
+    user = await get_user(user_id)
+    card = await Card.get_or_create(code_name=code_name)
+    usage, _ = await UserCardUsage.get_or_create(user=user, item=card)
+    return usage
 
 
 @db_operation
-async def get_user_achievements(user_id: int) -> list[Achievement]:
-    user = await get_user(user_id)
-    achievements = (
-        await UserAchievement.filter(user=user).prefetch_related("achievement").all()
-    )
-    return [ua.achievement for ua in achievements]
+async def increase_user_card_usage(user_id: int, code_name: str):
+    usage = await get_user_card_usage(user_id, code_name)
+    usage.use_count += 1
+    await usage.save()
+    return usage.use_count
 
 
 @db_operation
-async def unlock_achievement(user_id: int, code_name: str):
+async def set_user_cheated(user_id: int, cheated: bool = True):
     user = await get_user(user_id)
-    achievement = await Achievement.get(code_name=code_name)
-    await UserAchievement.get_or_create(user=user, achievement=achievement)
-
-
-@db_operation
-async def increase_card_played(user_id: int, card_name: str):
-    user = await get_user(user_id)
-    user.cards_played[card_name] = user.cards_played.get(card_name, 0) + 1
+    user.has_cheated = cheated
     await user.save()
-    return user.cards_played[card_name]
-
-
-@db_operation
-async def get_cards_played(user_id: int) -> dict[str, int]:
-    user = await get_user(user_id)
-    return user.cards_played

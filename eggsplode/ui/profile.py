@@ -72,28 +72,23 @@ class AchievementsView(PaginatedView):
     def __init__(self, achievements: list[database.Achievement], is_own: bool = False):
         super().__init__(timeout=None)
         self.is_own = is_own
-        self.achievement_code_names = {a.code_name for a in achievements}
+        self.achievements = achievements
         self.update_pagination(self.populate_items())
 
     def populate_items(self):
         locked = []
         unlocked = []
-        for code_name, data in all_achievements.items():
-            is_unlocked = code_name in self.achievement_code_names
+        for achievement in self.achievements:
             item = discord.ui.TextDisplay(
                 format_message(
                     "profile_achievements_list_item",
-                    data["emoji"] if is_unlocked else "❔",
-                    data["title"],
-                    (
-                        data["description"]
-                        if self.is_own
-                        else ("???" if is_unlocked else "Locked")
-                    ),
-                    data["flavor"],
+                    achievement.emoji if achievement.is_unlocked else "❔",
+                    achievement.title,
+                    (achievement.message if self.is_own else ""),
+                    achievement.flavor,
                 )
             )
-            if is_unlocked:
+            if achievement.is_unlocked:
                 unlocked.append(item)
             else:
                 locked.append(item)
