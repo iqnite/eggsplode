@@ -3,7 +3,7 @@ Contains the UI for user profiles and stats.
 """
 
 import asyncio
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING
 
 import discord
 
