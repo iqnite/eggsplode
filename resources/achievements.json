@@ -13,7 +13,7 @@
         "locked": "{}/{} unique cards played",
         "unlocked": "Unlocked by using every card at least once.",
         "emoji": "💯",
-        "target": 26
+        "target": 25
     },
     "tweaker": {
         "title": "Tweaker",
