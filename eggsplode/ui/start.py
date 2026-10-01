@@ -214,6 +214,8 @@ class StartGameView(BaseView):
     async def recipe_callback(self, interaction: discord.Interaction):
         await interaction.edit(view=self)
         if await check_permissions(self.game, interaction):
+            if not self.recipe_select.values:
+                return
             recipe_id = self.game.config["recipe_id"] = self.recipe_select.values[0]
             self.game.config["recipe"] = default_recipes[recipe_id]
         self.recipe_select.options = self.recipe_options

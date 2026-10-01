@@ -39,7 +39,7 @@ def db_operation(func):
     async def wrapper(*args, **kwargs):
         try:
             return await func(*args, **kwargs)
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error("Error in database operation %s: %s", func.__name__, e)
             return None
 
