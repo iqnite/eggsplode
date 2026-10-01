@@ -95,10 +95,6 @@ class Achievement:
             else self._locked_message.format(self.progress, self.target)
         )
 
-    @classmethod
-    def empty(cls) -> "Achievement":
-        return cls("empty")
-
 
 @db_operation
 async def get_user_achievements(user_id: int) -> list[Achievement]:

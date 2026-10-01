@@ -51,7 +51,7 @@ class ProfileView(discord.ui.DesignerView):
         unlocked_achievements = (
             self.achievements_view.unlocked_achievements
             if self.achievements_view.unlocked_achievements
-            else [database.Achievement.empty()]
+            else []
         )
         self.achievements_button = discord.ui.Button(
             label=format_message(
@@ -59,7 +59,7 @@ class ProfileView(discord.ui.DesignerView):
                 len(unlocked_achievements),
                 len(user_achievements),
             ),
-            emoji=(unlocked_achievements[0].emoji),
+            emoji=(unlocked_achievements[0].emoji if unlocked_achievements else "❔"),
             style=discord.ButtonStyle.primary,
         )
         self.achievements_button.callback = self.show_achievements
