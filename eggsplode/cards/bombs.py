@@ -52,6 +52,7 @@ async def eggsplode(
     game: "Game", interaction: discord.Interaction | None, timed_out: bool = False
 ):
     if "defuse" in game.current_player_hand:
+        await database.increase_user_card_usage(game.current_player_id, "defuse")
         game.current_player_hand.remove("defuse")
         if timed_out or interaction is None:
             game.deck.insert(random.randint(0, len(game.deck)), "eggsplode")
@@ -142,6 +143,7 @@ async def eggsperiment_finish(
     pair=False,
 ):
     if "defuse" in game.hands[target_player_id]:
+        await database.increase_user_card_usage(target_player_id, "defuse")
         game.hands[target_player_id].remove("defuse")
         await game.send(
             TextView(

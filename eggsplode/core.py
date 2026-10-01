@@ -304,6 +304,7 @@ class Game:
             self.action_player_id = interaction.user.id
         if not await self.action_check(interaction):
             return
+        await database.increase_user_card_usage(interaction.user.id, card)
         self.action_player_hand.remove(card)
         await self.events.action_start()
         if available_cards[card].get("explicit", False):

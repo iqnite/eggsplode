@@ -20,17 +20,16 @@ class User(Model):
 
 
 class Card(Model):
-    id = fields.IntField(pk=True)
-    code_name = fields.CharField(max_length=64, unique=True)
+    code_name = fields.CharField(pk=True, unique=True, max_length=64)
 
 
 class UserCardUsage(Model):
-    user = fields.ForeignKeyField("models.User", related_name="item_usages")
-    item = fields.ForeignKeyField("models.Card")
-    use_count = fields.IntField(default=1)
+    user = fields.ForeignKeyField("models.User", related_name="card_usages")
+    card = fields.ForeignKeyField("models.Card")
+    use_count = fields.IntField(default=0)
 
     class Meta:  # type: ignore
-        unique_together = (("user", "item"),)
+        unique_together = (("user", "card"),)
 
 
 def db_operation(func):
@@ -70,7 +69,7 @@ class Achievement:
         self.code_name = code_name
         self.title = all_achievements[code_name]["title"]
         self.flavor = all_achievements[code_name]["flavor"]
-        self._locked_message = all_achievements[code_name].get("locked", "???")
+        self._locked_message = all_achievements[code_name].get("locked", "Locked")
         self._unlocked_message = all_achievements[code_name]["unlocked"]
         self.emoji = all_achievements[code_name]["emoji"]
         self.target = all_achievements[code_name].get("target", 1)
@@ -104,9 +103,7 @@ async def get_user_achievements(user_id: int) -> list[Achievement]:
     user = await get_user(user_id)
     return [
         Achievement("50_wins", progress=user.games_won),
-        Achievement(
-            "expert", progress=await UserCardUsage.filter(user=user).distinct().count()
-        ),
+        Achievement("expert", progress=await get_unique_user_card_count(user_id)),
         Achievement("cheater", progress=1 if user.has_cheated else 0),
         Achievement("1_wins", progress=user.games_won),
         Achievement("1_games", progress=user.games_played),
@@ -132,8 +129,8 @@ async def increase_games_won(user_id: int):
 @db_operation
 async def get_user_card_usage(user_id: int, code_name: str) -> UserCardUsage:
     user = await get_user(user_id)
-    card = await Card.get_or_create(code_name=code_name)
-    usage, _ = await UserCardUsage.get_or_create(user=user, item=card)
+    card, _ = await Card.get_or_create(code_name=code_name)
+    usage, _ = await UserCardUsage.get_or_create(user=user, card=card)
     return usage
 
 
@@ -150,3 +147,9 @@ async def set_user_cheated(user_id: int, cheated: bool = True):
     user = await get_user(user_id)
     user.has_cheated = cheated
     await user.save()
+
+
+@db_operation
+async def get_unique_user_card_count(user_id: int) -> int:
+    user = await get_user(user_id)
+    return await UserCardUsage.filter(user=user).distinct().count()

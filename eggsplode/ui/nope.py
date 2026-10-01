@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Callable, Coroutine
 
 import discord
 
-from eggsplode import strings
+from eggsplode import database, strings
 from eggsplode.strings import format_message
 from eggsplode.ui.base import BaseGameView, TextView
 
@@ -160,6 +160,7 @@ class NopeView(BaseGameView):
                 view=TextView("no_nope_cards"), ephemeral=True, delete_after=5
             )
             return
+        await database.increase_user_card_usage(interaction.user.id, "nope")
         self.reset_timeout()
         self.timer_display.content = self.get_timer_text()
         self.nope_count += 1
