@@ -114,5 +114,12 @@
         "locked": "Complete a game to unlock this achievement!",
         "unlocked": "Unlocked by completing a game.",
         "emoji": "👋"
+    },
+    "empty": {
+        "title": "Empty",
+        "flavor": "You have no achievements yet.",
+        "locked": "Complete a game to unlock your first achievement!",
+        "unlocked": "Unlocked by completing a game.",
+        "emoji": "❔"
     }
 }

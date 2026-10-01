@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Iterable
 import discord
 
 from eggsplode import database
-from eggsplode.strings import all_achievements, format_message
+from eggsplode.strings import format_message
 from eggsplode.ui.paginator import PaginatedView
 
 if TYPE_CHECKING:
@@ -48,17 +48,18 @@ class ProfileView(discord.ui.DesignerView):
         )
         user_achievements = await database.get_user_achievements(self.user_id)
         self.achievements_view.set_achievements(user_achievements)
+        unlocked_achievements = (
+            self.achievements_view.unlocked_achievements
+            if self.achievements_view.unlocked_achievements
+            else [database.Achievement.empty()]
+        )
         self.achievements_button = discord.ui.Button(
             label=format_message(
                 "profile_achievements_button",
-                len(self.achievements_view.divided_achievements[0]),
-                len(all_achievements),
+                len(unlocked_achievements),
+                len(user_achievements),
             ),
-            emoji=(
-                self.achievements_view.achievements[0].emoji
-                if user_achievements
-                else "❔"
-            ),
+            emoji=(unlocked_achievements[0].emoji),
             style=discord.ButtonStyle.primary,
         )
         self.achievements_button.callback = self.show_achievements
@@ -100,6 +101,14 @@ class AchievementsView(PaginatedView):
                     message=achievement.message,
                 )
             )
+
+    @property
+    def unlocked_achievements(self) -> list[database.Achievement]:
+        return self.divided_achievements[0]
+
+    @property
+    def locked_achievements(self) -> list[database.Achievement]:
+        return self.divided_achievements[1]
 
 
 def divide_achievements(
