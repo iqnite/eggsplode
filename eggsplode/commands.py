@@ -38,18 +38,18 @@ class EggsplodeApp(discord.Bot):
 
     async def close(self) -> None:
         logger.info("App shutdown requested.")
-        self.admin_maintenance = True
-        self.remove_inactive_games()
-        start_time = datetime.now()
-        while self.game_count > 0:
-            await asyncio.sleep(10)
-            if (datetime.now() - start_time).total_seconds() > game_timeout:
-                logger.warning(
-                    "Games %s: Force closing after %s seconds.",
-                    list(self.games.keys()),
-                    game_timeout,
-                )
-                break
+        # self.admin_maintenance = True
+        # self.remove_inactive_games()
+        # start_time = datetime.now()
+        # while self.game_count > 0:
+        #     await asyncio.sleep(10)
+        #     if (datetime.now() - start_time).total_seconds() > game_timeout:
+        #         logger.warning(
+        #             "Games %s: Force closing after %s seconds.",
+        #             list(self.games.keys()),
+        #             game_timeout,
+        #         )
+        #         break
         await database.close()
         return await super().close()
 
