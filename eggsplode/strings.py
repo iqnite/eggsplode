@@ -42,6 +42,17 @@ game_timeout: int = int(app_config.get("game_timeout", 1800))
 database_path: str = app_config.get("database_path", "data/eggsplode.db")
 
 
+tortoise_orm_config = {
+    "connections": {"default": f"sqlite://{database_path}"},
+    "apps": {
+        "models": {
+            "models": ["eggsplode.database", "aerich.models"],
+            "default_connection": "default",
+        }
+    },
+}
+
+
 def replace_emojis(text: str) -> str:
     for name, emoji in app_emojis.items():
         text = text.replace(name, emoji)

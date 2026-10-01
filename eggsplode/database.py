@@ -5,10 +5,11 @@ Contains methods and classes for interacting with the database.
 import logging
 from functools import wraps
 
+from aerich import Command
 from tortoise import Tortoise, fields
 from tortoise.models import Model
 
-from eggsplode.strings import all_achievements, database_path
+from eggsplode.strings import all_achievements, tortoise_orm_config
 
 logger = logging.getLogger(__name__)
 
@@ -48,12 +49,10 @@ def db_operation(func):
 
 @db_operation
 async def init():
-    await Tortoise.init(
-        db_url=f"sqlite://{database_path}",
-        modules={"models": [__name__]},
-        _enable_global_fallback=True,
-    )
-    await Tortoise.generate_schemas()
+    await Tortoise.init(config=tortoise_orm_config, _enable_global_fallback=True)
+    command = Command(tortoise_config=tortoise_orm_config, app="models")
+    await command.init()
+    await command.upgrade(run_in_transaction=True)
 
 
 @db_operation

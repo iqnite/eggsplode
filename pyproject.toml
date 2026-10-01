@@ -1,0 +1,4 @@
+[tool.tortoise]
+tortoise_orm = "eggsplode.strings.tortoise_orm_config"
+location = "./migrations"
+src_folder = "./."
