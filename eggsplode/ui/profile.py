@@ -21,7 +21,7 @@ class ProfileView(discord.ui.DesignerView):
         self.app = app
         self.user_id = user_id
         self.achievements_button = None
-        self.achievements_view = AchievementsView(is_own=(self.user_id == requester_id))
+        self.achievements_view = AchievementsView(is_own=self.user_id == requester_id)
 
     async def load_user_profile(self):
         user_info_db = await database.get_user(self.user_id, create=False)
