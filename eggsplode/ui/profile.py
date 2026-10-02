@@ -35,20 +35,6 @@ class ProfileView(discord.ui.DesignerView):
         if user_info_discord is None:
             self.add_item(discord.ui.TextDisplay(format_message("user_not_found")))
             return
-        self.add_item(
-            discord.ui.Section(
-                discord.ui.TextDisplay(format_message("profile_title", self.user_id)),
-                discord.ui.TextDisplay(
-                    format_message("profile_games_won", user_info_db.games_won)
-                ),
-                discord.ui.TextDisplay(
-                    format_message("profile_games_played", user_info_db.games_played)
-                ),
-                accessory=discord.ui.Thumbnail(
-                    url=user_info_discord.display_avatar.url
-                ),
-            )
-        )
         user_achievements = await database.get_user_achievements(self.user_id)
         self.achievements_view.set_achievements(user_achievements)
         unlocked_achievements = (
@@ -57,16 +43,44 @@ class ProfileView(discord.ui.DesignerView):
             else []
         )
         self.achievements_button = discord.ui.Button(
-            label=format_message(
-                "profile_achievements_button",
-                len(unlocked_achievements),
-                len(user_achievements),
-            ),
-            emoji=(unlocked_achievements[0].emoji if unlocked_achievements else "❔"),
+            label=format_message("profile_achievements_button"),
             style=discord.ButtonStyle.primary,
         )
         self.achievements_button.callback = self.show_achievements
-        self.add_item(discord.ui.ActionRow(self.achievements_button))
+        self.add_item(
+            discord.ui.Container(
+                discord.ui.Section(
+                    discord.ui.TextDisplay(
+                        format_message("profile_title", self.user_id)
+                    ),
+                    discord.ui.TextDisplay(
+                        format_message(
+                            "profile_games_played", user_info_db.games_played
+                        )
+                    ),
+                    discord.ui.TextDisplay(
+                        format_message("profile_games_won", user_info_db.games_won)
+                    ),
+                    accessory=discord.ui.Thumbnail(
+                        url=user_info_discord.display_avatar.url
+                    ),
+                ),
+                discord.ui.Separator(),
+                discord.ui.Section(
+                    discord.ui.TextDisplay(
+                        format_message(
+                            "profile_achievements",
+                            len(unlocked_achievements),
+                            len(user_achievements),
+                        )
+                    ),
+                    discord.ui.TextDisplay(
+                        get_achievement_preview(user_achievements, max_count=3)
+                    ),
+                    accessory=self.achievements_button,
+                ),
+            )
+        )
 
     async def show_achievements(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
@@ -120,3 +134,23 @@ def divide_achievements(
     unlocked = [a for a in achievements if a.is_unlocked]
     locked = [a for a in achievements if not a.is_unlocked]
     return unlocked, locked
+
+
+def get_achievement_preview(
+    achievements: list[database.Achievement], max_count: int = 3
+) -> str:
+    unlocked, _ = divide_achievements(achievements)
+    preview = []
+    for achievement in unlocked[:max_count]:
+        preview.append(
+            format_message(
+                "profile_achievements_preview_item",
+                emoji=achievement.emoji,
+                title=achievement.title,
+            )
+        )
+    if len(unlocked) == 0:
+        return format_message("profile_no_achievements")
+    if len(unlocked) > max_count:
+        preview.append(f"+{len(unlocked) - max_count}")
+    return ", ".join(preview)
