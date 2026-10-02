@@ -39,9 +39,9 @@ def deck_count(game: "Game") -> str:
 
 
 def radioeggtive_warning(game: "Game") -> str:
-    radioeggtive_countdown = game.card_comes_in("radioeggtive_face_up")
-    return (
-        format_message("play_prompt_radioeggtive_now")
-        if radioeggtive_countdown == 0
-        else ""
+    game.is_radioeggtive_warning_visible = (
+        game.card_comes_in("radioeggtive_face_up") == 0
     )
+    if game.is_radioeggtive_warning_visible:
+        return format_message("play_prompt_radioeggtive_now")
+    return ""

@@ -51,6 +51,7 @@ class Game:
         ] = cards.DRAW_ACTIONS
         self.turn_warnings: list[Callable[[Game], str]] = cards.TURN_WARNINGS
         self.defusers = set()
+        self.is_radioeggtive_warning_visible = False
         self.events.turn_end += self.next_turn
         self.events.game_end += self.end
         self.events.action_start += self.pause

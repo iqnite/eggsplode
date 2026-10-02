@@ -23,6 +23,7 @@ class User(Model):
     custom_recipes_created = fields.IntField(default=0)
     most_nopes_in_a_row = fields.IntField(default=0)
     has_won_classic_without_defuse = fields.BooleanField(default=False)
+    warnings_ignored = fields.IntField(default=0)
 
 
 class Card(Model):
@@ -117,6 +118,7 @@ async def get_user_achievements(user_id: int) -> list[Achievement]:
         Achievement("cheater", progress=user.has_cheated),
         Achievement("safe", progress=user.has_won_classic_without_defuse),
         Achievement("3_nopes", progress=user.most_nopes_in_a_row),
+        Achievement("cant_read", progress=user.warnings_ignored > 0),
         Achievement("tweaker", progress=user.custom_recipes_created),
         Achievement("1_wins", progress=user.games_won),
         Achievement("1_games", progress=user.games_played),
@@ -197,3 +199,11 @@ async def update_user_most_nopes_in_a_row(user_id: int, nopes: int) -> bool:
         if nopes == 3:
             return True
     return False
+
+
+@db_operation
+async def increase_user_warnings_ignored(user_id: int) -> int:
+    user = await get_user(user_id)
+    user.warnings_ignored += 1
+    await user.save()
+    return user.warnings_ignored

@@ -133,13 +133,35 @@ async def radioeggtive_face_up(
     timed_out: bool | None = False,
 ):
     prev_player = game.current_player_id
-    game.remove_player(prev_player)
     game.remaining_turns = 0
+    achievement_message = format_message("death_messages", random_from_list=True)
+    if (
+        interaction is not None
+        and interaction.user is not None
+        and not timed_out
+        and (
+            interaction.user.id
+            in game.players_with_cards(
+                "skip",
+                "super_skip",
+                "attegg",
+                "targeted_attegg",
+                "bury",
+                "reverse",
+            )
+        )
+    ):
+        warnings_ignored = await database.increase_user_warnings_ignored(
+            game.current_player_id
+        )
+        if warnings_ignored == 1:
+            achievement_message = achievement_unlocked_message("cant_read")
+    game.remove_player(prev_player)
     await game.send(
         TextView(
             "radioeggtive_face_up",
             prev_player,
-            format_message("death_messages", random_from_list=True),
+            achievement_message,
         ),
         interaction,
     )
