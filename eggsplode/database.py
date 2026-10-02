@@ -4,6 +4,7 @@ Contains methods and classes for interacting with the database.
 
 import logging
 from functools import wraps
+from typing import overload
 
 from aerich import Command
 from tortoise import Tortoise, fields
@@ -61,9 +62,18 @@ async def close():
     await Tortoise.close_connections()
 
 
+@overload
+async def get_user(user_id: int) -> User: ...
+@overload
+async def get_user(user_id: int, create: bool = False) -> User | None: ...
+
+
 @db_operation
-async def get_user(user_id: int) -> User:
-    user, _ = await User.get_or_create(user_id=user_id)
+async def get_user(user_id: int, create: bool = True) -> User | None:
+    if create:
+        user, _ = await User.get_or_create(user_id=user_id)
+    else:
+        user = await User.get_or_none(user_id=user_id)
     return user
 
 

@@ -24,9 +24,12 @@ class ProfileView(discord.ui.DesignerView):
         self.achievements_view = AchievementsView()
 
     async def load_user_profile(self):
-        user_info_discord, user_info_db, user_achievements = await asyncio.gather(
+        user_info_db = await database.get_user(self.user_id, create=False)
+        if user_info_db is None:
+            self.add_item(discord.ui.TextDisplay(format_message("user_not_registered")))
+            return
+        user_info_discord, user_achievements = await asyncio.gather(
             self.app.get_or_fetch(discord.User, self.user_id),
-            database.get_user(self.user_id),
             database.get_user_achievements(self.user_id),
         )
         if user_info_discord is None:
