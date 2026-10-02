@@ -325,7 +325,7 @@
     "user_not_found": "❌ User not found! Please check that you know the user and try again.",
     "user_not_in_any_games": "❌ You are not in any games! Start a new one with </start:1325457141628141661>!",
     "user_not_in_game": "❌ You are not in this game!",
-    "user_not_registered": "❌ This user is not registered yet! They can register by starting a new game with </start:1325457141628141661>.",
+    "user_not_registered": "❌ This user is not registered yet! They can register by joining or starting a new game with </start:1325457141628141661>.",
     "validate_maximum": "Must be at most {}.",
     "validate_minimum": "Must be at least {}.",
     "validate_must_be_type": "Must be a {}.",
