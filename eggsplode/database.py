@@ -121,6 +121,7 @@ async def get_user_achievements(user_id: int) -> list[Achievement]:
         Achievement("safe", progress=user.has_won_classic_without_defuse),
         Achievement("3_nopes", progress=user.most_nopes_in_a_row),
         Achievement("cant_read", progress=user.warnings_ignored > 0),
+        Achievement("10_games", progress=user.games_played),
         Achievement("tweaker", progress=user.custom_recipes_created),
         Achievement("1_wins", progress=user.games_won),
         Achievement("1_games", progress=user.games_played),

@@ -102,6 +102,14 @@
         "unlocked": "Unlocked by looking at the future right after the player before you Defused.",
         "emoji": "🫣"
     },
+    "10_games": {
+        "title": "Returning player",
+        "flavor": "Good job for lasting this long!",
+        "locked": "{}/{} games played",
+        "unlocked": "Unlocked by playing {} games.",
+        "emoji": "🎮",
+        "target": 10
+    },
     "1_wins": {
         "title": "It starts with one...",
         "flavor": "... thing, I don't know why...",
