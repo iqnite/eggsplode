@@ -4,6 +4,7 @@ Contains the views for the Eggsplode game UI.
 
 from .base import BaseView, BaseGameView, TextView
 from .nope import NopeView
+from .paginator import PaginatedView
 from .play import PlayView
 from .selections import SelectionView, ChoosePlayerView, ChooseCardView, DefuseView
 from .start import (

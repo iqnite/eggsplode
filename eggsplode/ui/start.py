@@ -17,6 +17,7 @@ from eggsplode.strings import (
     app_info,
     app_messages,
     default_recipes,
+    test_guild_id,
     achievement_unlocked_message,
     format_message,
     replace_emojis,
@@ -222,10 +223,14 @@ class StartGameView(BaseView):
         await interaction.edit(view=self)
 
     async def advanced_settings(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(SettingsModal(self.game))  # type: ignore
+        await interaction.response.send_modal(
+            SettingsModal(
+                self.game, is_in_test_guild=interaction.guild_id == test_guild_id
+            )
+        )
 
     async def edit_recipe(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(EditRecipeModal(self))  # type: ignore
+        await interaction.response.send_modal(EditRecipeModal(self))
 
 
 class EditRecipeModal(discord.ui.DesignerModal):
@@ -298,20 +303,12 @@ class EditRecipeModal(discord.ui.DesignerModal):
 
 
 class SettingsModal(discord.ui.DesignerModal):
-    def __init__(self, game: "Game", *args, **kwargs):
+    def __init__(self, game: "Game", *args, is_in_test_guild: bool = False, **kwargs):
         super().__init__(
             *args, **kwargs, title=format_message("balancing_settings_title")
         )
         self.game = game
         self.inputs = {
-            "deck_size": {
-                "label": format_message("setting_label_deck_size"),
-                "input": discord.ui.InputText(
-                    placeholder="",
-                    value=self.game.config.get("deck_size", None),
-                    required=False,
-                ),
-            },
             "turn_timeout": {
                 "label": format_message("setting_label_turn_timeout"),
                 "input": discord.ui.InputText(
@@ -323,6 +320,16 @@ class SettingsModal(discord.ui.DesignerModal):
                 "max": 120,
             },
         }
+        if is_in_test_guild:
+            self.inputs["deck_size"] = {
+                "label": format_message("setting_label_deck_size"),
+                "input": discord.ui.InputText(
+                    placeholder="",
+                    value=self.game.config.get("deck_size", None),
+                    required=False,
+                ),
+            }
+
         for i in self.inputs.values():
             self.add_item(discord.ui.Label(i["label"], i["input"]))
 

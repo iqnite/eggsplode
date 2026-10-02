@@ -42,7 +42,11 @@ test_guild_id: int = int(app_config.get("test_guild_id", 0))
 game_timeout: int = int(app_config.get("game_timeout", 1800))
 current_dir = Path(__file__).resolve().parent
 database_path = app_config.get("database_path", "../data/eggsplode.db")
-database_path = str(database_path) if os.path.isabs(database_path) else str(current_dir / database_path)
+database_path = (
+    str(database_path)
+    if os.path.isabs(database_path)
+    else str(current_dir / database_path)
+)
 database_path = database_path.replace("\\", "/")
 
 tortoise_orm_config = {

@@ -2,7 +2,6 @@
 Contains the commands for the Eggsplode game.
 """
 
-import asyncio
 import logging
 from datetime import datetime
 
