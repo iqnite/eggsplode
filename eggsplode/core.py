@@ -107,7 +107,7 @@ class Game:
         self.deck += hand_out_pool
 
         self.shuffle_deck()
-        self.trim_deck()
+        self.trim_deck(self.config.get("deck_size", recipe.get("deck_size", None)))
         self.ensure_minimum_eggsplode()
         self.shuffle_deck()
 
@@ -129,8 +129,7 @@ class Game:
         ):
             self.deck.append("eggsplode")
 
-    def trim_deck(self):
-        max_deck_size = self.config.get("deck_size", None)
+    def trim_deck(self, max_deck_size: int | None = None):
         if not max_deck_size:
             return
         max_deck_size = int(max_deck_size)
