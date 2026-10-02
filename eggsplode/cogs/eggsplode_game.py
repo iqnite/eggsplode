@@ -244,15 +244,15 @@ class EggsplodeGame(discord.Cog):
         elif interaction.user:
             user_id = interaction.user.id
         else:
-            await interaction.respond(
-                view=TextView("user_not_found"), ephemeral=True
-            )
+            await interaction.respond(view=TextView("user_not_found"), ephemeral=True)
             return
-        view = ProfileView(self.app, user_id)
-        await view.load_user_profile()
-        await interaction.respond(
-            view=view, ephemeral=True
+        view = ProfileView(
+            self.app,
+            user_id,
+            requester_id=interaction.user.id if interaction.user else 0,
         )
+        await view.load_user_profile()
+        await interaction.respond(view=view, ephemeral=True)
 
     @discord.slash_command(
         name="end",

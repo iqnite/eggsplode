@@ -16,12 +16,12 @@ if TYPE_CHECKING:
 
 
 class ProfileView(discord.ui.DesignerView):
-    def __init__(self, app: "EggsplodeApp", user_id: int):
+    def __init__(self, app: "EggsplodeApp", user_id: int, requester_id: int):
         super().__init__(timeout=None)
         self.app = app
         self.user_id = user_id
         self.achievements_button = None
-        self.achievements_view = AchievementsView()
+        self.achievements_view = AchievementsView(is_own=(self.user_id == requester_id))
 
     async def load_user_profile(self):
         user_info_db = await database.get_user(self.user_id, create=False)
@@ -101,7 +101,7 @@ class AchievementsView(PaginatedView):
                     emoji=achievement.emoji if achievement.is_unlocked else "❔",
                     title=achievement.title,
                     flavor=achievement.flavor,
-                    message=achievement.message,
+                    message=achievement.message if self.is_own else "",
                 )
             )
 
