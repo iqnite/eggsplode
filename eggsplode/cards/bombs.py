@@ -49,14 +49,8 @@ class GameOverView(discord.ui.DesignerView):
 async def game_over(game: "Game", interaction: discord.Interaction | None):
     winner = game.players[0]
     games_won = await database.increase_games_won(winner)
-    recipe = game.config.get("recipe")
     is_safe_achievement = False
-    if (
-        recipe is not None
-        and recipe.get("name") == "classic"
-        and not recipe.get("is_custom", False)
-        and winner not in game.defusers
-    ):
+    if game.config.get("recipe_id") == "classic" and winner not in game.defusers:
         is_safe_achievement = await database.set_user_won_classic_without_defuse(
             winner, True
         )

@@ -62,9 +62,7 @@ class Game:
         self.load_recipe(self.config["recipe"])
 
     def load_recipe(self, recipe: str | bytes | bytearray | dict):
-        if isinstance(recipe, dict):
-            recipe["is_custom"] = True
-        else:
+        if not isinstance(recipe, dict):
             recipe = json.loads(recipe)
         if not isinstance(recipe, dict):
             raise TypeError(f"Recipe must be a dict, but is a {type(recipe)}")
