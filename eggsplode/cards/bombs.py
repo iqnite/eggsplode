@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class GameOverView(discord.ui.DesignerView):
-    def __init__(self, winner: int, games_won: int):
+    def __init__(self, winner: int, games_won: int, is_safe_achievement: bool = False):
         super().__init__(timeout=None)
         self.add_item(
             discord.ui.TextDisplay(
@@ -25,6 +25,11 @@ class GameOverView(discord.ui.DesignerView):
                 + (
                     "\n" + achievement_unlocked_message(f"{games_won}_wins")
                     if games_won in [1, 50]
+                    else ""
+                )
+                + (
+                    "\n" + achievement_unlocked_message("safe")
+                    if is_safe_achievement
                     else ""
                 )
             )
@@ -44,7 +49,21 @@ class GameOverView(discord.ui.DesignerView):
 async def game_over(game: "Game", interaction: discord.Interaction | None):
     winner = game.players[0]
     games_won = await database.increase_games_won(winner)
-    await game.send(GameOverView(winner, games_won), interaction)
+    recipe = game.config.get("recipe")
+    is_safe_achievement = False
+    if (
+        recipe is not None
+        and recipe.get("name") == "classic"
+        and not recipe.get("is_custom", False)
+        and winner not in game.defusers
+    ):
+        is_safe_achievement = await database.set_user_won_classic_without_defuse(
+            winner, True
+        )
+    await game.send(
+        GameOverView(winner, games_won, is_safe_achievement),
+        interaction,
+    )
     await game.events.game_end()
 
 
@@ -53,6 +72,7 @@ async def eggsplode(
 ):
     if "defuse" in game.current_player_hand:
         await database.increase_user_card_usage(game.current_player_id, "defuse")
+        game.defusers.add(game.current_player_id)
         game.current_player_hand.remove("defuse")
         if timed_out or interaction is None:
             game.deck.insert(random.randint(0, len(game.deck)), "eggsplode")

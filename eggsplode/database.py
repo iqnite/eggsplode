@@ -22,6 +22,7 @@ class User(Model):
     has_cheated = fields.BooleanField(default=False)
     custom_recipes_created = fields.IntField(default=0)
     most_nopes_in_a_row = fields.IntField(default=0)
+    has_won_classic_without_defuse = fields.BooleanField(default=False)
 
 
 class Card(Model):
@@ -78,7 +79,7 @@ async def get_user(user_id: int, create: bool = True) -> User | None:
 
 
 class Achievement:
-    def __init__(self, code_name: str, progress: int = 0):
+    def __init__(self, code_name: str, progress: int | bool = 0):
         self.code_name = code_name
         self.title = all_achievements[code_name]["title"]
         self.flavor = all_achievements[code_name]["flavor"]
@@ -86,7 +87,7 @@ class Achievement:
         self._unlocked_message = all_achievements[code_name]["unlocked"]
         self.emoji = all_achievements[code_name]["emoji"]
         self.target = all_achievements[code_name].get("target", 1)
-        self.progress = progress
+        self.progress = int(progress)
 
     @property
     def is_unlocked(self) -> bool:
@@ -113,7 +114,8 @@ async def get_user_achievements(user_id: int) -> list[Achievement]:
     return [
         Achievement("50_wins", progress=user.games_won),
         Achievement("expert", progress=await get_unique_user_card_count(user_id)),
-        Achievement("cheater", progress=1 if user.has_cheated else 0),
+        Achievement("cheater", progress=user.has_cheated),
+        Achievement("safe", progress=user.has_won_classic_without_defuse),
         Achievement("3_nopes", progress=user.most_nopes_in_a_row),
         Achievement("tweaker", progress=user.custom_recipes_created),
         Achievement("1_wins", progress=user.games_won),
@@ -166,6 +168,18 @@ async def set_user_cheated(user_id: int, cheated: bool = True):
     user = await get_user(user_id)
     user.has_cheated = cheated
     await user.save()
+
+
+@db_operation
+async def set_user_won_classic_without_defuse(
+    user_id: int, has_won: bool = True
+) -> bool:
+    user = await get_user(user_id)
+    if user.has_won_classic_without_defuse:
+        return False
+    user.has_won_classic_without_defuse = has_won
+    await user.save()
+    return True
 
 
 @db_operation

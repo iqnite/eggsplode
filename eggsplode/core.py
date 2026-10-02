@@ -50,6 +50,7 @@ class Game:
             str, Callable[[Game, discord.Interaction | None, bool | None], Coroutine]
         ] = cards.DRAW_ACTIONS
         self.turn_warnings: list[Callable[[Game], str]] = cards.TURN_WARNINGS
+        self.defusers = set()
         self.events.turn_end += self.next_turn
         self.events.game_end += self.end
         self.events.action_start += self.pause
@@ -61,7 +62,9 @@ class Game:
         self.load_recipe(self.config["recipe"])
 
     def load_recipe(self, recipe: str | bytes | bytearray | dict):
-        if not isinstance(recipe, dict):
+        if isinstance(recipe, dict):
+            recipe["is_custom"] = True
+        else:
             recipe = json.loads(recipe)
         if not isinstance(recipe, dict):
             raise TypeError(f"Recipe must be a dict, but is a {type(recipe)}")
