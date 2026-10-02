@@ -84,7 +84,7 @@ async def eggsplode(
     prev_player = game.current_player_id
     game.remove_player(prev_player)
     game.remaining_turns = 0
-    await game.send(
+    msg = await game.send(
         TextView(
             "eggsploded",
             prev_player,
@@ -92,6 +92,7 @@ async def eggsplode(
         ),
         interaction,
     )
+    add_death_message_id(game, msg)
     if len(game.players) == 1:
         await game_over(game, interaction)
         return
@@ -157,7 +158,7 @@ async def radioeggtive_face_up(
         if warnings_ignored == 1:
             achievement_message = achievement_unlocked_message("cant_read")
     game.remove_player(prev_player)
-    await game.send(
+    msg = await game.send(
         TextView(
             "radioeggtive_face_up",
             prev_player,
@@ -165,6 +166,7 @@ async def radioeggtive_face_up(
         ),
         interaction,
     )
+    add_death_message_id(game, msg)
     if len(game.players) == 1:
         await game_over(game, interaction)
         return
@@ -190,7 +192,7 @@ async def eggsperiment_finish(
             interaction,
         )
     else:
-        await game.send(
+        msg = await game.send(
             TextView(
                 "eggsperiment_pair_eggsploded" if pair else "eggsperiment_eggsploded",
                 game.current_player_id,
@@ -199,11 +201,23 @@ async def eggsperiment_finish(
             ),
             interaction,
         )
+        add_death_message_id(game, msg)
         game.remove_player(target_player_id)
         if len(game.players) == 1:
             await game_over(game, interaction)
             return
     await game.events.action_end()
+
+
+def add_death_message_id(game: "Game", msg):
+    if msg is None:
+        message_id = None
+    elif isinstance(msg, discord.Interaction) and msg.message:
+        message_id = msg.message.id
+    else:
+        message_id = msg.id
+    if message_id:
+        game.app.death_message_ids.add(message_id)
 
 
 async def eggsperiment(game: "Game", interaction: discord.Interaction):

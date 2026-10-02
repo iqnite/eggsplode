@@ -24,6 +24,7 @@ class User(Model):
     most_nopes_in_a_row = fields.IntField(default=0)
     has_won_classic_without_defuse = fields.BooleanField(default=False)
     warnings_ignored = fields.IntField(default=0)
+    respects_paid = fields.IntField(default=0)
 
 
 class Card(Model):
@@ -115,6 +116,7 @@ async def get_user_achievements(user_id: int) -> list[Achievement]:
     return [
         Achievement("50_wins", progress=user.games_won),
         Achievement("expert", progress=await get_unique_user_card_count(user_id)),
+        Achievement("respectful", progress=user.respects_paid > 0),
         Achievement("cheater", progress=user.has_cheated),
         Achievement("safe", progress=user.has_won_classic_without_defuse),
         Achievement("3_nopes", progress=user.most_nopes_in_a_row),
@@ -207,3 +209,11 @@ async def increase_user_warnings_ignored(user_id: int) -> int:
     user.warnings_ignored += 1
     await user.save()
     return user.warnings_ignored
+
+
+@db_operation
+async def increase_user_respects(user_id: int) -> int:
+    user = await get_user(user_id)
+    user.respects_paid += 1
+    await user.save()
+    return user.respects_paid

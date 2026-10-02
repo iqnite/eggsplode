@@ -53,6 +53,13 @@
         "unlocked": "Unlocked by winning a classic game with no cards in hand.",
         "emoji": "🩸"
     },
+    "respectful": {
+        "title": "Respectful",
+        "flavor": "Honor the fallen.",
+        "locked": "Pay respects to a dead player to unlock this achievement.",
+        "unlocked": "Unlocked by paying respects to a dead player.",
+        "emoji": "🫡"
+    },
     "cant_read": {
         "title": "Can't read",
         "flavor": "D-A-N-G-E-R... What does that mean?",

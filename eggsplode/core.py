@@ -451,11 +451,12 @@ class Game:
         view: discord.ui.View | discord.ui.DesignerView,
         interaction: discord.Interaction | None,
     ):
+        msg = None
         if interaction is not None:
             self.last_interaction = interaction
         if self.last_interaction is not None:
             try:
-                await self.last_interaction.respond(view=view)
+                msg = await self.last_interaction.respond(view=view)
             except discord.HTTPException as error:
                 if (
                     getattr(error, "status", None) != 401
@@ -467,10 +468,11 @@ class Game:
                     "Game %s: Falling back to channel send after invalid interaction token.",
                     self.id,
                 )
-                await self.send_in_channel(view)
+                msg = await self.send_in_channel(view)
         else:
-            await self.send_in_channel(view)
+            msg = await self.send_in_channel(view)
         logger.debug("Game %s: Sent message: %s", self.id, view.copy_text())
+        return msg
 
     async def send_in_channel(self, view: discord.ui.View | discord.ui.DesignerView):
         if self.channel is None:
@@ -480,8 +482,8 @@ class Game:
                 "Game %s: Cannot send message to forum or category channel.",
                 self.id,
             )
-            return
-        await self.channel.send(view=view)
+            return None
+        return await self.channel.send(view=view)
 
     def random_turn_prompt(self) -> str:
         return format_message(
