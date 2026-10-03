@@ -221,7 +221,7 @@ class EggsplodeGame(discord.Cog):
     async def show_profile_slash(
         self, ctx: discord.ApplicationContext, user: discord.User | None = None
     ):
-        await self.show_profile(ctx.interaction, user)
+        await self.show_profile(ctx.interaction, user, ephemeral=user is not None)
 
     @discord.user_command(
         name=format_message("ctx_profile_name"),
@@ -236,9 +236,12 @@ class EggsplodeGame(discord.Cog):
         await self.show_profile(ctx.interaction, user)
 
     async def show_profile(
-        self, interaction: discord.Interaction, user: discord.User | None = None
+        self,
+        interaction: discord.Interaction,
+        user: discord.User | None = None,
+        ephemeral: bool = True,
     ):
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(ephemeral=ephemeral)
         if user:
             user_id = user.id
         elif interaction.user:
@@ -252,7 +255,7 @@ class EggsplodeGame(discord.Cog):
             requester_id=interaction.user.id if interaction.user else 0,
         )
         await view.load_user_profile()
-        await interaction.respond(view=view, ephemeral=True)
+        await interaction.respond(view=view, ephemeral=ephemeral)
 
     @discord.slash_command(
         name="end",
