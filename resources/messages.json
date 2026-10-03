@@ -234,7 +234,7 @@
         "### ⌛ <@{}>, rise and shine!",
         "### ⌛ It's your turn, <@{}>! Don't burn the eggs!"
     ],
-    "no_cards_to_steal": "🎭 <@{}> wanted to steal a card from <@{}>, but they didn't have enough cards left. Better luck next time!",
+    "no_cards_to_steal": "🎭 <@{}> wanted to steal a card from <@{}>, but they didn't have enough cards left. Better luck next time!\n{}",
     "no_nope_cards": "❌ You have no **Nope** cards to play!",
     "no_players_have_cards": "❌ No players have cards!",
     "no_recipes": "No recipes selected.",

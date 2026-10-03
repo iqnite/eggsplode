@@ -27,6 +27,7 @@ class User(Model):
     has_won_classic_without_defuse = fields.BooleanField(default=False)
     warnings_ignored = fields.IntField(default=0)
     respects_paid = fields.IntField(default=0)
+    times_scammed = fields.IntField(default=0)
 
 
 class Card(Model):
@@ -122,6 +123,7 @@ async def get_user_achievements(user_id: int) -> list[Achievement]:
         Achievement("cheater", progress=user.has_cheated),
         Achievement("safe", progress=user.has_won_classic_without_defuse),
         Achievement("3_nopes", progress=user.most_nopes_in_a_row),
+        Achievement("scammed", progress=user.times_scammed),
         Achievement("cant_read", progress=user.warnings_ignored > 0),
         Achievement("10_games", progress=user.games_played),
         Achievement("tweaker", progress=user.custom_recipes_created),
@@ -152,6 +154,14 @@ async def increase_user_custom_recipes(user_id: int):
     user.custom_recipes_created += 1
     await user.save()
     return user.custom_recipes_created
+
+
+@db_operation
+async def increase_user_times_scammed(user_id: int):
+    user = await get_user(user_id)
+    user.times_scammed += 1
+    await user.save()
+    return user.times_scammed
 
 
 @db_operation

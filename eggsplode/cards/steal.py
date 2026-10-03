@@ -5,7 +5,14 @@ Contains effects for cards that steal from other players.
 import random
 from typing import TYPE_CHECKING
 import discord
-from eggsplode.strings import available_cards, format_message, replace_emojis, tooltip
+from eggsplode import database
+from eggsplode.strings import (
+    achievement_unlocked_message,
+    available_cards,
+    format_message,
+    replace_emojis,
+    tooltip,
+)
 from eggsplode.ui import ChoosePlayerView, ChooseCardView, NopeView, TextView
 
 if TYPE_CHECKING:
@@ -52,11 +59,7 @@ async def begg_ask_card(
 ):
     target_hand = game.hands[target_player_id]
     if not target_hand:
-        await game.send(
-            TextView("no_cards_to_steal", game.current_player_id, target_player_id),
-            interaction,
-        )
-        await game.events.action_end()
+        await handle_empty_hand(game, interaction, target_player_id)
         return
     if not target_interaction:
         # If the target player doesn't respond in time, steal a random card
@@ -74,8 +77,27 @@ async def begg_ask_card(
     await target_interaction.respond(view=view, ephemeral=True)
 
 
+async def handle_empty_hand(
+    game: "Game", interaction: discord.Interaction, target_player_id: int
+):
+    times_scammed = await database.increase_user_times_scammed(target_player_id)
+    achievement_message = ""
+    if times_scammed == 1:
+        achievement_message = achievement_unlocked_message("scammed")
+    await game.send(
+        TextView(
+            "no_cards_to_steal",
+            game.current_player_id,
+            target_player_id,
+            achievement_message,
+        ),
+        interaction,
+    )
+    await game.events.action_end()
+
+
 async def begg_finish(
-    game, interaction: discord.Interaction, target_player_id: int, card: str
+    game: "Game", interaction: discord.Interaction, target_player_id: int, card: str
 ):
     game.hands[target_player_id].remove(card)
     game.current_player_hand.append(card)
@@ -106,11 +128,7 @@ async def steal_finish(
 ):
     target_hand = game.hands[target_player_id]
     if not target_hand:
-        await game.send(
-            TextView("no_cards_to_steal", game.current_player_id, target_player_id),
-            interaction,
-        )
-        await game.events.action_end()
+        await handle_empty_hand(game, interaction, target_player_id)
         return
     stolen_card = random.choice(target_hand)
     game.hands[target_player_id].remove(stolen_card)
@@ -239,11 +257,7 @@ async def trade_choose_card(
 ):
     target_hand = game.hands[target_player_id]
     if not target_hand:
-        await game.send(
-            TextView("no_cards_to_steal", game.current_player_id, target_player_id),
-            interaction,
-        )
-        await game.events.action_end()
+        await handle_empty_hand(game, interaction, target_player_id)
         return
     stolen_card = random.choice(target_hand)
     game.hands[target_player_id].remove(stolen_card)
@@ -369,11 +383,7 @@ async def raid_choose_cards(
     target_hand = game.hands[target_player_id]
     if len(target_hand) < 3 - len(hidden_cards):
         # Cancel the raid if the target player doesn't have enough cards left to hide
-        await game.send(
-            TextView("no_cards_to_steal", game.current_player_id, target_player_id),
-            interaction,
-        )
-        await game.events.action_end()
+        await handle_empty_hand(game, interaction, target_player_id)
         return
     if hidden_cards:
         target_hand.remove(hidden_cards[-1])
