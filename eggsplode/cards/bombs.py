@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import discord
 
 from eggsplode import database
-from eggsplode.strings import format_message
+from eggsplode.strings import achievement_unlocked_message, format_message
 from eggsplode.ui import ChoosePlayerView, DefuseView, TextView
 
 if TYPE_CHECKING:
@@ -17,9 +17,25 @@ if TYPE_CHECKING:
 
 
 class GameOverView(discord.ui.DesignerView):
-    def __init__(self, winner):
+    def __init__(
+        self, winner: int, games_won: int, unlocked_achievement: str | None = None
+    ):
         super().__init__(timeout=None)
-        self.add_item(discord.ui.TextDisplay(format_message("game_over", winner)))
+        self.add_item(
+            discord.ui.TextDisplay(
+                format_message("game_over", winner)
+                + (
+                    "\n" + achievement_unlocked_message(f"{games_won}_wins")
+                    if games_won in [1, 10, 50]
+                    else ""
+                )
+                + (
+                    ("\n" + achievement_unlocked_message(unlocked_achievement))
+                    if unlocked_achievement
+                    else ""
+                )
+            )
+        )
         self.funding_container = discord.ui.Container(color=discord.Color.yellow())
         self.add_item(self.funding_container)
         self.funding_container.add_section(
@@ -34,15 +50,44 @@ class GameOverView(discord.ui.DesignerView):
 
 async def game_over(game: "Game", interaction: discord.Interaction | None):
     winner = game.players[0]
-    await game.send(GameOverView(winner), interaction)
+    games_won = await database.increase_games_won(winner)
+    unlocked_achievement = None
+    if game.config.get("recipe_id") == "classic":
+        if len(game.hands[winner]) == 0:
+            if await database.set_user_won_classic_without_cards(winner):
+                unlocked_achievement = "last_blood"
+        if game.hands[winner] and len(game.hands[winner]) >= 10:
+            if (
+                await database.set_user_most_cards_won_classic(
+                    winner, len(game.hands[winner])
+                )
+                < 10
+            ):
+                unlocked_achievement = "hoarder"
+        if winner not in game.defusers:
+            if await database.set_user_won_classic_without_defuse(winner):
+                unlocked_achievement = "safe"
+    if (
+        await database.set_user_largest_player_count_won(
+            winner, len(game.config["players"])
+        )
+        < 5
+        <= len(game.config["players"])
+    ):
+        unlocked_achievement = "victory_royale"
+    await game.send(
+        GameOverView(winner, games_won, unlocked_achievement),
+        interaction,
+    )
     await game.events.game_end()
-    await database.increase_games_won(winner)
 
 
 async def eggsplode(
     game: "Game", interaction: discord.Interaction | None, timed_out: bool = False
 ):
     if "defuse" in game.current_player_hand:
+        await database.increase_user_card_usage(game.current_player_id, "defuse")
+        game.defusers.add(game.current_player_id)
         game.current_player_hand.remove("defuse")
         if timed_out or interaction is None:
             game.deck.insert(random.randint(0, len(game.deck)), "eggsplode")
@@ -60,7 +105,7 @@ async def eggsplode(
     prev_player = game.current_player_id
     game.remove_player(prev_player)
     game.remaining_turns = 0
-    await game.send(
+    msg = await game.send(
         TextView(
             "eggsploded",
             prev_player,
@@ -68,6 +113,7 @@ async def eggsplode(
         ),
         interaction,
     )
+    add_death_message_id(game, msg)
     if len(game.players) == 1:
         await game_over(game, interaction)
         return
@@ -109,16 +155,39 @@ async def radioeggtive_face_up(
     timed_out: bool | None = False,
 ):
     prev_player = game.current_player_id
-    game.remove_player(prev_player)
     game.remaining_turns = 0
-    await game.send(
+    achievement_message = format_message("death_messages", random_from_list=True)
+    if (
+        interaction is not None
+        and interaction.user is not None
+        and not timed_out
+        and (
+            interaction.user.id
+            in game.players_with_cards(
+                "skip",
+                "super_skip",
+                "attegg",
+                "targeted_attegg",
+                "bury",
+                "reverse",
+            )
+        )
+    ):
+        warnings_ignored = await database.increase_user_warnings_ignored(
+            game.current_player_id
+        )
+        if warnings_ignored == 1:
+            achievement_message = achievement_unlocked_message("cant_read")
+    game.remove_player(prev_player)
+    msg = await game.send(
         TextView(
             "radioeggtive_face_up",
             prev_player,
-            format_message("death_messages", random_from_list=True),
+            achievement_message,
         ),
         interaction,
     )
+    add_death_message_id(game, msg)
     if len(game.players) == 1:
         await game_over(game, interaction)
         return
@@ -133,6 +202,7 @@ async def eggsperiment_finish(
     pair=False,
 ):
     if "defuse" in game.hands[target_player_id]:
+        await database.increase_user_card_usage(target_player_id, "defuse")
         game.hands[target_player_id].remove("defuse")
         await game.send(
             TextView(
@@ -143,7 +213,7 @@ async def eggsperiment_finish(
             interaction,
         )
     else:
-        await game.send(
+        msg = await game.send(
             TextView(
                 "eggsperiment_pair_eggsploded" if pair else "eggsperiment_eggsploded",
                 game.current_player_id,
@@ -152,11 +222,23 @@ async def eggsperiment_finish(
             ),
             interaction,
         )
+        add_death_message_id(game, msg)
         game.remove_player(target_player_id)
         if len(game.players) == 1:
             await game_over(game, interaction)
             return
     await game.events.action_end()
+
+
+def add_death_message_id(game: "Game", msg):
+    if msg is None:
+        message_id = None
+    elif isinstance(msg, discord.Interaction) and msg.message:
+        message_id = msg.message.id
+    else:
+        message_id = msg.id
+    if message_id:
+        game.app.death_message_ids.add(message_id)
 
 
 async def eggsperiment(game: "Game", interaction: discord.Interaction):

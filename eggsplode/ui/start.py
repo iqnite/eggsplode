@@ -8,12 +8,17 @@ import json
 import logging
 import time
 from typing import TYPE_CHECKING
-import psutil
+
 import discord
+import psutil
+
+from eggsplode import database
 from eggsplode.strings import (
+    app_info,
     app_messages,
     default_recipes,
-    app_info,
+    test_guild_id,
+    achievement_unlocked_message,
     format_message,
     replace_emojis,
 )
@@ -210,16 +215,22 @@ class StartGameView(BaseView):
     async def recipe_callback(self, interaction: discord.Interaction):
         await interaction.edit(view=self)
         if await check_permissions(self.game, interaction):
+            if not self.recipe_select.values:
+                return
             recipe_id = self.game.config["recipe_id"] = self.recipe_select.values[0]
             self.game.config["recipe"] = default_recipes[recipe_id]
         self.recipe_select.options = self.recipe_options
         await interaction.edit(view=self)
 
     async def advanced_settings(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(SettingsModal(self.game))  # type: ignore
+        await interaction.response.send_modal(
+            SettingsModal(
+                self.game, is_in_test_guild=interaction.guild_id == test_guild_id
+            )
+        )
 
     async def edit_recipe(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(EditRecipeModal(self))  # type: ignore
+        await interaction.response.send_modal(EditRecipeModal(self))
 
 
 class EditRecipeModal(discord.ui.DesignerModal):
@@ -246,6 +257,22 @@ class EditRecipeModal(discord.ui.DesignerModal):
         self.add_item(self.recipe_input_label)
 
     async def callback(self, interaction: discord.Interaction):
+        if self.recipe_input.value == format_message("xx"):
+            if interaction.user is None:
+                return
+            await database.set_user_cheated(interaction.user.id)
+            await interaction.response.send_message(
+                view=TextView(
+                    format_message(
+                        "xxy",
+                        interaction.user.id,
+                        achievement_unlocked_message("cheater"),
+                    ),
+                    verbatim=True,
+                ),
+                ephemeral=True,
+            )
+            return
         recipe_json = self.recipe_input.value
         if recipe_json is None:
             return
@@ -269,25 +296,19 @@ class EditRecipeModal(discord.ui.DesignerModal):
         await interaction.followup.edit_message(
             self.parent_message.id, view=self.parent_view
         )
+        if interaction.user is not None:
+            await database.increase_user_custom_recipes(interaction.user.id)
 
     def clear_items(self) -> None: ...
 
 
 class SettingsModal(discord.ui.DesignerModal):
-    def __init__(self, game: "Game", *args, **kwargs):
+    def __init__(self, game: "Game", *args, is_in_test_guild: bool = False, **kwargs):
         super().__init__(
             *args, **kwargs, title=format_message("balancing_settings_title")
         )
         self.game = game
         self.inputs = {
-            "deck_size": {
-                "label": format_message("setting_label_deck_size"),
-                "input": discord.ui.InputText(
-                    placeholder="",
-                    value=self.game.config.get("deck_size", None),
-                    required=False,
-                ),
-            },
             "turn_timeout": {
                 "label": format_message("setting_label_turn_timeout"),
                 "input": discord.ui.InputText(
@@ -297,8 +318,29 @@ class SettingsModal(discord.ui.DesignerModal):
                 ),
                 "min": 10,
                 "max": 120,
+                "type": int,
             },
         }
+        if is_in_test_guild:
+            self.inputs["deck_size"] = {
+                "label": format_message("setting_label_deck_size"),
+                "input": discord.ui.InputText(
+                    placeholder="",
+                    value=self.game.config.get("deck_size", None),
+                    required=False,
+                ),
+                "type": int,
+            }
+            self.inputs["hands"] = {
+                "label": "Hands",
+                "input": discord.ui.InputText(
+                    placeholder="",
+                    value=self.game.config.get("hands", None),
+                    required=False,
+                    style=discord.InputTextStyle.long,
+                ),
+            }
+
         for i in self.inputs.values():
             self.add_item(discord.ui.Label(i["label"], i["input"]))
 
@@ -320,7 +362,7 @@ class SettingsModal(discord.ui.DesignerModal):
             if not (
                 validation := self.validate(
                     item_input.value,
-                    int,
+                    item.get("type", None),
                     item.get("min", None),
                     item.get("max", None),
                 )

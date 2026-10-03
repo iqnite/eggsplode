@@ -5,6 +5,7 @@ Common strings used by modules.
 import json
 import os
 import random
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -29,6 +30,8 @@ with open("resources/cards.json", encoding="utf-8") as f:
     available_cards: dict = json.load(f)
 with open("resources/recipes.json", encoding="utf-8") as f:
     default_recipes: dict = json.load(f)
+with open("resources/achievements.json", encoding="utf-8") as f:
+    all_achievements: dict = json.load(f)
 try:
     with open("resources/emojis.json", encoding="utf-8") as f:
         app_emojis: dict = json.load(f)
@@ -37,7 +40,24 @@ except FileNotFoundError:
 
 test_guild_id: int = int(app_config.get("test_guild_id", 0))
 game_timeout: int = int(app_config.get("game_timeout", 1800))
-database_path: str = app_config.get("database_path", "data/eggsplode.db")
+current_dir = Path(__file__).resolve().parent
+database_path = app_config.get("database_path", "../data/eggsplode.db")
+database_path = (
+    str(database_path)
+    if os.path.isabs(database_path)
+    else str(current_dir / database_path)
+)
+database_path = database_path.replace("\\", "/")
+
+tortoise_orm_config = {
+    "connections": {"default": f"sqlite://{database_path}"},
+    "apps": {
+        "models": {
+            "models": ["eggsplode.database", "aerich.models"],
+            "default_connection": "default",
+        }
+    },
+}
 
 
 def replace_emojis(text: str) -> str:
@@ -78,4 +98,11 @@ def tooltip(card: str, emoji=True) -> str:
         else ""
     ) + format_message(
         "tooltip", available_cards[card]["title"], available_cards[card]["description"]
+    )
+
+
+def achievement_unlocked_message(achievement: str) -> str:
+    return format_message(
+        "achievement_unlocked",
+        all_achievements.get(achievement, {}).get("emoji", "❔"),
     )

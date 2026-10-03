@@ -50,6 +50,8 @@ class Game:
             str, Callable[[Game, discord.Interaction | None, bool | None], Coroutine]
         ] = cards.DRAW_ACTIONS
         self.turn_warnings: list[Callable[[Game], str]] = cards.TURN_WARNINGS
+        self.defusers = set()
+        self.is_radioeggtive_warning_visible = False
         self.events.turn_end += self.next_turn
         self.events.game_end += self.end
         self.events.action_start += self.pause
@@ -59,6 +61,11 @@ class Game:
 
     def setup(self):
         self.load_recipe(self.config["recipe"])
+        if self.config.get("hands", None):
+            if isinstance(self.config["hands"], str):
+                self.config["hands"] = json.loads("{" + self.config["hands"] + "}")
+            for player, hand in self.config["hands"].items():
+                self.hands[int(player)] = hand
 
     def load_recipe(self, recipe: str | bytes | bytearray | dict):
         if not isinstance(recipe, dict):
@@ -106,7 +113,7 @@ class Game:
         self.deck += hand_out_pool
 
         self.shuffle_deck()
-        self.trim_deck()
+        self.trim_deck(self.config.get("deck_size", recipe.get("deck_size", None)))
         self.ensure_minimum_eggsplode()
         self.shuffle_deck()
 
@@ -128,8 +135,7 @@ class Game:
         ):
             self.deck.append("eggsplode")
 
-    def trim_deck(self):
-        max_deck_size = self.config.get("deck_size", None)
+    def trim_deck(self, max_deck_size: int | None = None):
         if not max_deck_size:
             return
         max_deck_size = int(max_deck_size)
@@ -304,6 +310,7 @@ class Game:
             self.action_player_id = interaction.user.id
         if not await self.action_check(interaction):
             return
+        await database.increase_user_card_usage(interaction.user.id, card)
         self.action_player_hand.remove(card)
         await self.events.action_start()
         if available_cards[card].get("explicit", False):
@@ -449,11 +456,12 @@ class Game:
         view: discord.ui.View | discord.ui.DesignerView,
         interaction: discord.Interaction | None,
     ):
+        msg = None
         if interaction is not None:
             self.last_interaction = interaction
         if self.last_interaction is not None:
             try:
-                await self.last_interaction.respond(view=view)
+                msg = await self.last_interaction.respond(view=view)
             except discord.HTTPException as error:
                 if (
                     getattr(error, "status", None) != 401
@@ -465,10 +473,11 @@ class Game:
                     "Game %s: Falling back to channel send after invalid interaction token.",
                     self.id,
                 )
-                await self.send_in_channel(view)
+                msg = await self.send_in_channel(view)
         else:
-            await self.send_in_channel(view)
+            msg = await self.send_in_channel(view)
         logger.debug("Game %s: Sent message: %s", self.id, view.copy_text())
+        return msg
 
     async def send_in_channel(self, view: discord.ui.View | discord.ui.DesignerView):
         if self.channel is None:
@@ -478,8 +487,8 @@ class Game:
                 "Game %s: Cannot send message to forum or category channel.",
                 self.id,
             )
-            return
-        await self.channel.send(view=view)
+            return None
+        return await self.channel.send(view=view)
 
     def random_turn_prompt(self) -> str:
         return format_message(

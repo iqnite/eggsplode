@@ -2,7 +2,6 @@
 Contains the commands for the Eggsplode game.
 """
 
-import asyncio
 import logging
 from datetime import datetime
 
@@ -22,6 +21,7 @@ class EggsplodeApp(discord.Bot):
         super().__init__(*args, **kwargs)
         self.admin_maintenance: bool = False
         self.games: dict[int, Game] = {}
+        self.death_message_ids = set()
         self.load_extension("eggsplode.cogs.eggsplode_game")
         self.load_extension("eggsplode.cogs.misc")
         self.load_extension("eggsplode.cogs.owner")
@@ -29,6 +29,7 @@ class EggsplodeApp(discord.Bot):
         self.add_listener(self.handle_error, "on_error")
         self.add_listener(self.handle_view_error, "on_view_error")
         self.add_listener(self.handle_modal_error, "on_modal_error")
+        self.add_listener(self.handle_raw_reaction_add, "on_raw_reaction_add")
         self.add_listener(
             self.handle_application_command_error, "on_application_command_error"
         )
@@ -38,18 +39,18 @@ class EggsplodeApp(discord.Bot):
 
     async def close(self) -> None:
         logger.info("App shutdown requested.")
-        self.admin_maintenance = True
-        self.remove_inactive_games()
-        start_time = datetime.now()
-        while self.game_count > 0:
-            await asyncio.sleep(10)
-            if (datetime.now() - start_time).total_seconds() > game_timeout:
-                logger.warning(
-                    "Games %s: Force closing after %s seconds.",
-                    list(self.games.keys()),
-                    game_timeout,
-                )
-                break
+        # self.admin_maintenance = True
+        # self.remove_inactive_games()
+        # start_time = datetime.now()
+        # while self.game_count > 0:
+        #     await asyncio.sleep(10)
+        #     if (datetime.now() - start_time).total_seconds() > game_timeout:
+        #         logger.warning(
+        #             "Games %s: Force closing after %s seconds.",
+        #             list(self.games.keys()),
+        #             game_timeout,
+        #         )
+        #         break
         await database.close()
         return await super().close()
 
@@ -78,6 +79,15 @@ class EggsplodeApp(discord.Bot):
         logger.exception(
             "in command %s: %s", context.command, exception, exc_info=exception
         )
+
+    async def handle_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        if self.user and payload.user_id == self.user.id:
+            return
+        if payload.emoji.name not in ("🫡", "🇫"):
+            return
+        if payload.message_id not in self.death_message_ids:
+            return
+        await database.increase_user_respects(payload.user_id)
 
     def games_with_user(self, user_id: int) -> list[int]:
         return [

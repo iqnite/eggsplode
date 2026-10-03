@@ -1,4 +1,4 @@
-STEPS=5
+STEPS=6
 
 echo "Eggsplode automatic setup v1.0"
 echo "This script will install all dependencies and set up the environment for Eggsplode."
@@ -52,6 +52,11 @@ if [ -n "$YOUR_TEST_GUILD_ID" ]; then
     cp resources/config.json.example resources/config.json
     sed -i "s|YOUR_TEST_GUILD_ID|$YOUR_TEST_GUILD_ID|g" resources/config.json
 fi
+echo ""
+
+echo "(6/$STEPS) Initializing database..."
+aerich init -t eggsplode.strings.tortoise_orm_config
+aerich init-db
 echo ""
 
 read -p "Setup complete! Start the bot now? (Y/n): " START_BOT
