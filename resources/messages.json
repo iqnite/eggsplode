@@ -275,7 +275,7 @@
     "profile_settings_public": "Allow others to view your profile",
     "profile_settings_title": "Profile Settings",
     "profile_settings_updated": "Profile Settings updated successfully.",
-    "profile_title": "## <@{}>'s Profile",
+    "profile_title": "## <@{}>",
     "radioeggtive": "## ☢️ <@{}> drew the Radioeggtive card and put it back into the deck face up!",
     "radioeggtive_face_up": "## 💥 <@{}> drew the Radioeggtive card face up and eggsploded!\n{}",
     "recipe": "### Recipe",
