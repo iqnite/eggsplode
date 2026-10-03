@@ -111,6 +111,14 @@
         "emoji": "✌️",
         "target": 5
     },
+    "10_wins": {
+        "title": "Big number go up",
+        "flavor": "Stonks",
+        "locked": "{}/{} games won",
+        "unlocked": "Unlocked by winning {} games.",
+        "emoji": "📈",
+        "target": 10
+    },
     "10_games": {
         "title": "Returning player",
         "flavor": "Good job for lasting this long!",
@@ -127,7 +135,7 @@
         "emoji": "🥇"
     },
     "1_games": {
-        "title": "It starts with one...",
+        "title": "It starts with one",
         "flavor": "... thing, I don't know why...",
         "locked": "Complete a game to unlock this achievement!",
         "unlocked": "Unlocked by completing a game.",

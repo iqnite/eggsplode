@@ -26,7 +26,7 @@ class GameOverView(discord.ui.DesignerView):
                 format_message("game_over", winner)
                 + (
                     "\n" + achievement_unlocked_message(f"{games_won}_wins")
-                    if games_won in [1, 50]
+                    if games_won in [1, 10, 50]
                     else ""
                 )
                 + (
