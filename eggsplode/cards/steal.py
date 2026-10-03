@@ -80,7 +80,7 @@ async def begg_ask_card(
 async def handle_empty_hand(
     game: "Game", interaction: discord.Interaction, target_player_id: int
 ):
-    times_scammed = await database.increase_user_times_scammed(target_player_id)
+    times_scammed = await database.increase_user_times_scammed(game.current_player_id)
     achievement_message = ""
     if times_scammed == 1:
         achievement_message = achievement_unlocked_message("scammed")
