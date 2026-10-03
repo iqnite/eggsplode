@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class User(Model):
-    user_id = fields.BigIntField(pk=True)
+    user_id = fields.BigIntField(primary_key=True)
     is_profile_public = fields.BooleanField(default=True)
     color = fields.IntegerField(default=0xFE9804)
     games_played = fields.IntField(default=0)
@@ -34,7 +34,7 @@ class User(Model):
 
 
 class Card(Model):
-    code_name = fields.CharField(pk=True, unique=True, max_length=64)
+    code_name = fields.CharField(primary_key=True, unique=True, max_length=64)
 
 
 class UserCardUsage(Model):
