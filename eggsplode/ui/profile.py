@@ -105,6 +105,13 @@ class ProfileView(discord.ui.DesignerView):
     async def show_settings(self, interaction: discord.Interaction):
         if self.user_info_db is None:
             return
+        if interaction.user is None:
+            return
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message(
+                format_message("profile_settings_not_own"), ephemeral=True
+            )
+            return
         await interaction.response.send_modal(ProfileSettingsModal(self.user_info_db))
 
 
