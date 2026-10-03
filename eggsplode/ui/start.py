@@ -318,6 +318,7 @@ class SettingsModal(discord.ui.DesignerModal):
                 ),
                 "min": 10,
                 "max": 120,
+                "type": int,
             },
         }
         if is_in_test_guild:
@@ -327,6 +328,16 @@ class SettingsModal(discord.ui.DesignerModal):
                     placeholder="",
                     value=self.game.config.get("deck_size", None),
                     required=False,
+                ),
+                "type": int,
+            }
+            self.inputs["hands"] = {
+                "label": "Hands",
+                "input": discord.ui.InputText(
+                    placeholder="",
+                    value=self.game.config.get("hands", None),
+                    required=False,
+                    style=discord.InputTextStyle.long,
                 ),
             }
 
@@ -351,7 +362,7 @@ class SettingsModal(discord.ui.DesignerModal):
             if not (
                 validation := self.validate(
                     item_input.value,
-                    int,
+                    item.get("type", None),
                     item.get("min", None),
                     item.get("max", None),
                 )

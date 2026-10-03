@@ -61,6 +61,11 @@ class Game:
 
     def setup(self):
         self.load_recipe(self.config["recipe"])
+        if self.config.get("hands", None):
+            if isinstance(self.config["hands"], str):
+                self.config["hands"] = json.loads("{" + self.config["hands"] + "}")
+            for player, hand in self.config["hands"].items():
+                self.hands[int(player)] = hand
 
     def load_recipe(self, recipe: str | bytes | bytearray | dict):
         if not isinstance(recipe, dict):
