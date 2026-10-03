@@ -30,6 +30,7 @@ class User(Model):
     warnings_ignored = fields.IntField(default=0)
     respects_paid = fields.IntField(default=0)
     times_scammed = fields.IntField(default=0)
+    largest_player_count_won = fields.IntField(default=0)
 
 
 class Card(Model):
@@ -90,8 +91,8 @@ class Achievement:
         self.code_name = code_name
         self.title = all_achievements[code_name]["title"]
         self.flavor = all_achievements[code_name]["flavor"]
-        self._locked_message = all_achievements[code_name].get("locked", "Locked")
-        self._unlocked_message = all_achievements[code_name]["unlocked"]
+        self.locked_message = all_achievements[code_name].get("locked", "Locked")
+        self.unlocked_message = all_achievements[code_name]["unlocked"]
         self.emoji = all_achievements[code_name]["emoji"]
         self.target = all_achievements[code_name].get("target", 1)
         self.progress = int(progress)
@@ -104,14 +105,14 @@ class Achievement:
     def message(self) -> str:
         if self.is_unlocked:
             return (
-                self._unlocked_message.format(self.target)
-                if self._unlocked_message.count("{}") == 1
-                else self._unlocked_message
+                self.unlocked_message.format(self.target)
+                if self.unlocked_message.count("{}") == 1
+                else self.unlocked_message
             )
         return (
-            self._locked_message.format(self.progress, self.target)
-            if self._locked_message.count("{}") == 2
-            else self._locked_message
+            self.locked_message.format(self.progress, self.target)
+            if self.locked_message.count("{}") == 2
+            else self.locked_message
         )
 
 
@@ -123,6 +124,7 @@ async def get_user_achievements(user_id: int) -> list[Achievement]:
         Achievement("expert", progress=await get_unique_user_card_count(user_id)),
         Achievement("respectful", progress=user.respects_paid > 0),
         Achievement("cheater", progress=user.has_cheated),
+        Achievement("victory_royale", progress=user.largest_player_count_won),
         Achievement("safe", progress=user.has_won_classic_without_defuse),
         Achievement("hoarder", progress=user.most_cards_won_classic),
         Achievement("last_blood", progress=user.has_won_classic_without_cards),
@@ -257,3 +259,14 @@ async def set_user_most_cards_won_classic(user_id: int, amount: int) -> int:
     user.most_cards_won_classic = amount
     await user.save()
     return previous_amount
+
+
+@db_operation
+async def set_user_largest_player_count_won(user_id: int, count: int) -> int:
+    user = await get_user(user_id)
+    previous_count = user.largest_player_count_won
+    if count <= previous_count:
+        return previous_count
+    user.largest_player_count_won = count
+    await user.save()
+    return previous_count

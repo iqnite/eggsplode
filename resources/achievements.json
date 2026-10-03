@@ -103,6 +103,14 @@
         "unlocked": "Unlocked by looking at the future right after the player before you Defused.",
         "emoji": "🫣"
     },
+    "victory_royale": {
+        "title": "Victory Royale",
+        "flavor": "Winner winner chicken dinner!",
+        "locked": "Win a classic game with 5+ players to unlock this achievement!",
+        "unlocked": "Unlocked by winning a classic game with {}+ players.",
+        "emoji": "✌️",
+        "target": 5
+    },
     "10_games": {
         "title": "Returning player",
         "flavor": "Good job for lasting this long!",
@@ -112,22 +120,15 @@
         "target": 10
     },
     "1_wins": {
-        "title": "It starts with one...",
-        "flavor": "... thing, I don't know why...",
+        "title": "The first of many",
+        "flavor": "Don't get too used to this feeling, you still have a long way to go.",
         "locked": "Win a game to unlock this achievement!",
         "unlocked": "Unlocked by winning a game.",
-        "emoji": ":one:"
-    },
-    "1_losses": {
-        "title": "The first of many",
-        "flavor": "Don't worry, you'll get better.",
-        "locked": "Lose a game to unlock this achievement.",
-        "unlocked": "Unlocked by losing a game.",
-        "emoji": "💥"
+        "emoji": "🥇"
     },
     "1_games": {
-        "title": "The journey begins",
-        "flavor": "Welcome!",
+        "title": "It starts with one...",
+        "flavor": "... thing, I don't know why...",
         "locked": "Complete a game to unlock this achievement!",
         "unlocked": "Unlocked by completing a game.",
         "emoji": "👋"

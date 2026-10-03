@@ -169,7 +169,7 @@ def divide_achievements(
     for achievement in achievements:
         if achievement.is_unlocked:
             unlocked.append(achievement)
-        elif achievement._locked_message == "Locked":
+        elif achievement.locked_message == "Locked":
             hidden.append(achievement)
         else:
             locked.append(achievement)
@@ -239,3 +239,5 @@ class ProfileSettingsModal(discord.ui.DesignerModal):
         await interaction.respond(
             format_message("profile_settings_updated"), ephemeral=True
         )
+
+    def clear_items(self) -> None: ...

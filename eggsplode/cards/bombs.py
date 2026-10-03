@@ -67,6 +67,14 @@ async def game_over(game: "Game", interaction: discord.Interaction | None):
         if winner not in game.defusers:
             if await database.set_user_won_classic_without_defuse(winner):
                 unlocked_achievement = "safe"
+    if (
+        await database.set_user_largest_player_count_won(
+            winner, len(game.config["players"])
+        )
+        < 5
+        <= len(game.config["players"])
+    ):
+        unlocked_achievement = "victory_royale"
     await game.send(
         GameOverView(winner, games_won, unlocked_achievement),
         interaction,
