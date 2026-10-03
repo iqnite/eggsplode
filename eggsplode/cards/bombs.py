@@ -17,7 +17,9 @@ if TYPE_CHECKING:
 
 
 class GameOverView(discord.ui.DesignerView):
-    def __init__(self, winner: int, games_won: int, is_safe_achievement: bool = False):
+    def __init__(
+        self, winner: int, games_won: int, unlocked_achievement: str | None = None
+    ):
         super().__init__(timeout=None)
         self.add_item(
             discord.ui.TextDisplay(
@@ -28,8 +30,8 @@ class GameOverView(discord.ui.DesignerView):
                     else ""
                 )
                 + (
-                    "\n" + achievement_unlocked_message("safe")
-                    if is_safe_achievement
+                    ("\n" + achievement_unlocked_message(unlocked_achievement))
+                    if unlocked_achievement
                     else ""
                 )
             )
@@ -49,13 +51,24 @@ class GameOverView(discord.ui.DesignerView):
 async def game_over(game: "Game", interaction: discord.Interaction | None):
     winner = game.players[0]
     games_won = await database.increase_games_won(winner)
-    is_safe_achievement = False
-    if game.config.get("recipe_id") == "classic" and winner not in game.defusers:
-        is_safe_achievement = await database.set_user_won_classic_without_defuse(
-            winner, True
-        )
+    unlocked_achievement = None
+    if game.config.get("recipe_id") == "classic":
+        if len(game.hands[winner]) == 0:
+            if await database.set_user_won_classic_without_cards(winner):
+                unlocked_achievement = "last_blood"
+        if game.hands[winner] and len(game.hands[winner]) >= 10:
+            if (
+                await database.set_user_most_cards_won_classic(
+                    winner, len(game.hands[winner])
+                )
+                < 10
+            ):
+                unlocked_achievement = "hoarder"
+        if winner not in game.defusers:
+            if await database.set_user_won_classic_without_defuse(winner):
+                unlocked_achievement = "safe"
     await game.send(
-        GameOverView(winner, games_won, is_safe_achievement),
+        GameOverView(winner, games_won, unlocked_achievement),
         interaction,
     )
     await game.events.game_end()

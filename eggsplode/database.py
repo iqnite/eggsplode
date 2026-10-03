@@ -25,6 +25,8 @@ class User(Model):
     custom_recipes_created = fields.IntField(default=0)
     most_nopes_in_a_row = fields.IntField(default=0)
     has_won_classic_without_defuse = fields.BooleanField(default=False)
+    has_won_classic_without_cards = fields.BooleanField(default=False)
+    most_cards_won_classic = fields.IntField(default=0)
     warnings_ignored = fields.IntField(default=0)
     respects_paid = fields.IntField(default=0)
     times_scammed = fields.IntField(default=0)
@@ -122,6 +124,8 @@ async def get_user_achievements(user_id: int) -> list[Achievement]:
         Achievement("respectful", progress=user.respects_paid > 0),
         Achievement("cheater", progress=user.has_cheated),
         Achievement("safe", progress=user.has_won_classic_without_defuse),
+        Achievement("hoarder", progress=user.most_cards_won_classic),
+        Achievement("last_blood", progress=user.has_won_classic_without_cards),
         Achievement("3_nopes", progress=user.most_nopes_in_a_row),
         Achievement("scammed", progress=user.times_scammed),
         Achievement("cant_read", progress=user.warnings_ignored > 0),
@@ -200,6 +204,18 @@ async def set_user_won_classic_without_defuse(
 
 
 @db_operation
+async def set_user_won_classic_without_cards(
+    user_id: int, has_won: bool = True
+) -> bool:
+    user = await get_user(user_id)
+    if user.has_won_classic_without_cards:
+        return False
+    user.has_won_classic_without_cards = has_won
+    await user.save()
+    return True
+
+
+@db_operation
 async def get_unique_user_card_count(user_id: int) -> int:
     user = await get_user(user_id)
     return await UserCardUsage.filter(user=user).distinct().count()
@@ -230,3 +246,14 @@ async def increase_user_respects(user_id: int) -> int:
     user.respects_paid += 1
     await user.save()
     return user.respects_paid
+
+
+@db_operation
+async def set_user_most_cards_won_classic(user_id: int, amount: int) -> int:
+    user = await get_user(user_id)
+    previous_amount = user.most_cards_won_classic
+    if amount <= previous_amount:
+        return previous_amount
+    user.most_cards_won_classic = amount
+    await user.save()
+    return previous_amount

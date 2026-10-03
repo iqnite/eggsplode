@@ -44,8 +44,9 @@
     "hoarder": {
         "title": "Hoarder",
         "flavor": "Cards are there to be collected!",
-        "unlocked": "Unlocked by winning a classic game with 10 cards in hand.",
-        "emoji": "🗃️"
+        "unlocked": "Unlocked by winning a classic game with {}+ cards in hand.",
+        "emoji": "🗃️",
+        "target": 10
     },
     "last_blood": {
         "title": "Last blood",
