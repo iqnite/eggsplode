@@ -20,12 +20,19 @@ class ProfileView(discord.ui.DesignerView):
         super().__init__(timeout=None)
         self.app = app
         self.user_id = user_id
+        self.user_info_db: database.User | None = None
         self.achievements_button = None
-        self.achievements_view = AchievementsView(is_own=self.user_id == requester_id)
+        self.is_own = self.user_id == requester_id
+        self.achievements_view = AchievementsView(is_own=self.is_own)
+        self.settings_buttton = discord.ui.Button(
+            label=format_message("profile_settings_button"),
+            emoji="⚙️",
+            style=discord.ButtonStyle.secondary,
+        )
 
     async def load_user_profile(self):
-        user_info_db = await database.get_user(self.user_id, create=False)
-        if user_info_db is None:
+        self.user_info_db = await database.get_user(self.user_id, create=False)
+        if self.user_info_db is None:
             self.add_item(discord.ui.TextDisplay(format_message("user_not_registered")))
             return
         user_info_discord, user_achievements = await asyncio.gather(
@@ -34,6 +41,9 @@ class ProfileView(discord.ui.DesignerView):
         )
         if user_info_discord is None:
             self.add_item(discord.ui.TextDisplay(format_message("user_not_found")))
+            return
+        if not self.user_info_db.is_profile_public and not self.is_own:
+            self.add_item(discord.ui.TextDisplay(format_message("profile_private")))
             return
         user_achievements = await database.get_user_achievements(self.user_id)
         self.achievements_view.set_achievements(user_achievements)
@@ -55,11 +65,11 @@ class ProfileView(discord.ui.DesignerView):
                     ),
                     discord.ui.TextDisplay(
                         format_message(
-                            "profile_games_played", user_info_db.games_played
+                            "profile_games_played", self.user_info_db.games_played
                         )
                     ),
                     discord.ui.TextDisplay(
-                        format_message("profile_games_won", user_info_db.games_won)
+                        format_message("profile_games_won", self.user_info_db.games_won)
                     ),
                     accessory=discord.ui.Thumbnail(
                         url=user_info_discord.display_avatar.url
@@ -79,14 +89,23 @@ class ProfileView(discord.ui.DesignerView):
                     ),
                     accessory=self.achievements_button,
                 ),
+                color=discord.Color(self.user_info_db.color),
             )
         )
+        if self.is_own:
+            self.settings_buttton.callback = self.show_settings
+            self.add_item(discord.ui.ActionRow(self.settings_buttton))
 
     async def show_achievements(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
         user_achievements = await database.get_user_achievements(self.user_id)
         self.achievements_view.set_achievements(user_achievements)
         await interaction.respond(view=self.achievements_view, ephemeral=True)
+
+    async def show_settings(self, interaction: discord.Interaction):
+        if self.user_info_db is None:
+            return
+        await interaction.response.send_modal(ProfileSettingsModal(self.user_info_db))
 
 
 class AchievementsView(PaginatedView):
@@ -168,3 +187,48 @@ def get_achievement_preview(
     if len(unlocked) > max_count:
         preview.append(f"+{len(unlocked) - max_count}")
     return ", ".join(preview)
+
+
+class ProfileSettingsModal(discord.ui.DesignerModal):
+    def __init__(self, user: database.User):
+        super().__init__(
+            title=format_message("profile_settings_title"),
+            timeout=None,
+        )
+        self.user = user
+        self.public_profile_checkbox = discord.ui.Checkbox(
+            default=user.is_profile_public
+        )
+        self.color_input = discord.ui.TextInput(
+            placeholder="FE9804",
+            value=f"{user.color:06X}",
+            max_length=7,
+            min_length=6,
+            required=False,
+        )
+        self.add_item(
+            discord.ui.Label(
+                format_message("profile_settings_public"), self.public_profile_checkbox
+            )
+        )
+        self.add_item(
+            discord.ui.Label(format_message("profile_settings_color"), self.color_input)
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        if self.color_input.value:
+            try:
+                color_value = int(self.color_input.value.lstrip("#"), 16)
+            except ValueError:
+                await interaction.respond(
+                    "Invalid color value. Please enter a valid hex color code.",
+                    ephemeral=True,
+                )
+                return
+            self.user.color = color_value
+        self.user.is_profile_public = bool(self.public_profile_checkbox.value)
+        await self.user.save()
+        await interaction.respond(
+            format_message("profile_settings_updated"), ephemeral=True
+        )

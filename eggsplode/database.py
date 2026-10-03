@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 class User(Model):
     user_id = fields.BigIntField(pk=True)
+    is_profile_public = fields.BooleanField(default=True)
+    color = fields.IntegerField(default=0xFE9804)
     games_played = fields.IntField(default=0)
     games_won = fields.IntField(default=0)
     has_cheated = fields.BooleanField(default=False)
