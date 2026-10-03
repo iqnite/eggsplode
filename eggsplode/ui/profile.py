@@ -98,13 +98,17 @@ class AchievementsView(PaginatedView):
         super().__init__(timeout=None)
         self.is_own = is_own
         self.achievements = []
-        self.divided_achievements = ([], [])
+        self.divided_achievements = ([], [], [])
         if achievements is not None:
             self.set_achievements(achievements)
 
     def set_achievements(self, achievements: list[database.Achievement]):
         self.divided_achievements = divide_achievements(achievements)
-        self.achievements = self.divided_achievements[0] + self.divided_achievements[1]
+        self.achievements = (
+            self.divided_achievements[0]
+            + list(reversed(self.divided_achievements[1]))
+            + self.divided_achievements[2]
+        )
         self.update_pagination(list(self.get_displays_for_achievements()))
 
     def get_displays_for_achievements(self):
@@ -130,16 +134,26 @@ class AchievementsView(PaginatedView):
 
 def divide_achievements(
     achievements: list[database.Achievement],
-) -> tuple[list[database.Achievement], list[database.Achievement]]:
-    unlocked = [a for a in achievements if a.is_unlocked]
-    locked = [a for a in achievements if not a.is_unlocked]
-    return unlocked, locked
+) -> tuple[
+    list[database.Achievement], list[database.Achievement], list[database.Achievement]
+]:
+    locked = []
+    unlocked = []
+    hidden = []
+    for achievement in achievements:
+        if achievement.is_unlocked:
+            unlocked.append(achievement)
+        elif achievement._locked_message == "Locked":
+            hidden.append(achievement)
+        else:
+            locked.append(achievement)
+    return unlocked, locked, hidden
 
 
 def get_achievement_preview(
     achievements: list[database.Achievement], max_count: int = 3
 ) -> str:
-    unlocked, _ = divide_achievements(achievements)
+    unlocked, _, __ = divide_achievements(achievements)
     preview = []
     for achievement in unlocked[:max_count]:
         preview.append(
