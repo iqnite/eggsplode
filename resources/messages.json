@@ -223,7 +223,7 @@
     "maintenance_mode_toggle": "🔧 Maintenance mode **{}**. {}",
     "message_edit_on_nope": "🛑 <@{}>: **Nope!**",
     "message_edit_on_yup": "🛑 <@{}>: **Yup!**",
-    "move_prompt": "🔧 You drew a {} card! Please decide where on the deck you want to put it.\n**Current position: {} (0 = bottom, {} = top)**\n**Players:**\n{}",
+    "move_prompt": "🔧 You drew a {} card! Please decide where on the deck you want to put it.\nCurrent position: **{}** (0 = bottom, {} = top)\n**Players:**\n{}",
     "next_card": "Next card: {}",
     "next_cards": "### Next 3 cards on the deck:",
     "next_turn": "### ⌛ <@{}>'s turn!",
