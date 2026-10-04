@@ -106,8 +106,8 @@
     "victory_royale": {
         "title": "Victory Royale",
         "flavor": "Winner winner chicken dinner!",
-        "locked": "Win a classic game with 5+ players to unlock this achievement!",
-        "unlocked": "Unlocked by winning a classic game with {}+ players.",
+        "locked": "Win a game with 5+ players to unlock this achievement!",
+        "unlocked": "Unlocked by winning a game with {}+ players.",
         "emoji": "✌️",
         "target": 5
     },
