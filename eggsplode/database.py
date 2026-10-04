@@ -63,7 +63,7 @@ async def init():
     await Tortoise.init(config=tortoise_orm_config, _enable_global_fallback=True)
     command = Command(tortoise_config=tortoise_orm_config, app="models")
     await command.init()
-    await command.upgrade(run_in_transaction=True)
+    await command.upgrade(run_in_transaction=False)
 
 
 @db_operation
