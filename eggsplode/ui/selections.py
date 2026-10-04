@@ -217,14 +217,15 @@ class DefuseView(SelectionView):
             label=format_message("defuse_random_button"), emoji="🎲"
         )
         self.random_button.callback = self.set_random_position
-        self.move_action_row = discord.ui.ActionRow(
-            self.top_button,
-            self.move_up_button,
-            self.move_down_button,
-            self.bottom_button,
-            self.confirm_button,
+        self.add_item(
+            discord.ui.ActionRow(
+                self.top_button,
+                self.move_up_button,
+                self.move_down_button,
+                self.bottom_button,
+            )
         )
-        self.add_item(self.move_action_row)
+        self.add_item(discord.ui.ActionRow(self.random_button, self.confirm_button))
         self.game.events.game_end += self.ignore_interactions
 
     async def skip_if_deck_empty(self) -> bool:
