@@ -73,6 +73,7 @@
     "defuse_bottom_button": "Bottom",
     "defuse_move_down_button": "Move down",
     "defuse_move_up_button": "Move up",
+    "defuse_random_button": "Random",
     "defuse_top_button": "Top",
     "defused": "## 🔧 <@{}> drew an Eggsplode card! Luckily, they had a Defuse and put it back into the deck!",
     "dig_deeper_prompt": "Draw the next card instead?",

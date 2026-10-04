@@ -2,6 +2,7 @@
 Contains the views for the short interactions in the game, such as "Defuse".
 """
 
+from random import randint
 from typing import TYPE_CHECKING, Callable, Coroutine
 
 import discord
@@ -212,6 +213,10 @@ class DefuseView(SelectionView):
             label=format_message("defuse_bottom_button"), emoji="⏬"
         )
         self.bottom_button.callback = self.bottom
+        self.random_button = discord.ui.Button(
+            label=format_message("defuse_random_button"), emoji="🎲"
+        )
+        self.random_button.callback = self.set_random_position
         self.move_action_row = discord.ui.ActionRow(
             self.top_button,
             self.move_up_button,
@@ -253,6 +258,10 @@ class DefuseView(SelectionView):
 
     async def bottom(self, interaction: discord.Interaction):
         self.card_position = 0
+        await self.update_view(interaction)
+
+    async def set_random_position(self, interaction: discord.Interaction):
+        self.card_position = randint(0, len(self.game.deck))
         await self.update_view(interaction)
 
     async def update_view(self, interaction: discord.Interaction):
