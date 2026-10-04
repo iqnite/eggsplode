@@ -17,4 +17,4 @@ generated-members=
 
 ignore-paths=
     ^.venv/.*$,
-    ^migrations/.*$,
+    ^eggsplode/migrations/.*$,

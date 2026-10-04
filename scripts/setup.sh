@@ -55,8 +55,7 @@ fi
 echo ""
 
 echo "(6/$STEPS) Initializing database..."
-aerich init -t eggsplode.strings.tortoise_orm_config
-aerich init-db
+tortoise init
 echo ""
 
 read -p "Setup complete! Start the bot now? (Y/n): " START_BOT

@@ -6,7 +6,6 @@ import logging
 from functools import wraps
 from typing import overload
 
-from aerich import Command
 from tortoise import Tortoise, fields
 from tortoise.models import Model
 
@@ -61,9 +60,6 @@ def db_operation(func):
 async def init():
     logger.info("Initializing database...")
     await Tortoise.init(config=tortoise_orm_config, _enable_global_fallback=True)
-    command = Command(tortoise_config=tortoise_orm_config, app="models")
-    await command.init()
-    await command.upgrade(run_in_transaction=False)
 
 
 @db_operation

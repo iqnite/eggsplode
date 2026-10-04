@@ -53,8 +53,9 @@ tortoise_orm_config = {
     "connections": {"default": f"sqlite://{database_path}"},
     "apps": {
         "models": {
-            "models": ["eggsplode.database", "aerich.models"],
+            "models": ["eggsplode.database"],
             "default_connection": "default",
+            "migrations": "eggsplode.migrations",
         }
     },
 }
