@@ -85,7 +85,7 @@ class ChoosePlayerView(BaseView):
         self.add_item(self.action_row)
 
     async def selection_callback(self, interaction: discord.Interaction):
-        if not (interaction and self.user_select):
+        if not (interaction and self.user_select and self.user_select.values):
             return
         self.ignore_interactions()
         self.disable_all_items()
@@ -172,7 +172,7 @@ class ChooseCardView(BaseView):
         self.add_item(self.action_row)
 
     async def selection_callback(self, interaction: discord.Interaction):
-        if not (interaction and self.card_select):
+        if not (interaction and self.card_select and self.card_select.values):
             return
         self.ignore_interactions()
         self.disable_all_items()
