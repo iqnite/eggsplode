@@ -1,4 +1,5 @@
 cd "WORKING_DIRECTORY"
 source "WORKING_DIRECTORY/.venv/bin/activate"
 pip install --upgrade -r "requirements.txt"
+tortoise migrate
 python "WORKING_DIRECTORY/app.py"
