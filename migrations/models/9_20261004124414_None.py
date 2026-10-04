@@ -5,12 +5,44 @@ RUN_IN_TRANSACTION = True
 
 async def upgrade(db: BaseDBAsyncClient) -> str:
     return """
-        ALTER TABLE "user" ADD "largest_player_count_won" INT NOT NULL DEFAULT 0;"""
+        CREATE TABLE IF NOT EXISTS "card" (
+    "code_name" VARCHAR(64) NOT NULL PRIMARY KEY
+);
+CREATE TABLE IF NOT EXISTS "user" (
+    "user_id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "is_profile_public" INT NOT NULL,
+    "color" INT NOT NULL,
+    "games_played" INT NOT NULL,
+    "games_won" INT NOT NULL,
+    "has_cheated" INT NOT NULL,
+    "custom_recipes_created" INT NOT NULL,
+    "most_nopes_in_a_row" INT NOT NULL,
+    "has_won_classic_without_defuse" INT NOT NULL,
+    "has_won_classic_without_cards" INT NOT NULL,
+    "most_cards_won_classic" INT NOT NULL,
+    "warnings_ignored" INT NOT NULL,
+    "respects_paid" INT NOT NULL,
+    "times_scammed" INT NOT NULL,
+    "largest_player_count_won" INT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS "usercardusage" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "use_count" INT NOT NULL,
+    "card_id" VARCHAR(64) NOT NULL REFERENCES "card" ("code_name") ON DELETE CASCADE,
+    "user_id" BIGINT NOT NULL REFERENCES "user" ("user_id") ON DELETE CASCADE,
+    CONSTRAINT "uid_usercardusa_user_id_993608" UNIQUE ("user_id", "card_id")
+);
+CREATE TABLE IF NOT EXISTS "aerich" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "version" VARCHAR(255) NOT NULL,
+    "app" VARCHAR(100) NOT NULL,
+    "content" JSON NOT NULL
+);"""
 
 
 async def downgrade(db: BaseDBAsyncClient) -> str:
     return """
-        ALTER TABLE "user" DROP COLUMN "largest_player_count_won";"""
+        """
 
 
 MODELS_STATE = (
