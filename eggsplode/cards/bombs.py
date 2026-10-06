@@ -52,18 +52,18 @@ async def game_over(game: "Game", interaction: discord.Interaction | None):
     winner = game.players[0]
     games_won = await database.increase_games_won(winner)
     unlocked_achievement = None
-    if game.config.get("recipe_id") == "classic":
-        if len(game.hands[winner]) == 0:
-            if await database.set_user_won_classic_without_cards(winner):
-                unlocked_achievement = "last_blood"
-        if game.hands[winner] and len(game.hands[winner]) >= 10:
-            if (
-                await database.set_user_most_cards_won_classic(
-                    winner, len(game.hands[winner])
-                )
-                < 10
-            ):
-                unlocked_achievement = "hoarder"
+    if game.config.get("recipe_id") == "classic" and game.hands.get(winner) is not None:
+        winner_hand_len = len(game.hands[winner])
+        if winner_hand_len == 0 and await database.set_user_won_classic_without_cards(
+            winner
+        ):
+            unlocked_achievement = "last_blood"
+        if (
+            await database.set_user_most_cards_won_classic(winner, winner_hand_len)
+            < 10
+            <= winner_hand_len
+        ):
+            unlocked_achievement = "hoarder"
         if winner not in game.defusers:
             if await database.set_user_won_classic_without_defuse(winner):
                 unlocked_achievement = "safe"
