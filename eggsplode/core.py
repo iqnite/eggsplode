@@ -136,7 +136,7 @@ class Game:
             self.deck.append("eggsplode")
 
     def trim_deck(self, max_deck_size: int | None = None):
-        if not max_deck_size:
+        if max_deck_size is None:
             return
         max_deck_size = int(max_deck_size)
         # Prevent infinite loop if no more cards can be removed
