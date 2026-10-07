@@ -340,7 +340,9 @@ class SettingsModal(discord.ui.DesignerModal):
                     style=discord.InputTextStyle.long,
                 ),
             }
-
+        self.add_item(
+            discord.ui.TextDisplay(format_message("balancing_settings_deck_size"))
+        )
         for i in self.inputs.values():
             self.add_item(discord.ui.Label(i["label"], i["input"]))
 
