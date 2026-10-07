@@ -45,6 +45,19 @@ class UserCardUsage(Model):
         unique_together = (("user", "card"),)
 
 
+class Recipe(Model):
+    id = fields.BigIntField(pk=True)
+    json_data = fields.JSONField()
+
+
+class UserRecipe(Model):
+    user = fields.ForeignKeyField("models.User", related_name="recipes")
+    recipe = fields.ForeignKeyField("models.Recipe")
+
+    class Meta:  # type: ignore
+        unique_together = (("user", "recipe"),)
+
+
 def db_operation(func):
     @wraps(func)
     async def wrapper(*args, **kwargs):
@@ -267,3 +280,28 @@ async def set_user_largest_player_count_won(user_id: int, count: int) -> int:
     user.largest_player_count_won = count
     await user.save()
     return previous_count
+
+
+@db_operation
+async def get_user_recipes(user_id: int) -> list[Recipe]:
+    user = await get_user(user_id)
+    user_recipes = await UserRecipe.filter(user=user).prefetch_related("recipe")
+    return [ur.recipe for ur in user_recipes]
+
+
+@db_operation
+async def add_user_recipe(user_id: int, recipe_json: dict) -> Recipe:
+    user = await get_user(user_id)
+    recipe = await Recipe.create(json_data=recipe_json)
+    await UserRecipe.create(user=user, recipe=recipe)
+    return recipe
+
+
+@db_operation
+async def remove_user_recipe(user_id: int, recipe_id: int) -> bool:
+    user = await get_user(user_id)
+    user_recipe = await UserRecipe.get_or_none(user=user, recipe_id=recipe_id)
+    if user_recipe:
+        await user_recipe.delete()
+        return True
+    return False

@@ -93,6 +93,7 @@
     "end_game_button": "Yes, end now",
     "end_game_permission_denied": "❌ You don't have permission to interact with this view!",
     "end_game_warning": "⚠️ **This will end the game and remove all players from it.**\nAre you sure you want to end the game?",
+    "favorite_recipe": "Show recipe in main menu",
     "file_send_error": "❌ An error occurred. Please check the file path and size and try again.",
     "funding_title": "**Enjoyed the game?**",
     "game_already_exists": "❌ This channel already has an active game! If you are an administrator, you can use </end:1378720596153860261> to end it and start a new one.",
