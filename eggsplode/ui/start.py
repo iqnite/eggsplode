@@ -156,11 +156,17 @@ class StartGameView(BaseView):
     async def remove_player(self, user_id: int):
         if not self.message:
             return
+        need_to_reload = self.game.config["players"].index(user_id) == 0
         self.game.config["players"].remove(user_id)
         self.players_display.content = self.game.player_list
         if not self.game.config["players"]:
             self.title.content = format_message("game_cancelled")
             await self.game.events.game_end()
+            need_to_reload = False
+        if need_to_reload:
+            if self.game.config["recipe_id"] not in default_recipes:
+                self.game.config["recipe_id"] = ""
+            await self.load_data()
         await self.message.edit(view=self)
 
     def terminate_view(self):
