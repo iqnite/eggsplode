@@ -219,7 +219,10 @@ class StartGameView(BaseView):
             discord.SelectOption(
                 value=id,
                 label=recipe.get("name") or f"Custom Recipe {i+1}",
-                description=(recipe.get("description") or "User-created recipe")[:99],
+                description=(
+                    recipe.get("description")
+                    or format_message("custom_recipe_description")
+                )[:99],
                 emoji=replace_emojis(recipe.get("emoji") or "✏️"),
                 default=id == self.game.config["recipe_id"],
             )

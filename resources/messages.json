@@ -57,6 +57,7 @@
     "command_success": "✅ Command executed successfully!",
     "confirm_button": "Confirm",
     "ctx_profile_name": "View Profile",
+    "custom_recipe_description": "Save your custom recipe here!",
     "death_messages": [
         "*Get used to it, this won't be the last time.*",
         "*One minute of commemoration, please... Alright, who's coming to my party tonight?*",
