@@ -224,7 +224,7 @@ class StartGameView(BaseView):
         return [
             discord.SelectOption(
                 value=id,
-                label=recipe.get("name")[:90] or f"Custom Recipe {i+1}",
+                label=(recipe.get("name") or f"Custom Recipe {i+1}")[:90],
                 description=(
                     recipe.get("description")
                     or format_message("custom_recipe_description")
