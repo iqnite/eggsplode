@@ -59,6 +59,7 @@ class StartGameView(BaseView):
         self.game.events.game_end += self.terminate_view
         self.game.config["recipe_id"] = "classic"
         self.game.config["recipe"] = default_recipes["classic"]
+        self.recipes = default_recipes
 
         self.header = discord.ui.Section()
         self.title = discord.ui.TextDisplay(format_message("start"))
@@ -99,7 +100,7 @@ class StartGameView(BaseView):
             accessory=self.help_button,
         )
         self.recipe_select = discord.ui.Select(
-            options=self.recipe_options,
+            options=[],
             placeholder=format_message("recipe_custom_placeholder"),
             min_values=1,
             max_values=1,
@@ -199,17 +200,33 @@ class StartGameView(BaseView):
     async def help(self, interaction: discord.Interaction):
         await interaction.respond(view=HelpView(), ephemeral=True)
 
-    @property
-    def recipe_options(self) -> list[discord.SelectOption]:
+    async def load_data(self):
+        user_recipes = await database.get_user_recipes(self.game.config["players"][0])
+        for i in range(4):
+            recipe_id = f"custom_{self.game.config['players'][0]}_{i}"
+            if recipe_id in user_recipes:
+                continue
+            user_recipes[recipe_id] = default_recipes["classic"] | {
+                "name": f"Custom Recipe {i+1}",
+                "description": None,
+                "emoji": None,
+            }
+        self.recipes = default_recipes | user_recipes
+        self.recipe_select.options = self.get_recipe_options(self.recipes)
+
+    def get_recipe_options(self, recipes: dict) -> list[discord.SelectOption]:
         return [
             discord.SelectOption(
                 value=id,
-                label=recipe["name"],
-                description=recipe["description"][:99],
-                emoji=replace_emojis(recipe["emoji"]),
+                label=recipe.get("name") or f"Custom Recipe {i+1}",
+                description=(
+                    recipe.get("description")
+                    or format_message("custom_recipe_description")
+                )[:99],
+                emoji=replace_emojis(recipe.get("emoji") or "✏️"),
                 default=id == self.game.config["recipe_id"],
             )
-            for id, recipe in default_recipes.items()
+            for i, (id, recipe) in enumerate(recipes.items())
         ]
 
     async def recipe_callback(self, interaction: discord.Interaction):
@@ -218,8 +235,8 @@ class StartGameView(BaseView):
             if not self.recipe_select.values:
                 return
             recipe_id = self.game.config["recipe_id"] = self.recipe_select.values[0]
-            self.game.config["recipe"] = default_recipes[recipe_id]
-        self.recipe_select.options = self.recipe_options
+            self.game.config["recipe"] = self.recipes[recipe_id]
+        self.recipe_select.options = self.get_recipe_options(self.recipes)
         await interaction.edit(view=self)
 
     async def advanced_settings(self, interaction: discord.Interaction):
@@ -257,9 +274,9 @@ class EditRecipeModal(discord.ui.DesignerModal):
         self.add_item(self.recipe_input_label)
 
     async def callback(self, interaction: discord.Interaction):
+        if interaction.user is None:
+            return
         if self.recipe_input.value == format_message("xx"):
-            if interaction.user is None:
-                return
             await database.set_user_cheated(interaction.user.id)
             await interaction.response.send_message(
                 view=TextView(
@@ -291,8 +308,14 @@ class EditRecipeModal(discord.ui.DesignerModal):
             )
             return
         self.game.config["recipe"] = json.loads(recipe_json)
-        self.game.config["recipe_id"] = ""
-        self.parent_view.recipe_select.options = self.parent_view.recipe_options
+        recipe_id = self.game.config["recipe_id"]
+        if recipe_id and recipe_id not in default_recipes:
+            await database.set_user_recipe(
+                interaction.user.id, recipe_id, self.game.config["recipe"]
+            )
+        else:
+            self.game.config["recipe_id"] = ""
+        await self.parent_view.load_data()
         await interaction.followup.edit_message(
             self.parent_message.id, view=self.parent_view
         )
