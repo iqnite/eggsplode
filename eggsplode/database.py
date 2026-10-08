@@ -46,7 +46,7 @@ class UserCardUsage(Model):
 
 
 class Recipe(Model):
-    id = fields.BigIntField(pk=True)
+    id = fields.CharField(primary_key=True, max_length=128)
     json_data = fields.JSONField()
 
 
@@ -283,25 +283,31 @@ async def set_user_largest_player_count_won(user_id: int, count: int) -> int:
 
 
 @db_operation
-async def get_user_recipes(user_id: int) -> list[Recipe]:
+async def get_user_recipes(user_id: int) -> dict[str, dict]:
     user = await get_user(user_id)
     user_recipes = await UserRecipe.filter(user=user).prefetch_related("recipe")
-    return [ur.recipe for ur in user_recipes]
+    return {ur.recipe.id: ur.recipe.json_data for ur in user_recipes}
 
 
 @db_operation
-async def add_user_recipe(user_id: int, recipe_json: dict) -> Recipe:
+async def set_user_recipe(user_id: int, recipe_id: str, recipe_json: dict) -> Recipe:
     user = await get_user(user_id)
-    recipe = await Recipe.create(json_data=recipe_json)
-    await UserRecipe.create(user=user, recipe=recipe)
+    recipe = await Recipe.get_or_none(id=recipe_id)
+    if recipe is None:
+        recipe = await Recipe.create(id=recipe_id, json_data=recipe_json)
+        await UserRecipe.get_or_create(user=user, recipe=recipe)
+    else:
+        recipe.json_data = recipe_json
+        await recipe.save()
     return recipe
 
 
 @db_operation
-async def remove_user_recipe(user_id: int, recipe_id: int) -> bool:
+async def remove_user_recipe(user_id: int, recipe_id: str) -> bool:
     user = await get_user(user_id)
     user_recipe = await UserRecipe.get_or_none(user=user, recipe_id=recipe_id)
     if user_recipe:
         await user_recipe.delete()
+        await Recipe.filter(id=recipe_id).delete()
         return True
     return False

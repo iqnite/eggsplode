@@ -152,4 +152,5 @@ class EggsplodeApp(discord.Bot):
         game.last_interaction = interaction
         logger.info("Game %s: Created.", game_id)
         view = StartGameView(game)
+        await view.load_data()
         await interaction.respond(view=view)
