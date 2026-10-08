@@ -58,7 +58,7 @@ class EggsplodeApp(discord.Bot):
         logger.exception("in %s", event_method, exc_info=True)
 
     async def handle_view_error(
-        self, error: Exception, item: discord.ui.Item, _
+        self, error: Exception, item: discord.ui.Item, *_, **__
     ) -> None:
         logger.exception(
             "in view %s item %s: %s",
@@ -69,18 +69,24 @@ class EggsplodeApp(discord.Bot):
         )
 
     async def handle_modal_error(
-        self, error: Exception, modal: discord.ui.Modal, _
+        self, error: Exception, modal: discord.ui.Modal, *_, **__
     ) -> None:
         logger.exception("in modal %s: %s", modal, error, exc_info=error)
 
     async def handle_application_command_error(
-        self, context: discord.ApplicationContext, exception: discord.DiscordException
+        self,
+        context: discord.ApplicationContext,
+        exception: discord.DiscordException,
+        *_,
+        **__
     ) -> None:
         logger.exception(
             "in command %s: %s", context.command, exception, exc_info=exception
         )
 
-    async def handle_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+    async def handle_raw_reaction_add(
+        self, payload: discord.RawReactionActionEvent, *_, **__
+    ):
         if self.user and payload.user_id == self.user.id:
             return
         if payload.emoji.name not in ("🫡", "🇫"):

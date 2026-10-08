@@ -72,6 +72,14 @@ class Game:
             recipe = json.loads(recipe)
         if not isinstance(recipe, dict):
             raise TypeError(f"Recipe must be a dict, but is a {type(recipe)}")
+        emoji = recipe.get("emoji")
+        if (
+            emoji
+            and emoji not in discord.utils.EMOJIS_MAP
+            and emoji not in discord.utils.EMOJIS_MAP.values()
+            and emoji not in discord.utils.UNICODE_EMOJIS
+        ):
+            raise ValueError(f"Recipe emoji '{emoji}' is not a valid emoji")
 
         self.recipe_cards = recipe.get("cards", {})
         self.players = list(self.config["players"])
@@ -86,17 +94,7 @@ class Game:
                 cards_to_add = [card] * info * self.card_multiplier(5)
                 hand_out_pool += cards_to_add
             else:
-                # Handle automatic card amount
-                if "auto_amount" in info:
-                    cards_to_add = [card] * max(
-                        0, len(self.players) + info["auto_amount"]
-                    )
-                else:
-                    cards_to_add = (
-                        [card]
-                        * info.get("amount", 0)
-                        * self.card_multiplier(info.get("expand_beyond", 5))
-                    )
+                cards_to_add = self.handle_auto_amount(card, info)
 
                 if "hand_out" in info:
                     self.deck += cards_to_add
@@ -116,6 +114,15 @@ class Game:
         self.trim_deck(self.config.get("deck_size", recipe.get("deck_size", None)))
         self.ensure_minimum_eggsplode()
         self.shuffle_deck()
+
+    def handle_auto_amount(self, card, info):
+        if "auto_amount" in info:
+            return [card] * max(0, len(self.players) + info["auto_amount"])
+        return (
+            [card]
+            * info.get("amount", 0)
+            * self.card_multiplier(info.get("expand_beyond", 5))
+        )
 
     def hand_out(self, recipe: dict, hand_out_pool: list):
         max_cards_per_player = min(

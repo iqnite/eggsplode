@@ -187,6 +187,12 @@ class TestRecipeLoading(unittest.TestCase):
             with self.assertRaises(COVERED_RECIPE_EXCEPTIONS):
                 self.game.load_recipe(recipe)
 
+    def test_emojis(self):
+        self.game.load_recipe(r'{"cards": {}, "emoji": "🫡"}')
+        self.game.load_recipe(r'{"cards": {}, "emoji": "poop"}')
+        with self.assertRaises(ValueError):
+            self.game.load_recipe(r'{"cards": {}, "emoji": "not emoji"}')
+
 
 class TestGameSend(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
