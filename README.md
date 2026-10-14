@@ -16,6 +16,8 @@ Eggsplode is the Discord adaptation of the **Exploding Kittens** card game, a hi
   - Chill out and watch the others kill each other? Or jump right into the mix and set everything on fire?
 - Fine-tune your games with recipes and expansions!
   - Danger Mode? Eggzilla? Eye for an Eye? Or maybe just a classic round...
+- Earn achievements and compete with others!
+  - Show off your wins and watch the numbers go up!
 - Entirely on Discord, with no player limits!
   - Suddenly your 500 server members want to play? We got it, buddy.
 - **Lots of easter eggs, surprises, secrets, and bad jokes...**
@@ -39,7 +41,7 @@ Parts of the code review and debugging process were assisted by GitHub Copilot.
 ## Installing
 
 > [!NOTE]
-> This guide is for installing Eggsplode on your own machine. If you want to install it on a Discord server, please follow the [installation link](https://iqnite.github.io/eggsplode/install.html)
+> This guide is for installing Eggsplode on your own machine. If you want to install it on a Discord server, please follow the [installation link](https://iqnite.github.io/eggsplode/install.html).
 
 ### 1. Bot Setup
 
