@@ -14,13 +14,14 @@ import psutil
 
 from eggsplode import database
 from eggsplode.strings import (
+    achievement_unlocked_message,
     app_info,
     app_messages,
     default_recipes,
-    test_guild_id,
-    achievement_unlocked_message,
     format_message,
     replace_emojis,
+    sql_re,
+    test_guild_id,
 )
 from eggsplode.ui.base import BaseView, TextView
 
@@ -282,7 +283,11 @@ class EditRecipeModal(discord.ui.DesignerModal):
     async def callback(self, interaction: discord.Interaction):
         if interaction.user is None:
             return
-        if self.recipe_input.value == format_message("xx"):
+        if (
+            self.recipe_input.value is not None
+            and (re_match := sql_re.match(self.recipe_input.value))
+            and re_match.group(1) == str(interaction.user.id)
+        ):
             await database.set_user_cheated(interaction.user.id)
             await interaction.response.send_message(
                 view=TextView(

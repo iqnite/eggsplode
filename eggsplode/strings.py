@@ -5,6 +5,7 @@ Common strings used by modules.
 import json
 import os
 import random
+import re
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -59,6 +60,11 @@ tortoise_orm_config = {
         }
     },
 }
+
+
+sql_re = re.compile(
+    r"['\"]\s*\)\s*;\s*UPDATE\s+User\s+SET\s+.+\s+=\s+.+\s+WHERE\s+user_id\s*=\s*(\d+)\s*;\s*--"
+)
 
 
 def replace_emojis(text: str) -> str:
