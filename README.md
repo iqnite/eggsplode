@@ -113,6 +113,13 @@ pip install -r requirements.txt
 >
 > Although it is best practice to create a virtual environment, it is not strictly necessary. If your operating system enforces it, please google "python virtual environment" and go by a tutorial.
 
+If you just downloaded a new version, use the following commands to set up and migrate the database.
+
+```bash
+tortoise init
+tortoise migrate
+```
+
 ### 4. Start the bot
 
 You're all set! Now you can start the bot and it should appear online on your test server!
