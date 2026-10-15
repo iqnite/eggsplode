@@ -4,7 +4,7 @@ With support from [Hack Club](https://hackclub.com/).
 
 The Discord adaptation of the Exploding Kittens card game! During your turn, you draw a card. If it's an Eggsplode card, you lose! Use all the other cards to attack, steal, defuse, survive, and win!
 
-[🤖 **Install**](https://iqnite.github.io/eggsplode/install.html) | [🗨️ **Support and community server**](https://iqnite.github.io/eggsplode/discord.html) | [🌐 **Website**](https://iqnite.github.io/eggsplode/)
+[🤖 **Install**](https://iqnite.github.io/eggsplode/install) | [🗨️ **Support and community server**](https://iqnite.github.io/eggsplode/discord) | [🌐 **Website**](https://iqnite.github.io/eggsplode/)
 
 ![Banner](https://iqnite.github.io/images/eggsplode_banner.png)
 
@@ -41,7 +41,7 @@ Parts of the code review and debugging process were assisted by GitHub Copilot.
 ## Installing
 
 > [!NOTE]
-> This guide is for installing Eggsplode on your own machine. If you want to install it on a Discord server, please follow the [installation link](https://iqnite.github.io/eggsplode/install.html).
+> This guide is for installing Eggsplode on your own machine. If you want to install it on a Discord server, please follow the [installation link](https://iqnite.github.io/eggsplode/install).
 
 ### 1. Bot Setup
 
