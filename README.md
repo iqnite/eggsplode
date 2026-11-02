@@ -41,7 +41,7 @@ Parts of the code review and debugging process were assisted by GitHub Copilot.
 ## Installing
 
 > [!NOTE]
-> This guide is for installing Eggsplode on your own machine. If you want to install it on a Discord server, please follow the [installation link](https://iqnite.github.io/eggsplode/install).
+> This guide is for hosting Eggsplode on your own machine. If you want to install it on a Discord server, please follow the [installation link](https://iqnite.github.io/eggsplode/install).
 
 ### 1. Bot Setup
 
