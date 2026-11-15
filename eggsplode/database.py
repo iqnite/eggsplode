@@ -311,3 +311,8 @@ async def remove_user_recipe(user_id: int, recipe_id: str) -> bool:
         await Recipe.filter(id=recipe_id).delete()
         return True
     return False
+
+
+@db_operation
+async def get_len_users() -> int:
+    return await User.all().count()
