@@ -71,7 +71,7 @@ def db_operation(func):
 
 
 async def init():
-    logger.info("Initializing database...")
+    logger.info("Initializing database.")
     await Tortoise.init(config=tortoise_orm_config, _enable_global_fallback=True)
 
 
