@@ -216,7 +216,7 @@
     "link_support_url": "https://buymeacoffee.com/phorb",
     "link_vote_label": "Vote on top.gg",
     "link_vote_url": "https://top.gg/bot/1325443178622484590/vote",
-    "link_website_label": "Website",
+    "link_website_label": "Other projects",
     "link_website_url": "https://iqnite.github.io/",
     "list_games_item": "- <#{}>",
     "list_games_title": "📋 **Games:**\n{}",

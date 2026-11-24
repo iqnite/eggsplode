@@ -508,15 +508,15 @@ class InfoLinkRow(discord.ui.ActionRow):
             )
         ).add_item(
             discord.ui.Button(
-                label=format_message("link_website_label"),
-                url=format_message("link_website_url"),
-                emoji=replace_emojis("🌐"),
-            )
-        ).add_item(
-            discord.ui.Button(
                 label=format_message("link_official_server_label"),
                 url=format_message("link_official_server_url"),
                 emoji=replace_emojis("💬"),
+            )
+        ).add_item(
+            discord.ui.Button(
+                label=format_message("link_website_label"),
+                url=format_message("link_website_url"),
+                emoji=replace_emojis("🌐"),
             )
         ).add_item(
             discord.ui.Button(
